@@ -1,0 +1,24 @@
+# Example config — demonstrates the config-driven contract (CLAUDE.md).
+# Every experiment is one YAML like this. No model names / paths / seeds live in code.
+# ${DATA_ROOT} and ${HF_HOME} are expanded from the environment by utils.config.
+
+experiment: example_m0
+seed: 0
+
+paths:
+  data_root: ${DATA_ROOT}
+  hf_home: ${HF_HOME}
+  activations: ${DATA_ROOT}/activations
+  stimuli: ${DATA_ROOT}/stimuli
+
+# GPU guard (utils.gpu). Occupancy threshold is config-driven, not hardcoded.
+gpu:
+  mem_threshold_mib: 1024   # a device with >1 GiB resident counts as occupied
+
+# Experiment tracking (utils.logging). Default CSV; flip to wandb when the M5 grid lands.
+tracking:
+  backend: csv              # csv | wandb | none
+  dir: ${DATA_ROOT}/runs
+  project: vsr              # used by the wandb backend
+  entity: null              # fill in when enabling wandb
+  run_name: null

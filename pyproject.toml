@@ -1,0 +1,80 @@
+[project]
+name = "vsr"
+version = "0.1.0"
+description = "Mechanistic study of where metric spatial information is lost in VLMs (the vision->text-token binding bottleneck)."
+readme = "README.md"
+# bpy wheels are pinned to CPython 3.11 (see IMPLEMENTATION_PLAN gotchas). Keep the
+# floor at 3.11 so the stimuli renderer stays installable; upper bound leaves room
+# for 3.12 on analysis-only machines. .python-version pins the default venv to 3.11.
+requires-python = ">=3.11,<3.13"
+
+# Core deps: needed by schemas, config, io, seeding on ANY machine (incl. a laptop
+# with no GPU). Kept minimal and pure-Python so `uv sync` with no extras is fast.
+dependencies = [
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# --- GPU / server only. Model loading, hooks, pooling, caching (extract/, interventions/). ---
+extract = [
+    "torch>=2.2",
+    "transformers>=4.44",
+    "accelerate>=0.30",
+    "safetensors>=0.4",
+    "pillow>=10.0",
+    "einops>=0.8",
+    "sentencepiece>=0.2",
+    # NOTE: flash-attn is intentionally NOT listed. It needs build isolation disabled
+    # (see [tool.uv] below) and a matching CUDA toolchain; models run fine with eager/
+    # sdpa attention. Add it per-model when a checkpoint benefits, not by default.
+]
+
+# --- CPU / laptop. Probing, analysis, plotting. Reads cached features from disk. ---
+analysis = [
+    "scikit-learn>=1.4",
+    "pandas>=2.2",
+    "pyarrow>=15.0",     # parquet for the tidy probe-result + cache-meta tables
+    "scipy>=1.12",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "wandb>=0.17",       # optional tracking backend; the logger imports it lazily,
+                         # so CSV-only users never need it installed.
+]
+
+# --- Stimulus generation. Renderer (bpy vs pyrender) is decided at M1.1 and added
+#     then; this group holds only the renderer-agnostic geometry/IO deps for now. ---
+stimuli = [
+    "trimesh>=4.0",
+    "pillow>=10.0",
+    "imageio>=2.34",
+]
+
+# --- Dev tooling. ---
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sbind"]
+
+[tool.uv]
+# Pre-configured so a future `uv add flash-attn` builds correctly on the server
+# without re-diagnosing the build-isolation gotcha.
+no-build-isolation-package = ["flash-attn"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
