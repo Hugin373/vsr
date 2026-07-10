@@ -20,5 +20,5 @@ tracking:
   backend: csv              # csv | wandb | none
   dir: ${DATA_ROOT}/runs
   project: vsr              # used by the wandb backend
-  entity: null              # fill in when enabling wandb
+  entity: chaso-hosei-university   # wandb entity (login cached in ~/.netrc)
   run_name: null
