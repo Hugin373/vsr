@@ -1,0 +1,327 @@
+"""bpy renderer: SceneSpec -> rendered image + per-object masks + §3 StimulusAnnotation.
+
+[Requires the ``stimuli`` extra — imports bpy.] Rendered headless with Cycles on CPU.
+
+Two renders per scene:
+  1. Beauty pass — Principled BSDF materials, config-many samples, 'Standard' view
+     transform. This is the stimulus image.
+  2. ID pass — each object gets a flat Emission material of a unique pure colour, ground
+     black, 1 sample, near-zero pixel filter, 'Raw' view transform (no tone mapping) so
+     the saved PNG holds exact colours. Per-object masks are recovered by colour match.
+
+The Blender camera's world matrix is set directly from geometry.look_at_rotation, so the
+K[R|t] this pipeline stores matches Blender's rasterisation to sub-pixel (test:
+tests/test_render_consistency.py asserts projected centres land within 2 px of rendered
+mask centroids).
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+from ..schemas import Camera, ObjectAnnotation, PairRelation, StimulusAnnotation
+from ..utils.io import ensure_dir
+from . import geometry
+from .scene_spec import SceneSpec
+
+try:
+    import bpy
+    import mathutils
+
+    HAS_BPY = True
+except ImportError:  # pragma: no cover - import guard for the analysis env
+    bpy = None
+    mathutils = None
+    HAS_BPY = False
+
+# Distinct pure colours for the ID pass (up to 6 objects). Ground/background are black.
+_ID_COLORS = [
+    (1.0, 0.0, 0.0),
+    (0.0, 1.0, 0.0),
+    (0.0, 0.0, 1.0),
+    (1.0, 1.0, 0.0),
+    (1.0, 0.0, 1.0),
+    (0.0, 1.0, 1.0),
+]
+
+
+def _require_bpy() -> None:
+    if not HAS_BPY:
+        raise RuntimeError(
+            "render_bpy requires bpy. Sync the stimuli extra: "
+            "`uv sync --extra stimuli` (or add --extra stimuli to your run)."
+        )
+
+
+def _reset_scene():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene = bpy.context.scene
+    # the empty factory scene has no world; create one so both passes can set the sky
+    world = bpy.data.worlds.new("World")
+    world.use_nodes = True
+    scene.world = world
+    return scene
+
+
+def _add_ground(color):
+    bpy.ops.mesh.primitive_plane_add(size=50.0, location=(0, 0, 0))
+    plane = bpy.context.active_object
+    plane.name = "ground"
+    mat = bpy.data.materials.new("ground_mat")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.9
+    plane.data.materials.append(mat)
+    return plane
+
+
+def _add_object(obj_spec, idx: int):
+    cat = obj_spec.category
+    s = obj_spec.size_m
+    loc = tuple(obj_spec.pos_world)
+    if cat == "cube":
+        bpy.ops.mesh.primitive_cube_add(size=s, location=loc)
+    elif cat == "sphere":
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=s / 2.0, location=loc)
+    elif cat == "cylinder":
+        bpy.ops.mesh.primitive_cylinder_add(radius=s / 2.0, depth=s, location=loc)
+    else:
+        raise ValueError(f"unknown category: {cat!r}")
+    ob = bpy.context.active_object
+    ob.name = f"obj{idx}_{obj_spec.name}"
+    # smooth spheres/cylinders a touch for a cleaner beauty render
+    if cat in ("sphere", "cylinder"):
+        bpy.ops.object.shade_smooth()
+
+    mat = bpy.data.materials.new(f"mat_obj{idx}")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (*obj_spec.color, 1.0)
+    bsdf.inputs["Roughness"].default_value = 0.5
+    ob.data.materials.append(mat)
+    return ob
+
+
+def _emission_material(name, color):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    em = nt.nodes.new("ShaderNodeEmission")
+    em.inputs["Color"].default_value = (*color, 1.0)
+    em.inputs["Strength"].default_value = 1.0
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    nt.links.new(em.outputs["Emission"], out.inputs["Surface"])
+    return mat
+
+
+def _add_camera(scene, spec: SceneSpec):
+    K, R, t, r_cw = geometry.camera_frame(
+        spec.camera.pos_world,
+        spec.camera.target_world,
+        spec.camera.f_mm,
+        spec.camera.sensor_width_mm,
+        spec.camera.res_x,
+        spec.camera.res_y,
+    )
+    cam_data = bpy.data.cameras.new("Camera")
+    cam_data.lens = spec.camera.f_mm
+    cam_data.sensor_fit = "HORIZONTAL"
+    cam_data.sensor_width = spec.camera.sensor_width_mm
+    cam_data.shift_x = 0.0
+    cam_data.shift_y = 0.0
+    cam = bpy.data.objects.new("Camera", cam_data)
+    scene.collection.objects.link(cam)
+
+    mat = mathutils.Matrix.Identity(4)
+    for r in range(3):
+        for c in range(3):
+            mat[r][c] = float(r_cw[r][c])
+    for r in range(3):
+        mat[r][3] = float(spec.camera.pos_world[r])
+    cam.matrix_world = mat
+    scene.camera = cam
+    return K, R, t
+
+
+def _add_sun(scene, spec: SceneSpec):
+    light_data = bpy.data.lights.new("Sun", type="SUN")
+    light_data.energy = spec.sun_energy
+    light = bpy.data.objects.new("Sun", light_data)
+    scene.collection.objects.link(light)
+    d = np.asarray(spec.sun_direction, dtype=float)
+    d = d / (np.linalg.norm(d) + 1e-9)
+    # point the sun so it shines from sun_direction toward the origin
+    z = d  # sun local -Z is the light direction; +Z points back toward the source
+    up = np.array([0.0, 0.0, 1.0])
+    x = np.cross(up, z)
+    if np.linalg.norm(x) < 1e-6:
+        x = np.array([1.0, 0.0, 0.0])
+    x = x / np.linalg.norm(x)
+    y = np.cross(z, x)
+    m = mathutils.Matrix.Identity(4)
+    for r in range(3):
+        m[r][0], m[r][1], m[r][2] = float(x[r]), float(y[r]), float(z[r])
+    light.matrix_world = m
+    return light
+
+
+def _configure_beauty(scene, render_cfg):
+    scene.render.engine = render_cfg.get("engine", "CYCLES")
+    scene.render.resolution_x = int(render_cfg["res_x"])
+    scene.render.resolution_y = int(render_cfg["res_y"])
+    scene.render.resolution_percentage = 100
+    scene.render.pixel_aspect_x = 1.0
+    scene.render.pixel_aspect_y = 1.0
+    scene.render.image_settings.file_format = "PNG"
+    if scene.render.engine == "CYCLES":
+        scene.cycles.device = render_cfg.get("device", "CPU")
+        scene.cycles.samples = int(render_cfg.get("samples", 32))
+        scene.cycles.seed = int(render_cfg.get("cycles_seed", 0))
+        scene.cycles.use_denoising = bool(render_cfg.get("denoise", True))
+    scene.view_settings.view_transform = "Standard"
+    scene.render.film_transparent = False
+
+
+def _render_to(scene, path):
+    scene.render.filepath = str(path)
+    bpy.ops.render.render(write_still=True)
+
+
+def _load_rgb(path) -> np.ndarray:
+    with Image.open(path) as im:
+        return np.asarray(im.convert("RGB"))
+
+
+def _render_id_pass(scene, objects, tmp_path) -> list[np.ndarray]:
+    """Swap to emission materials, render a flat ID pass, return per-object bool masks."""
+    id_colors = _ID_COLORS[: len(objects)]
+    for i, ob in enumerate(objects):
+        idmat = _emission_material(f"id_{i}", id_colors[i])
+        ob.data.materials.clear()
+        ob.data.materials.append(idmat)
+    # crisp, un-tone-mapped, single-sample render
+    scene.cycles.samples = 1
+    scene.cycles.use_denoising = False
+    # near-zero box pixel filter -> point sampling, so ID colours stay crisp (no AA bleed)
+    scene.cycles.pixel_filter_type = "BOX"
+    scene.cycles.filter_width = 0.01
+    scene.view_settings.view_transform = "Raw"
+    scene.world.use_nodes = True
+    bg = scene.world.node_tree.nodes.get("Background")
+    if bg is not None:
+        bg.inputs["Color"].default_value = (0.0, 0.0, 0.0, 1.0)
+    _render_to(scene, tmp_path)
+
+    rgb = _load_rgb(tmp_path).astype(np.int16)
+    masks = []
+    for c in id_colors:
+        target = np.array([round(c[0] * 255), round(c[1] * 255), round(c[2] * 255)])
+        dist = np.abs(rgb - target).sum(axis=2)
+        masks.append(dist < 60)  # tolerant colour match; ID colours are far apart
+    return masks
+
+
+def _mask_geometry(mask: np.ndarray):
+    """Return (bbox_px [x0,y0,x1,y1], height_px) from a boolean mask, or None if empty."""
+    ys, xs = np.nonzero(mask)
+    if xs.size == 0:
+        return None
+    x0, x1 = float(xs.min()), float(xs.max())
+    y0, y1 = float(ys.min()), float(ys.max())
+    return [x0, y0, x1 + 1.0, y1 + 1.0], (y1 - y0 + 1.0)
+
+
+def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotation:
+    """Render one scene: writes images/<id>.png + masks/<id>_obj*.png, returns annotation."""
+    _require_bpy()
+    out_dir = Path(out_dir)
+    img_dir = ensure_dir(out_dir / "images")
+    mask_dir = ensure_dir(out_dir / "masks")
+
+    scene = _reset_scene()
+    _add_ground(spec.ground_color)
+    objects = [_add_object(o, i) for i, o in enumerate(spec.objects)]
+    K, R, t = _add_camera(scene, spec)
+    _add_sun(scene, spec)
+    _configure_beauty(scene, render_cfg)
+
+    img_path = img_dir / f"{spec.id}.png"
+    _render_to(scene, img_path)
+
+    tmp_id = out_dir / f".{spec.id}_id.png"
+    masks = _render_id_pass(scene, objects, tmp_id)
+    if tmp_id.exists():
+        os.remove(tmp_id)
+
+    obj_anns: list[ObjectAnnotation] = []
+    for i, o in enumerate(spec.objects):
+        p_world = np.asarray(o.pos_world, dtype=float)
+        uvd = geometry.project(K, R, t, p_world)
+        pos_cam = (R @ p_world + t).tolist()
+        depth_m = float(uvd[2])
+        # elevation_px = v-pixel of the ground-contact point below the object centre
+        # (the "relative height" depth cue). Strictly monotonic with depth on the ground
+        # plane, and the quantity M4's elevation-conflict condition will manipulate.
+        base_world = np.array([p_world[0], p_world[1], 0.0])
+        elevation_px = float(geometry.project(K, R, t, base_world)[1])
+
+        mg = _mask_geometry(masks[i])
+        if mg is None:
+            bbox = [0.0, 0.0, 0.0, 0.0]
+            retinal = 0.0
+            mask_rel = None
+        else:
+            bbox, retinal = mg
+            mask_rel = f"masks/{spec.id}_obj{i}.png"
+            mask_img = Image.fromarray((masks[i] * 255).astype(np.uint8))
+            mask_img.save(mask_dir / f"{spec.id}_obj{i}.png")
+
+        obj_anns.append(
+            ObjectAnnotation(
+                name=o.name,
+                category=o.category,
+                size_m=o.size_m,
+                pos_world=p_world.tolist(),
+                pos_cam=pos_cam,
+                depth_m=depth_m,
+                bbox_px=bbox,
+                retinal_size_px=retinal,
+                elevation_px=elevation_px,
+                mask=mask_rel,
+            )
+        )
+
+    camera = Camera(K=K.tolist(), R=R.tolist(), t=t.tolist(), height_m=spec.camera.height_m)
+    pair_relations = _pair_relations(obj_anns)
+
+    return StimulusAnnotation(
+        id=spec.id,
+        image=f"images/{spec.id}.png",
+        camera=camera,
+        objects=obj_anns,
+        factors=dict(spec.factors),
+        pair_relations=pair_relations,
+    )
+
+
+def _pair_relations(objs: list[ObjectAnnotation]) -> dict[str, PairRelation]:
+    rels: dict[str, PairRelation] = {}
+    for i in range(len(objs)):
+        for j in range(i + 1, len(objs)):
+            di, dj = objs[i].depth_m, objs[j].depth_m
+            near, far = (di, dj) if di <= dj else (dj, di)
+            ordinal = f"{i}_closer" if di < dj else f"{j}_closer"
+            dist_ratio = float(far / near) if near > 1e-9 else float("inf")
+            dist_m = float(
+                np.linalg.norm(np.asarray(objs[i].pos_world) - np.asarray(objs[j].pos_world))
+            )
+            rels[f"({i},{j})"] = PairRelation(
+                ordinal_depth=ordinal, dist_ratio=dist_ratio, dist_m=dist_m
+            )
+    return rels

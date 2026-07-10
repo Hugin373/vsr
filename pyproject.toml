@@ -10,8 +10,12 @@ requires-python = ">=3.11,<3.13"
 
 # Core deps: needed by schemas, config, io, seeding on ANY machine (incl. a laptop
 # with no GPU). Kept minimal and pure-Python so `uv sync` with no extras is fast.
+# numpy is pinned <2.0 project-wide: bpy (stimuli extra) requires numpy<2, and the
+# analysis stack (scipy floor 1.26.4) + torch 2.13 both run fine under numpy 1.26.4
+# (ABI interop verified 2026-07-10). One numpy version keeps all extras co-installable
+# in a single environment — no stimuli/extract env isolation needed.
 dependencies = [
-    "numpy>=1.26",
+    "numpy>=1.26,<2.0",
     "pyyaml>=6.0",
 ]
 
@@ -42,9 +46,12 @@ analysis = [
                          # so CSV-only users never need it installed.
 ]
 
-# --- Stimulus generation. Renderer (bpy vs pyrender) is decided at M1.1 and added
-#     then; this group holds only the renderer-agnostic geometry/IO deps for now. ---
+# --- Stimulus generation. Renderer decided at M1.1 (2026-07-10): bpy (Blender 5.0
+#     Python module), rendered headless with Cycles on CPU. bpy is a ~357 MB prebuilt
+#     wheel (no compile, no system Blender); it requires numpy<2 (pinned above).
+#     trimesh is kept for CC0 mesh import at M4. ---
 stimuli = [
+    "bpy==5.0.1",
     "trimesh>=4.0",
     "pillow>=10.0",
     "imageio>=2.34",
