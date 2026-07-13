@@ -136,6 +136,7 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     # construction, and each cue has its own structural threshold (see the config):
     # height ~1.012, area ~1.096. 1.12 clears both with margin.
     min_depth_ratio = float(constraints.get("min_depth_ratio", 1.0))
+    ratio_floor_jitter = float(constraints.get("min_depth_ratio_jitter", 0.0))
     _, R_cv, t_cv, _ = geometry.camera_frame(
         cam_cfg["pos_world"],
         cam_cfg["target_world"],
@@ -215,8 +216,12 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
 
         # (b) Minimum depth ratio: makes every apparent-size cue congruent BY
         #     CONSTRUCTION rather than by luck of the seed (see config cue_constants).
+        #     The floor is JITTERED per image: clamping every under-floor pair to exactly
+        #     min_depth_ratio would pile ~28% of the set onto one value, putting a point
+        #     mass in the `ratio` regression target and creating ties that blunt Spearman.
         if min_depth_ratio > 1.0:
-            required_d_far = max(required_d_far, min_depth_ratio * d_near)
+            floor = min_depth_ratio * (1.0 + rng.uniform(0.0, ratio_floor_jitter))
+            required_d_far = max(required_d_far, floor * d_near)
 
         if abs(axis[1]) > 1e-9:
             far_y = (

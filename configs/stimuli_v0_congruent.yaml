@@ -89,6 +89,11 @@ constraints:
   # depth-ratio distribution — a confound a probe could exploit. Uniform keeps the depth
   # ratio independent of the shape pairing.
   min_depth_ratio: 1.18
+  # Jitter the floor per image over [1.18, 1.18*1.06] = [1.18, 1.251]. A hard clamp put
+  # ~28% of the set at exactly 1.180 — a point mass in the `ratio` regression target,
+  # whose ties blunt Spearman. Jittering restores a continuous target while keeping every
+  # image above the 1.158 worst-case area threshold.
+  min_depth_ratio_jitter: 0.06
 
 # Measured cue constants (from the calibrated v0 renders). Kept here for reuse by M4's
 # CONFLICT designs, which need to invert a cue on purpose by a known amount.
