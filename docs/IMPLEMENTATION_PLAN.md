@@ -39,20 +39,24 @@ data (NOT in git):
 
 Experiment tracking: wandb (or CSV + git-hash logging if the lab has no wandb). Every run logs config, git hash, seed.
 
-## 2. Data inventory (verified 2026-07-08)
+## 2. Data inventory (availability verified 2026-07-08; **downloaded + measured 2026-07-14 at M2**)
 
-| Dataset | Status | Use | Notes |
-|---|---|---|---|
-| What'sUp (`amitakamath/whatsup_vlms`) | ✅ MIT, images+JSON via Drive | qualitative positive control; real-image validation | auto-download flag in their repo |
-| CV-Bench (`nyu-visionx/CV-Bench`, HF) | ✅ Apache-2.0, 2,638 rows | real-image validation | viewer works, not gated |
-| VSI-Bench (`nyu-visionx/VSI-Bench`, HF) | ✅ Apache-2.0, 5.7 GB | validation layer | prefer ReVSI version below |
-| **ReVSI** (`3dlg-hcvc/ReVSI`, HF + GitHub) | ✅ Apache-2.0 | validation layer (corrected annotations, frame-budgeted) | use this over raw VSI-Bench; includes 3D re-annotations |
-| MindCube (`MLL-Lab/MindCube`, HF) | ✅ MIT, 21k Qs / 5.8 GB | validation layer | |
-| CausalSpatial (`Mwxinnn/CausalSpatial`, HF; code on GitHub) | ✅ MIT, ~3.4 GB parquet | validation layer (simulation-level) | GitHub README "coming soon" is stale — HF files exist |
-| DepthCues (`danier97/depthcues`, HF + GitHub) | ✅ MIT code, 3.5 GB data | encoder-level cue probing reference | ⚠ Perspective subset = annotations only, images from external source |
-| Kang synthetic grid + COCO-Spatial | ⚠ code-generated, not shipped | M3 reproduction | run their data engine; COCO must be downloaded separately; **no license — reimplement, don't copy** |
-| SynSpat3D (Wang & Gao) | ⚠ NOT released (code dump at `pittisl/vlm-latent-shaping`, no README/license) | pattern reproduction only | regenerate equivalent stimuli ourselves (our M1 generator covers this) |
-| Metric VQA (Ill-Posed by Design) | ❌ NOT released ("upon acceptance") | — | do not plan around it; re-check monthly |
+All under `$DATA_ROOT/external/<name>/`. Disk is **measured on disk after extraction**, and
+includes the retained source archives (so it exceeds the hub's download size — e.g. ReVSI
+is a 4.9 GB zip plus its extracted videos). **Total 20 GB against 7.8 TB free — a non-issue.**
+
+| Dataset | Status | Adapter | Items loaded | Disk | Notes |
+|---|---|---|---|---|---|
+| What'sUp (`amitakamath/whatsup_vlms`) | ✅ MIT, Google Drive | `whatsup` | 820 | 312 M | Controlled A (412 real photos) + B (408 CLEVR renders). 4 caption options; **first option is always correct** (upstream convention). ⚠ COCO/GQA-spatial subsets deferred to M3 (need COCO/GQA corpora) |
+| CV-Bench (`nyu-visionx/CV-Bench`) | ✅ Apache-2.0 | `cvbench` | 2,638 | 394 M | 2D (Count/Relation) + 3D (**Depth/Distance** — our primitive). Images embedded in parquet; target objects drawn as red/blue boxes |
+| VSI-Bench (`nyu-visionx/VSI-Bench`) | ⛔ **SKIPPED** | — | — | 0 | ReVSI ships its own videos + corrected annotations, so the raw benchmark adds 5.7 GB for nothing |
+| **ReVSI** (`3dlg-hcvc/ReVSI`) | ✅ Apache-2.0 | `revsi` | 6,158 | 9.1 G | **Video.** Pre-sampled per frame budget (16/32/64/all); frames decoded **lazily** via PyAV. Numeric + MCQ answers |
+| MindCube (`MLL-Lab/MindCube`) | ✅ MIT | `mindcube` | 1,050 (tinybench) | 1.3 G | **Multi-view** (4 images/item) — the dataset that forces the list-valued `images` interface. Options inline in the question |
+| CausalSpatial (`Mwxinnn/CausalSpatial`) | ✅ MIT | `causalspatial` | 1,541 | 2.4 G | ⚠ **Two schemas**: 4 sim subsets have options inline + letter answers + a `not_sure` abstain option; `realworld` has an explicit options list + text answers. Adapter normalises both |
+| DepthCues (`danier97/depthcues`) | ✅ per-source terms (non-commercial research); code MIT | `depthcues` | 4,373 (test) | 6.7 G | ⚠ **NOT a VQA benchmark** — raw probe targets (image + mask pair + label). Questions are SYNTHESIZED by us; consumers use `meta.label`. ⚠ Perspective subset skipped (its hub zip is empty — images live at the original vanishing-point project) |
+| Kang synthetic grid + COCO-Spatial | ⚠ code-generated, not shipped | — | — | — | M3: run their data-engine recipe; COCO downloaded separately; **no license — reimplement, don't copy** |
+| SynSpat3D (Wang & Gao) | ⚠ NOT released | — | — | — | regenerate equivalent stimuli ourselves (M1 generator covers this) |
+| Metric VQA (Ill-Posed by Design) | ❌ NOT released | — | — | — | do not plan around it; re-check monthly |
 
 ## 3. Core data schemas (freeze these in M0)
 
@@ -86,9 +90,11 @@ Scaffold everything in §1: pyproject with groups, module stubs, config loader, 
 3. Factorial sampler: given factor grid (depth × elevation-condition × size-condition × object-set) + seed → balanced stimulus set. v0 target: 500 images, congruent conditions only.
 **Accept:** 500-image set renders end-to-end from one config; annotations pass geometry tests; a contact-sheet script produces a visual sanity PDF.
 
-### M2 — External dataset adapters
+### M2 — External dataset adapters — ✅ DONE 2026-07-14
 Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform interface: `load(name) -> iterable[{image, question, answer, meta}]`. Include ReVSI's corrected annotations as the VSI variant. Store under `$DATA_ROOT/external/`.
 **Accept:** one smoke test per dataset loads 5 items and displays them; disk usage documented.
+**Status:** all criteria met. Six adapters (`src/sbind/datasets/`), `scripts/{download_dataset,dataset_contact_sheet}.py`, `configs/datasets.yaml`. 16 dataset tests pass (skip cleanly when data is absent, so the suite stays green on a laptop); HTML contact sheets with question+answer under each image, eyeballed. 20 GB on disk, inventory above.
+**Interface note:** the spec's singular `image` became **`images: list[str]`** — ReVSI is video and MindCube is multi-view, so a singular field could not express half the benchmarks. Items also carry a stable origin-carrying `id` (`<dataset>/<index>`) so eval results join back to source, and video items carry `video` + `frame_indices` with **lazy** frame decode (nothing materialised).
 
 ### M3 — Reproductions (load-bearing gate)
 1. **Kang reproduction (reimplemented):** mirror-swap activation patching + spatial-ID derivation + steering on LLaVA-1.5-7B and Qwen2.5-VL-7B, using their data-engine recipe (tile two objects on grid; COCO-Spatial from downloaded COCO). Pass bar: steering belief-swap ≫ noise control, direction of all key effects matches paper (~64% vs ~30%; exact numbers within a few points).

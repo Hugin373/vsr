@@ -1,0 +1,66 @@
+# External benchmark inventory (M2). Paths are config-driven; nothing is hardcoded.
+# Data lives outside git under $DATA_ROOT/external/<name>/.
+#
+# Skipped per IMPLEMENTATION_PLAN §2: Kang synthetic grid (script-generated, repo has NO
+# license — reimplement at M3), SynSpat3D (not released), Metric VQA (not released).
+# Raw VSI-Bench is also skipped: ReVSI ships its own video.zip and corrected annotations,
+# so the raw benchmark adds 5.7 GB for nothing.
+
+root: ${DATA_ROOT}/external
+
+datasets:
+  cvbench:
+    hf_repo: nyu-visionx/CV-Bench
+    license: apache-2.0
+    note: real-image validation; 2D + 3D configs.
+
+  mindcube:
+    hf_repo: MLL-Lab/MindCube
+    license: mit
+    unzip: [data.zip]
+    note: multi-view spatial reasoning; images are a view set per item.
+
+  causalspatial:
+    hf_repo: Mwxinnn/CausalSpatial
+    license: mit
+    subsets: [collision, physics, compatibility, occlusion, realworld]
+    note: simulation-level validation layer.
+
+  depthcues:
+    hf_repo: danier97/depthcues
+    license: per-source (non-commercial research use; see adapter docstring)
+    # perspective_v1 is annotations-ONLY (its zip is empty on the hub) — images must be
+    # fetched from the original vanishing-point project. Skipped in M2; see adapter TODO.
+    subsets: [elevation_v1, lightshadow_v1, occlusion_v4, size_v2, texturegrad_v1]
+    unzip: [elevation_v1.zip, lightshadow_v1.zip, occlusion_v4.zip, size_v2.zip, texturegrad_v1.zip]
+    note: encoder-level depth-cue probing reference.
+
+  revsi:
+    hf_repo: 3dlg-hcvc/ReVSI
+    license: apache-2.0
+    frame_budget: 32          # one of {16, 32, 64, all}; ReVSI ships a parquet per budget
+    unzip: [video.zip]
+    note: >
+      Corrected VSI-Bench annotations + its own videos. Frames are decoded LAZILY from
+      video.zip using the dataset's own sampled frame indices — nothing is materialised.
+
+  whatsup:
+    # NOT on HF — Google Drive (MIT). File IDs taken from the authors' own downloader
+    # (whatsup_vlms/dataset_zoo/aro_datasets.py); both Controlled subsets share ONE image zip.
+    license: mit
+    # NB the ids for VG_Relation / VG_Attribution live in the same upstream file and are
+    # NOT these — those are inherited ARO datasets, not What'sUp. Controlled_Images_A and
+    # _B share ONE annotation json (the subset is a field) and ONE image tarball.
+    # Upstream: subset A = real photographs; subset B = CLEVR renders. Each has its own
+    # annotation json + image tarball.
+    gdrive:
+      controlled_images_dataset.json: 1ap8mmmpQjLIjPGuplkpBgc1hoEHCj4hm
+      controlled_images.tar.gz: 19KGYVQjrV3syb00GgcavB2nZTW5NXX0H
+      controlled_clevr_dataset.json: 1unNNosLbdy9NDjgj4l8fsQP3WiAAGA6z
+      controlled_clevr.tar.gz: 13jdBpg8t3NqW3jrL6FK8HO93vwsUjDxG
+    unzip: [controlled_images.tar.gz, controlled_clevr.tar.gz]
+    subsets: [A, B]
+    # Upstream convention (confirmed in their README): the FIRST caption option is correct.
+    # COCO-spatial / GQA-spatial subsets need the COCO and GQA image corpora (~20 GB),
+    # which M3 downloads anyway for the Kang reproduction. Stubbed until then.
+    note: qualitative positive control; Controlled_Images_A/B only in M2.

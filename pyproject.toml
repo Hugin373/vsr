@@ -44,6 +44,11 @@ analysis = [
     "seaborn>=0.13",
     "wandb>=0.17",       # optional tracking backend; the logger imports it lazily,
                          # so CSV-only users never need it installed.
+    # --- M2 external dataset adapters (CPU; laptop-runnable) ---
+    "datasets>=2.19",        # HF hub datasets (CV-Bench, ReVSI, CausalSpatial, ...)
+    "huggingface-hub>=0.23",
+    "gdown>=5.2",            # What'sUp is hosted on Google Drive, not HF
+    "av>=12.0",              # lazy video frame decode for ReVSI (PyAV; no decord)
 ]
 
 # --- Stimulus generation. Renderer decided at M1.1 (2026-07-10): bpy (Blender 5.0
