@@ -36,6 +36,17 @@
 
 ## 🚦 M3 — THE GO-GATE (2026-07-14). Full report: `reports/m3_reproduction.md`
 
+### ✅ GATE DECISION: **GO** (advisor review, 2026-07-14). Phase 2 proceeds.
+- **M3.1 is sufficient.** The binding-bottleneck design needs the mechanism to *exist and be
+  steerable*, not a 64% swap rate. Log it and build.
+- **Do NOT re-run Wang & Gao on v0.** The diagnosis is complete; v0 cannot support the
+  measurement by construction. Re-running it would be theatre.
+- **M3.2's pass bar TRANSFERS to M4 as an acceptance criterion:** *"the W&G pattern emerges —
+  semantics ≫ metric, difficulty gradient present, measured ABOVE the leak ceiling."* If the
+  decorrelated M4 battery still gives R² ≈ 0.99 everywhere after the leak controls, the stimuli
+  are still broken and **M5 does not start**. When the gradient appears, the instrument is
+  finally measuring models instead of itself. **M4 is now the real gate on Phase 2.**
+
 **M3.1 (Kang) = PASS on the mechanism. M3.2 (Wang & Gao) = FAIL, and the cause is OUR STIMULI.**
 Nothing was tuned to make either pass.
 
@@ -52,9 +63,15 @@ cutouts (deviation: they used Objaverse), on LLaVA-1.5-7B + Qwen2.5-VL-7B.
   **noise never moves at any dose**.
 - **What does NOT reproduce: the absolute swap rate** (19–31%, not their 64.4%). But our noise
   floor is ~0%, not their 29.5% — so the paper's own summary statistic, **above-chance influence**,
-  matches or beats theirs (+31.3 pts at α=5, **+43.3 pts** at peak, vs their +34.9). Our models are
-  simply far more certain here (95–98% task accuracy, mean confidence 0.89), so a random nudge
-  essentially never flips a belief. Report the mechanism; do not claim the magnitudes.
+  matches or beats theirs (+31.3 pts at α=5, **+43.3 pts** at peak, vs their +34.9).
+  **⚠ The obvious explanation is WRONG and we measured it.** "Our models are more certain, so
+  noise can't flip them" does NOT survive: noise flips **0.0% in EVERY confidence bin** (0/23 at
+  conf 0.90–0.99; 0/7 at 0.70–0.90), and spatial-ID flip rate is **uncorrelated with confidence**
+  (r = +0.03). What *is* defensible: **our task produces almost no uncertain beliefs at all**
+  (mean conf 0.973; only 11/150 below 0.9), and a noise control can only flip a belief near the
+  boundary. That is a statement about **stimulus difficulty**, not model certainty. **The
+  noise-floor gap remains UNEXPLAINED** — it does not threaten the mechanism, and we do not dress
+  it up. Report the mechanism; do not claim the magnitudes.
 
 ### 🔴 M3.2 — THE FINDING THAT MATTERS: v0 CANNOT CARRY THE METRIC SCIENCE
 Mask-pooled object tokens at LM layers of Qwen2.5-VL-7B + InternVL3-8B (their exact models) on our
@@ -75,13 +92,45 @@ stimuli are the problem:**
 jitter) as LOAD-BEARING (it is what breaks the size↔depth shortcut); add camera/background/
 distractor variation.** See IMPLEMENTATION_PLAN §2.5(d).
 
-### ⚠ METHOD CONSTRAINT that outlives the stimulus fix
+### 🔴 THE POSITION LEAK — a THREAT TO THE CORE EXPERIMENT, not a probe caveat
 **Mask-pooling from position-indexed visual tokens LEAKS POSITION BY CONSTRUCTION** — the pooled
-vector averages tokens *at the object's image location*, and those tokens carry positional
-information. A high x/z R² is therefore NOT by itself evidence of a metric representation. Every
-Phase-2 mask-pooled probe needs a **position-leak control** (regress out the pooled tokens' grid
-coordinates), plus the strip/all-token variant (already cached) and Wang & Gao's cross-scene
-residualization.
+vector averages tokens *at the object's image location*. **The selection IS the answer.**
+
+**Measured leak ceiling on v0 (dumb features, NO activations, no model at all):**
+| target | mask **geometry alone** | mask-pooled activations | model adds |
+|---|---|---|---|
+| x (lateral) | **R² = 0.942** | 0.997 | +0.055 |
+| x from the mask centroid *u* **alone** (one number) | **R² = 0.943** | — | — |
+| z (depth) | **R² = 0.972** | 0.990 | +0.018 |
+
+**Why this is bigger than M3.2.** Mask-pooled *visual*-token probes inherit the leak;
+*bound-text-token* probes do not (they are not selected by image position). So the four-site
+grid's central contrast — **visual sites high, text sites low** — **could be manufactured by the
+measurement itself.** That directly threatens telling **Prediction 1** (metric survives in visual
+tokens, dies at binding) from **Prediction 2** (metric was never there). **This is the single most
+important thing M3 produced.**
+
+**THREE controls are mandatory for Phase 2, not one:**
+1. **Dumb-features leak ceiling** — every claim at every site must EXCEED a probe on mask geometry
+   (+ shape/colour/cue values). Below the ceiling it is in the mask, not the representation.
+2. **Fixed-grid STRIP probes are PROMOTED to the primary leak-free estimator** — strips are not
+   selected by object position, so they cannot leak via selection. (We adopted Cui et al.'s strip
+   variant as an "underestimation guard"; it is now load-bearing.) ⚠ **`strip_pool()` exists in
+   `extract/pooling.py` but M3.2 cached mask-pooled features ONLY — M4's cache must produce both.**
+3. **Camera-pose jitter at the SOURCE** — and this explains the W&G discrepancy cleanly: their
+   scenes vary camera path, so camera-frame coords are not image positions. Our fixed camera makes
+   x **identical** to image position (hence R²=0.997 measuring the pooling). Jitter kills the leak
+   where it is created rather than correcting after the fact.
+(+ Wang & Gao's cross-scene residualization of the semantic subspace, as an orthogonal fourth.)
+
+### 🔑 STANDING METHODOLOGY: every probe ships a DUMB-FEATURES BASELINE (adopted 2026-07-14)
+A shuffled-label control catches a probe fitting *noise*; it cannot catch a probe reading a
+trivially available **non-representational** feature. Two findings this session passed every
+shuffled-label control: the **55.1% shape-only** depth-role imbalance, and the **R²=0.942 mask-
+geometry** leak. Same failure class — *a confound that survives every unit test and dies only
+under an adversarial baseline*. So: for every (model, site, layer, target), also fit on
+`{mask geometry} ∪ {shape, colour} ∪ {cue values}` and report **Δ = probe − dumb ceiling**.
+Decodability only counts above the ceiling. Now in CLAUDE.md as verification rule 12.
 
 ### Bugs in OUR OWN M3 code, all caught by writing the invariant BEFORE trusting the number
 - Scene generator systematically tied each object to a cell subset (TV=0.45) → the spatial-ID
@@ -169,6 +218,30 @@ against the ROLE it could predict, not just its own marginal.**
 - Nothing else in M0/M1 was found broken: GPU guard, seeding, schema round-trips, geometry projection (<2 px), mask/annotation integrity all re-verified.
 
 ## Hard-won lessons (do not relearn)
+- **🔴 A NULL IS ONLY AS TRUSTWORTHY AS THE PROOF THAT YOUR INSTRUMENT CAN REGISTER A POSITIVE.**
+  **This is the most dangerous failure mode left in this project.** Unlike an inflated positive, a
+  null *feels* like honest science — it looks like rigour, it gets written up as a finding, and
+  nobody interrogates it. Phase 2 is *made of* nulls ("metric is not decodable at site X", "steering
+  does not transfer", "the fine-tune did not improve binding"). Every one of them must be
+  accompanied by a demonstration that the measurement MOVES when it must.
+  - *(M3: steering reported a clean 0.0% belief-swap for an hour, with a plausible story attached.
+    The steering was fine — the READOUT was dead. `" left"` and `" right"` share their first token
+    under the LLaMA tokenizer, so both options scored an identical logit and every belief came out
+    exactly 0.5/0.5 — **even under zero-ablation**. Fixing that revealed a SECOND bug: LLaVA answers
+    "Left"/"Right" (capitalised, carrying ~all the mass) while the lowercase forms sit at p≈2e-5, so
+    the readout was reading the far TAIL of the distribution. Two independent silent bugs, both
+    producing a confident, publishable-looking null.)*
+  - **The check that caught it: zero-ablate the thing you are intervening on.** If destroying it
+    does not move your metric, your metric is not measuring it. Now CLAUDE.md rule 11.
+- **A shuffled-label control is NOT enough — every probe needs a DUMB-FEATURES CEILING** (CLAUDE.md
+  rule 12). The shuffled control catches a probe fitting *noise*; it cannot catch a probe reading a
+  trivially available **non-representational** feature. Both of this session's worst findings passed
+  every shuffled-label control and died only under an adversarial baseline: the **55.1% shape-only**
+  depth-role imbalance, and the **R²=0.942 mask-geometry** position leak (a *single* number — the
+  mask centroid — gives x R²=0.943; even SHAPE is 99.2% readable from geometry). Run
+  `scripts/leak_ceiling.py` on any new stimulus set; decodability counts only *above* the ceiling.
+  Sanity property of the method: it correctly returns **chance for colour**, which a mask genuinely
+  cannot encode.
 - **Derive safety thresholds from WORST-CASE constants, never from means.** The area-congruence threshold computed from mean constants was 1.096; the true worst case (splitting the constant by near/far role, since perspective differs) was **1.158**. The mean-based floor (1.12) passed validation while leaving a 0.6% margin — i.e. it was still holding by luck. Any "safe threshold" for a rendered quantity must come from the extremes of its measured distribution.
 - **Verify a guarantee empirically AFTER applying it — passing ≠ guaranteed.** Both the 1.074 (no floor) and 1.12 (mean-based floor) sets reported `area_congruence 0/500`. The check passed both times; the *margin* (worst-case near/far area ratio) was 1.006 both times, which is what revealed the floor had done nothing. Always measure the margin, not just the pass/fail count — a green check on a contingent property tells you nothing about whether it will stay green under a different seed.
 - **Never trust a rendered metric without an invariant check.** The colour-keyed mask silently bled into bounce-lit floor for the entire first version of the generator (see the ID-pass bug above); it was caught only by asking "is a sphere as tall as it is wide?" Validate the metric itself, not just that the pipeline ran.
@@ -194,7 +267,21 @@ against the ROLE it could predict, not just its own marginal.**
   - **CausalSpatial has TWO schemas.** The four simulation subsets (collision/physics/compatibility/occlusion) have NO `options` column — the choices are inline in the question text ("A. Yes; B. No; C. Not Sure.") and `answer` is a LETTER, with a `not_sure` column naming an **abstain** option (a scorer must not count it as a wrong answer). `realworld` instead has an explicit `options` list and a TEXT answer. The adapter normalises both to `meta.{options,answer_letter,answer_text}`.
   - **DepthCues is NOT a VQA benchmark.** It ships raw probe targets (image + red/green mask pair + label), designed for linear probes on encoder features. There is no question text: ours are **synthesized** (`meta.synthesized_question`) and `answer` is just the label stringified — **consumers must use `meta.label`**. Each of the five subsets has a different schema and image directory. Its **Perspective** subset is annotations-only (the hub zip is literally empty); images live at the original vanishing-point project. Data terms: per-source, non-commercial research use (an `HLW_LICENSE.txt` ships with it); the CODE is MIT.
   - **CV-Bench's 3D `Depth` task is our primitive** ("which object is closer, the one in the red box or the blue box?") and the boxes are **drawn into the image**, so the annotation↔image join is visually verifiable — which is exactly what the contact-sheet eyeball check confirmed.
-- **M3 IN PROGRESS (started 2026-07-14).** Prerequisites done this session: all six M2 bugs fixed + the stimulus confound removed and the set re-rendered; **COCO downloaded in full** (train2017 19.3 G + val2017 + annotations — the full set was chosen so Kang's spatial-ID auxiliary-loss result stays reproducible later); **three models cached** (`llava-hf/llava-1.5-7b-hf`, `Qwen/Qwen2.5-VL-7B-Instruct`, `OpenGVLab/InternVL3-8B` — 44 GB in `$HF_HOME`).
+- **✅ M3 COMPLETE (2026-07-14) — GATE DECISION: GO.** See the M3 section at the top of this file.
+  M3.1 PASS on the mechanism; M3.2 FAIL because v0 cannot measure models, only itself. **M3.2's bar
+  transfers to M4.**
+- **➡ NEXT: M4 — and M4 IS NOW THE REAL GATE ON PHASE 2.** Do not start unprompted. Before touching
+  it, read IMPLEMENTATION_PLAN §2.5(d), the M4 spec (five required decorrelations + three leak
+  controls + the transferred W&G acceptance criterion), and `reports/m3_reproduction.md` §2.4.
+  The one-line version: **make the stimuli able to disagree with the mask, or Phase 2 measures the
+  instrument.**
+- **Infrastructure now in place for M4/M5** (built at M3, designed to be extended not thrown away):
+  `extract/vlm.py` (generic HF-VLM wrapper; locates decoder layers; one forward captures AND
+  intervenes), `extract/pooling.py` (mask→token mapping per family, validated by centroid
+  registration; `strip_pool()` present but **not yet cached** — M4 must), `probes/ridge.py` (probes
+  with shuffled-label controls + exact fast dual/kernel solvers), `interventions/spatial_id.py`,
+  `scripts/leak_ceiling.py`.
+- **M3 prerequisites (done):** all six M2 bugs fixed + the stimulus confound removed and the set re-rendered; **COCO downloaded in full** (train2017 19.3 G + val2017 + annotations — the full set was chosen so Kang's spatial-ID auxiliary-loss result stays reproducible later); **four models cached** (`llava-hf/llava-1.5-7b-hf`, `Qwen/Qwen2.5-VL-7B-Instruct`, `OpenGVLab/InternVL3-8B-hf`, `OpenGVLab/InternVL3-8B` — 59 GB in `$HF_HOME`). ⚠ **Use the `-hf` InternVL conversion**: the original ships custom remote code that `AutoModelForImageTextToText` refuses.
   - **M3.1 = Kang reproduction** (LLaVA-1.5-7B + Qwen2.5-VL-7B). Targets from the paper: steering belief-swap **64.4–64.6% vs 29.5%** norm-matched noise; spatial IDs ≈ **rank-3** transform of the encoder's positional basis (R² ≥ 0.85); mirror-swap patching profile = image patches early, object-word tokens middle, text late.
   - **M3.2 = Wang & Gao pattern reproduction** on our v0 stimuli, on **Qwen2.5-VL-7B + InternVL3-8B** (their exact two models). Their numbers: x R² = **−0.09**, z R² = **+0.28**, pairwise-distance RSA ρ ≈ **0.01**, shape R² = **1.00**. Pass bar is *pattern* match: semantics ≫ metric; x ≈ chance; z modest.
   - COCO also unblocks What'sUp's deferred COCO/GQA-spatial subsets (TODO still open in the adapter).

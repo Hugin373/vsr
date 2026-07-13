@@ -191,13 +191,74 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
 **⚠ M3.2's failure is the go-gate's real output. Read §2.5(d) before touching M4.**
 
 ### M4 — Full stimulus battery + extraction pipeline
-1. Generator v1: conflict conditions (fixed-retinal-size, elevation-conflict), canonical-object set (import a few CC0 models: chair, mug, bottle) alongside primitives, question templates per taxonomy level (qualitative / ordinal / ratio / absolute) with balanced answer keys. Scale: ~5–10k images per config decision.
+**⚠ M4 IS NOW THE REAL GATE.** M3.2's pass bar transferred here (advisor decision, 2026-07-14).
+Read §2.5(d) and `reports/m3_reproduction.md` §2.4 first — v0 could not measure models, only
+itself.
+
+1. **Generator v1 — the five REQUIRED decorrelations.** Conflict conditions
+   (fixed-retinal-size, elevation-conflict), canonical-object set (import a few CC0 models:
+   chair, mug, bottle) alongside primitives, question templates per taxonomy level (qualitative
+   / ordinal / ratio / absolute) with balanced answer keys. Scale: ~5–10k images per config
+   decision. **On top of that, and non-negotiable — each one is a MEASURED defect of v0:**
+   - **(a) Continuous lateral positions.** v0's `lateral_offset` is a single constant (0.7), so
+     `x` took **exactly 2 values** and was a binary SIDE label, not a metric coordinate.
+   - **(b) Camera-pose jitter (height / pitch / yaw).** With a fixed camera, camera-frame `x`
+     **is** image position — which is why x R² = 0.997 was measuring the mask-pooling, not the
+     model. Jitter decorrelates image position from 3D coordinates and **kills the position leak
+     at its source**. It also explains the Wang & Gao discrepancy: their scenes vary camera path.
+   - **(c) `size_condition` is LOAD-BEARING, not an optional factor.** Independent per-object
+     physical-size jitter is the ONLY thing that breaks the size↔depth shortcut. In v0 both
+     objects share one multiplier, so apparent size ∝ 1/depth and **depth is 86% predictable
+     from apparent size alone** (r = 0.93).
+   - **(d) Nuisance variation:** textures, distractor objects, lighting jitter. Two primitives on
+     a bare plane have too few degrees of freedom for "modest decodability" to be *expressible*.
+   - **(e) Recalibrate.** Any new primitive, pose freedom, or per-object size jitter invalidates
+     the M1 calibration and the 1.18 depth-ratio floor — re-derive from WORST CASE
+     (`scripts/derive_cue_constants.py`).
 2. `extract/`: generic HF-VLM wrapper (LLaVA-1.5/1.6, Qwen2-VL, Qwen2.5-VL-7B, **Qwen2.5-VL-3B**, InternVL, Gemma-3) with named hook sites {enc_out, proj_out, lm_vis_L*, lm_txt_L*}; mask-pooling (coverage-weighted, per Wang & Gao's method — reimplemented) and object-word token extraction (needs tokenizer-aware span finding); writes §3 caches; per-batch checkpointing + `--resume`.
    **Paper-2 forward-compatibility:** include both Qwen2.5-VL-7B and -3B Instruct in the model list — they are the shared bases of the planned method-audit checkpoints (Paper 2: SpaceR + ViLaSR on 7B; SpatialLadder + SpaceQwen/SpaceOm + Spatial-MLLM on 3B), so every Paper-1 measurement on them doubles as the audit baseline. The wrapper must accept arbitrary HF checkpoint paths of the same architecture (base vs fine-tune swap = config change only).
-**Accept:** full battery cached for 2 models overnight on one A100; cache size within budget; pooling unit tests green; resume-after-kill verified.
+   **⚠ The cache MUST contain the strip/all-token variant, not only the mask-pooled one.**
+   `extract/pooling.py` has `strip_pool()`, but M3.2 cached mask-pooled features only. Fixed-grid
+   strips are not selected by object position, so they are the **primary leak-free estimator** —
+   promoted from "underestimation guard" to load-bearing.
+
+**Accept (ALL of these, not just the first):**
+- full battery cached for 2 models overnight on one A6000 (48 GB); cache size within budget;
+  pooling unit tests green; resume-after-kill verified.
+- **the three leak controls of `reports/m3_reproduction.md` §2.4 are implemented and reported**:
+  dumb-features leak ceiling, fixed-grid strip probes, camera-pose jitter.
+- **🚦 THE TRANSFERRED M3.2 BAR: the Wang & Gao pattern EMERGES on the new battery** —
+  semantics ≫ metric, with a **difficulty gradient present**, measured *above the leak ceiling*.
+  If the decorrelated set still gives R² ≈ 0.99 everywhere after the leak controls, **the stimuli
+  are still broken and M5 does not start.** When the gradient appears, the instrument is finally
+  measuring models instead of itself. **This is the real gate on Phase 2.**
 
 ### M5 — Probing & the core result (Phase-2 science)
-Probe runner: for every (model, site, layer, target, axis) → ridge/logistic with 5 seeds × 5 splits, shuffled-label control, selectivity contrast (qualitative vs metric), rank-correlation metrics; verbalized-answer collection on identical stimuli (+ few-shot calibrated variant + oracle-text condition); anchor experiment (scenes ± known-size reference object).
+
+**🔑 STANDING METHODOLOGY (adopted 2026-07-14): EVERY probe experiment ships with a
+DUMB-FEATURES BASELINE. Decodability only counts ABOVE the dumb ceiling.**
+The shuffled-label control is necessary but *not sufficient*: it catches a probe fitting noise,
+but it cannot catch a probe reading a **trivially available non-representational feature**. Two
+findings this session, both of which passed every shuffled-label control:
+- the v0 category↔depth-role imbalance (a **shape-only** constant strategy scored **55.1%**);
+- the mask-pooling position leak (mask **geometry alone** gives x R² = **0.942**, z R² = 0.972 —
+  the model adds ~0.05).
+Both are the same failure: **a confound that survives every unit test and dies only under an
+adversarial baseline.** So the ceiling is standing policy, not a one-off control. For each
+(model, site, layer, target), also fit the probe on:
+`{mask geometry: centroid, area, bbox, retinal size, elevation} ∪ {shape, colour} ∪ {cue values}`
+and report **Δ = probe − dumb ceiling**. A site is only "carrying" a quantity if Δ > 0
+meaningfully. This is also the rigor section reviewers reward.
+
+Probe runner: for every (model, site, layer, target, axis) → ridge/logistic with 5 seeds × 5 splits, shuffled-label control, **dumb-features ceiling (above)**, selectivity contrast (qualitative vs metric), rank-correlation metrics; verbalized-answer collection on identical stimuli (+ few-shot calibrated variant + oracle-text condition); anchor experiment (scenes ± known-size reference object).
+
+**⚠ THE POSITION LEAK THREATENS M5'S CENTRAL CONTRAST.** Mask-pooled *visual*-token probes are
+selected by the object's image position and therefore leak it; *bound-text-token* probes are not.
+So "visual sites high, text sites low" — the very shape that separates **Prediction 1** (metric
+survives in visual tokens, dies at binding) from **Prediction 2** (metric was never there) —
+**could be manufactured by the measurement itself.** Mandatory: report the fixed-grid **strip**
+(leak-free) estimator as primary, the mask-pooled one alongside, and both against the dumb
+ceiling. See `reports/m3_reproduction.md` §2.4.
 **Dataset usage rules (§2.5) apply here:** call `assert_behavioral_safe(name)` in the
 verbalized-answer collector (DepthCues is PROBE-ONLY — probe `meta.label` only, never score
 its synthesized questions); and state the MindCube split + ReVSI frame budget **explicitly**

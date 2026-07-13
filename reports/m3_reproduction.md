@@ -18,6 +18,24 @@ in M4 before any Phase-2 metric-probing claim is made.
 Per the milestone rule ("if either fails after honest effort, STOP and rethink framing"), no
 parameter was tuned to make M3.2 pass. §3 says exactly what is wrong and what M4 must change.
 
+## 🚦 GATE DECISION: **GO** (advisor review, 2026-07-14)
+
+Phase 2 proceeds. The reasoning:
+
+- **M3.1 is sufficient.** The binding-bottleneck design depends on the mechanism *existing and
+  being steerable*, not on a 64% swap rate. Patching profile, rank-3 structure, and selective
+  steering against a dead noise floor all reproduce. The magnitude gap is a property of our
+  stimuli's difficulty, not of the mechanism (and §1.4 shows the certainty story is refuted —
+  the gap is honestly *unexplained*, and does not need to be resolved to proceed).
+- **M3.2's failure is not re-run on v0.** The diagnosis is complete and v0 cannot support the
+  measurement by construction. Re-running it would be theatre.
+- **Instead, M3.2's pass bar TRANSFERS to M4 as an acceptance criterion:** *"the Wang & Gao
+  pattern emerges — semantics ≫ metric, with a difficulty gradient present."* If the
+  decorrelated M4 battery still yields R² ≈ 0.99 everywhere **after the leak controls of §2.4**,
+  the stimuli are still broken. **When the gradient appears, the instrument is finally
+  measuring the models rather than itself.** That is the real gate on Phase 2, and it now sits
+  in M4 where it belongs.
+
 ---
 
 ## 1. M3.1 — Kang et al., reimplemented
@@ -119,15 +137,36 @@ less under noise. The paper's own summary statistic is the **above-chance influe
 **+43.3 pts** at the dose-response peak — i.e. the *causal effect size matches or exceeds the
 paper's* even though the raw swap rate does not.
 
-The most likely reason is that our task is **easier and our models more certain**: baseline
-accuracy is 95–98% with mean confidence 0.89, so beliefs are far from the decision boundary
-and a random nudge essentially never flips one (hence noise ≈ 0%). A model whose noise control
-flips 29.5% of the time is sitting much closer to chance than ours. Plausible contributors:
-COCO cutouts on a 4×4 grid are highly legible; our prompt forces a one-word answer.
+#### The obvious explanation is WRONG — we measured it (Qwen, L14, α=5, n=150)
 
-**We did not tune anything to close this gap**, and we do not claim the magnitudes reproduce.
-What reproduces is the mechanism, its localization, its low-rank structure, and its causal
-selectivity.
+The tempting story is "our models are more certain (95–98% accurate), so a random nudge never
+flips a confident belief." **That story does not survive contact with the data:**
+
+| baseline confidence | n | flip under spatial-ID | flip under **noise** |
+|---|---|---|---|
+| 0.50–0.70 | 4 | 0.0% | **0.0%** |
+| 0.70–0.90 | 7 | 42.9% | **0.0%** |
+| 0.90–0.99 | 23 | 30.4% | **0.0%** |
+| 0.99–1.00 | 116 | 31.9% | **0.0%** |
+| **all** | **150** | **31.3%** | **0.0%** |
+
+Noise flips **nothing in any confidence bin** — including 0/23 at 0.90–0.99 and 0/7 at
+0.70–0.90 — and the spatial-ID flip rate is **uncorrelated with confidence** (r = +0.03), i.e.
+steering works just as well on uncertain beliefs as on certain ones. So "confident models
+resist noise" is **unsupported as a within-set mechanism**, and we do not claim it.
+
+What *is* defensible is narrower: **our task produces almost no uncertain beliefs at all**
+(mean confidence 0.973; only 11 of 150 items below 0.9). A noise control can only flip a belief
+that is near the decision boundary, and our stimuli barely produce any. Kang's 29.5% noise
+floor implies a set with many near-chance items; ours has essentially none. That is a statement
+about **stimulus difficulty**, not about model certainty — and it is not something we can test
+properly on a set this easy.
+
+**Bottom line: the noise-floor discrepancy remains UNEXPLAINED.** It does not threaten the
+mechanism (spatial-ID steering beats noise by 31 points regardless of confidence), but we
+should not dress it up. **We tuned nothing to close the magnitude gap**, and we do not claim
+the magnitudes reproduce. What reproduces is the mechanism, its localization, its low-rank
+structure, and its causal selectivity.
 
 ---
 
@@ -186,19 +225,69 @@ registration is verified). **The stimulus set is.** Two concrete, measured defec
 congruent set **cannot serve as the substrate for the metric-probing science**, and it says so
 *before* Phase 2 was built on top of it — which is exactly what the go-gate is for.
 
-### 2.4 A methodological point that outlives the stimulus fix
+### 2.4 🔴 The position leak is a THREAT TO THE CORE EXPERIMENT, not a probe caveat
 
 **Mask-pooling from position-indexed visual tokens leaks position by construction.** The pooled
-vector is an average over the tokens *at the object's image location*, and those tokens carry
-positional information. Any x/z probe on mask-pooled visual tokens inherits this leak, so a
-high R² is not by itself evidence that a *metric* representation exists.
+vector averages the tokens *at the object's image location*, and those tokens carry positional
+information. The selection **is** the answer.
 
-That Wang & Gao nonetheless report x R² = −0.09 means their setup must break this leak (their
-x is presumably a world coordinate not aligned with the image axis, and/or their scenes vary
-camera pose). **Any Phase-2 claim from this project must control for it explicitly** — e.g. by
-regressing out the pooled tokens' grid coordinates, by reporting the strip/all-token variant
-alongside (already cached), and by adopting their cross-scene residualization of the semantic
-subspace.
+**Quantified — the leak ceiling on v0** (`scripts/leak_ceiling.py`). Dumb features only: mask
+centroid (u,v), mask area, bbox w/h, retinal height, elevation. **No activations. No model.**
+
+| target | mask **geometry alone** | mask-pooled **activations** | what the model adds |
+|---|---|---|---|
+| **x** (lateral) | **R² = 0.942** | 0.997 | **+0.055** |
+| **z** (depth) | **R² = 0.972** | 0.990 | **+0.018** |
+| **shape** | **acc = 0.992** | 1.000 | **+0.008** |
+| colour | acc = 0.233 (**chance**) | 1.000 | +0.767 |
+
+| the damning slices | |
+|---|---|
+| x from the mask centroid *u* **alone — one number** | **R² = 0.943** |
+| z from (elevation *v*, retinal height) alone | **R² = 0.915** |
+
+*(Ridge/logistic, 5 seeds × 5 folds; shuffled controls at −0.005 / −0.003 / 0.339 / 0.253.)*
+
+**Read the colour row first — it validates the ceiling.** A mask carries no colour information,
+and the ceiling duly returns **chance** for colour (0.233 vs a 0.253 shuffled control). The
+method is not simply fitting everything. Which makes the other three rows damning:
+
+- **Essentially the entire "metric decodability" on v0 is obtainable without the model.** A
+  single number — where the mask's centroid sits — gets x to **0.943**.
+- **Even the SEMANTIC control is leaked.** Shape is **99.2%** decodable from mask geometry alone
+  (silhouettes differ), so the "semantics ≫ metric" reference we were leaning on is itself
+  mostly readable off the mask. On v0, the activations add +0.008 to shape and +0.055 to x —
+  i.e. *the model contributes almost nothing to any of it.*
+
+**Why this is bigger than M3.2.** Mask-pooled *visual*-token probes inherit this leak;
+*bound-text-token* probes do not (they are not selected by image position). So the four-site
+grid's central contrast — **visual sites high, text sites low** — **could be manufactured by
+the measurement itself.** That is a direct threat to distinguishing Prediction 1 (metric
+survives in visual tokens, dies at binding) from Prediction 2 (metric was never there). This
+is the single most important thing M3 produced.
+
+**Three controls are therefore mandatory for Phase 2, not one:**
+
+1. **Leak-ceiling baseline (the "dumb-features" ceiling).** Every decodability claim at every
+   site must **exceed** a probe trained on mask geometry alone (centroid, area, bbox, retinal
+   size, elevation) — plus shape/colour/cue values. Decodability below the dumb ceiling is not
+   "in the representation"; it is in the mask.
+2. **Fixed-grid strip probes are PROMOTED to the primary leak-free estimator.** Strips at fixed
+   image locations are not selected by the object's position, so decoding object depth from
+   them cannot leak via selection. We adopted the Cui et al. strip variant as an
+   *underestimation guard*; it is now the load-bearing measurement.
+   ⚠ **Correction to an earlier draft of this report: the strip variant is NOT yet cached.**
+   `extract/pooling.py` implements `strip_pool()`, but M3.2's extraction saved mask-pooled
+   features only. M4's cache must produce both.
+3. **Camera-pose jitter at the source.** This also explains the Wang & Gao discrepancy cleanly:
+   their scenes have varying camera paths, so camera-frame coordinates are *not* image
+   positions. Our camera is fixed, which makes x **identical** to image position — hence
+   R² = 0.997 measuring the pooling. Jittering camera height/pitch/yaw decorrelates image
+   position from 3D coordinates and shrinks the leak where it is created, rather than
+   correcting for it after the fact.
+
+Wang & Gao's cross-scene residualization of the semantic subspace remains a fourth, orthogonal
+control.
 
 ---
 
