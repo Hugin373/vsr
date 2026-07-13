@@ -65,6 +65,9 @@ class ObjectAnnotation:
     elevation_px: float
     mask: str | None = None  # relative path to the object mask PNG, if rendered
     nearest_surface_m: float = 0.0
+    # count of mask pixels — a shape-robust apparent-size measure. retinal_size_px is the
+    # mask's pixel HEIGHT, which depends on silhouette shape; area is the alternative.
+    mask_area_px: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -83,6 +86,7 @@ class ObjectAnnotation:
             elevation_px=d["elevation_px"],
             mask=d.get("mask"),
             nearest_surface_m=d.get("nearest_surface_m", 0.0),
+            mask_area_px=d.get("mask_area_px", 0),
         )
 
 

@@ -297,6 +297,7 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
         elevation_px = float(geometry.project(K, R, t, base_world)[1])
 
         mg = _mask_geometry(masks[i])
+        area_px = int(masks[i].sum())
         if mg is None:
             bbox = [0.0, 0.0, 0.0, 0.0]
             retinal = 0.0
@@ -320,6 +321,7 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
                 elevation_px=elevation_px,
                 mask=mask_rel,
                 nearest_surface_m=nearest_surface_m,
+                mask_area_px=area_px,
             )
         )
 
