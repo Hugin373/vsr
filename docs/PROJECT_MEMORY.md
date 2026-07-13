@@ -34,6 +34,68 @@
 - `cue_constants` in `configs/stimuli_v0_congruent.yaml` records the measured fill factors, `height×depth`, `area×depth²` (split by near/far role) and per-pairing required depth ratios — the numbers a conflict design needs to invert a cue by a *known* amount.
 - Anything M4 adds (new primitive, new pose freedom, per-object size jitter) **invalidates the M1 calibration and the 1.158 area threshold** — recalibrate (`scripts/calibrate_sizes.py`) and re-derive the thresholds from worst-case constants.
 
+## SECOND retro-audit — all of M0/M1/M2 (2026-07-14, at the M3 gate). Full report: `reports/m0_m2_audit.md`
+
+**Verdict: the DATA is clean; the CODE and the DOCS were not.** Every count, id, media file and
+answer key in M1/M2 survives a full scan (all six adapters load exactly their source counts,
+0 dropped, 0 duplicate ids, 0 missing files, 0 unscoreable MCQs; M1's geometry re-derives to
+**0.0 error** over 1000 objects using an independently re-implemented camera; determinism
+re-verified by byte-compare, and the documented residual claim is honest). But **six real code
+bugs survived M2's closure, two of them producing wrong data**, and five documented constants
+were false. All silent. All fixed this session, each with an invariant test.
+
+- **CausalSpatial's `not_sure` column is a LIE** (HIGH): constant `'C'` for all 189 occlusion
+  rows, but 54 of those have four *semantic* options and no abstain — and **on 11, C is the GOLD
+  answer**. A scorer honouring the adapter's own contract would have discarded the correct
+  answer. → now derived from the option TEXT. *Second* upstream field in this one dataset to be
+  false (after the "unique" id). Hence the new plan §2.5(c): **an upstream field is a hypothesis.**
+- **MindCube silently fell back to tinybench** (HIGH): `load(split="val")` returned 1,050
+  tinybench items **stamped `meta.split="val"`** — the wrong population under the right label,
+  inverting the very §2.5 rule the previous commit claimed to enforce. → unknown split raises;
+  split is now settable from config (it wasn't, unlike ReVSI's budget).
+- **ReVSI `frame_budget='all'` was dead** (`int('all')`): the parquet's `num_frames` is a budget
+  LABEL, not a count. → clip length is now derived from the video. All four budgets load
+  (16: 4,568 · 32: 6,158 · 64: 6,616 · all: 6,808).
+- **`decode_frames` silently returned fewer frames than requested** → now raises.
+- **What'sUp's gold answer is at position A in 100% of items** (the upstream convention is real —
+  verified from the filename-encoded relation, 718/718). Served in that order, an A-biased model
+  scores 100% and **the qualitative positive control passes for the wrong reason.** → options are
+  now shuffled (seeded) with the true `answer_index` recorded.
+- **The M0 config guard added by the FIRST retro-audit still had two holes**: `DATA_ROOT=""`
+  (empty but set) resolved to the absolute path `/external`, and an unbraced `$VAR` stayed
+  literal. The exact bug it was written to prevent, twice over. → checks the vars a config
+  *references*, before expansion destroys the evidence.
+- **The GPU guard's "foreign compute process" half was never implemented** — `ComputeApp` was
+  declared with zero call sites, so the guard was memory-threshold-only and a colleague's job
+  that hadn't yet allocated 1 GiB was invisible. → implemented; it immediately caught a real
+  foreign process on GPU 1 during testing. **Load-bearing: M3 is the first GPU milestone.**
+- **`seed_everything` set `PYTHONHASHSEED` after interpreter start** — a no-op. It looked seeded
+  and wasn't. → removed, with `torch.use_deterministic_algorithms` added for M4.
+- **`scripts/validate_stimuli.py` never opened a single mask or image** — it validated the JSON
+  against itself, and its geometry check called the same function that *generated* the
+  annotations. It would have reported ALL GREEN under a missing or overwritten PNG. → now opens
+  every artefact, recomputes bbox/height/area from the pixels, checks id-uniqueness, image
+  content-duplication, frame-clipping, occlusion, and **reports margins, not just pass/fail**.
+- **Docs recorded `depthcues = 4,373`** — which is precisely the *pre-fix, broken* count
+  (19,235 − 14,862, the occlusion subset that silently vanished). The code and tests already had
+  19,235. **The docs preserved the bug.** Also: disk is 23 GB not 20 GB (loading CV-Bench and
+  CausalSpatial *materialises* their parquet images, roughly doubling both), and the git remote
+  is **not** deferred — `origin` exists and `main` is pushed.
+
+### 🔑 THE STIMULUS CONFOUND (the finding that actually threatened the science)
+**Category was never balanced against the near/far depth role.** v0 came out sphere-near 148 /
+far 182, cube-near 168 / far 147, so the best **shape-only constant strategy scored 55.1%** on
+the 345 mixed-category pairs ("the cube is closer" won 59.6% of cube-vs-sphere pairs). In the
+very set built to *decorrelate semantics from geometry*: a language-only model gets 55% free on
+"which is closer?", and **a depth probe can read depth off object IDENTITY** — which is exactly
+the confound Wang & Gao residualize out, and M3.2's expected result ("semantics ≫ metric, z
+modest") is precisely the number it would inflate.
+→ **Fixed by construction:** category and colour are now drawn as *ordered* `(near, far)` pairs
+and **balanced**, so "X nearer than Y" and "Y nearer than X" are equally frequent for every
+{X,Y}. Re-rendered. Shape-only strategy: **55.1% → 50.2%** (χ² p=0.997). `balanced_on` was only
+covering `closer_object` and `near_depth_bin`; the lesson generalises — **balance every factor
+against the ROLE it could predict, not just its own marginal.**
+
 ## Retro-audit of M0/M1 (done 2026-07-14, after M2's bugs raised the question "was the earlier work also silently broken?") — YES, IT WAS
 - **Answer: four more bugs, all silent.** This is why CLAUDE.md now carries a "How to verify work" section. Every bug across M0–M2 had the same shape: **the pipeline ran green while producing wrong data**.
 - **M1 — the DETERMINISM hard rule was being violated the whole time.** Re-rendering from an identical (config, seed) produced *different images every run*. Three causes: (a) Blender embeds `Date`/`RenderTime` into PNG `tEXt` chunks; (b) **OIDN denoising is non-deterministic** (thread scheduling perturbs ~0.01% of pixels by 1 LSB); (c) **Cycles adaptive sampling is non-deterministic** (per-pixel stopping depends on thread timing). All three now default OFF (`denoise: false`, `adaptive_sampling: false`, metadata stamping disabled); `samples` raised to 128 to compensate for losing the denoiser. Render cost 1.2 → 2.5 s/img (500 imgs ≈ 22 min).
@@ -58,7 +120,9 @@
 - `research_proposal_spatial_binding.pptx` — 11-slide advisor deck (phase-framed, no conference dates).
 
 ## Current state / next step
-- **As of 2026-07-14: M2 COMPLETE** (external dataset adapters). Six adapters under `src/sbind/datasets/` behind one interface `load(name, config) -> Iterable[Item]`; `scripts/{download_dataset,dataset_contact_sheet}.py`; `configs/datasets.yaml`. **20 GB** on disk under `$DATA_ROOT/external/` (7.8 TB free — non-issue). 16 dataset tests pass and SKIP cleanly when data is absent, so the suite stays green on a laptop. Item counts: cvbench 2638, revsi 6158, depthcues 4373 (test), causalspatial 1541, mindcube 1050 (tinybench), whatsup 820.
+- **As of 2026-07-14: M2 COMPLETE** (external dataset adapters), **re-audited and fixed at the M3 gate** (see the second retro-audit above). Six adapters under `src/sbind/datasets/` behind one interface `load(name, config) -> Iterable[Item]`; `scripts/{download_dataset,dataset_contact_sheet}.py`; `configs/datasets.yaml`. **23 GB** on disk under `$DATA_ROOT/external/` (7.8 TB free — non-issue; note CV-Bench and CausalSpatial *grow on first load*, since their images are extracted from parquet). **111 tests pass**; without `$DATA_ROOT` exported they SKIP rather than error (they used to error — the "green on a laptop" claim was false).
+  **Item counts, verified by full scan against the source files:** cvbench 2,638 · revsi 6,158 (32-frame; 4,568/6,616/6,808 at 16/64/all) · **depthcues 19,235 (test)** · causalspatial 1,541 · mindcube 1,050 (tinybench; 21,154 test, 10,000 train) · whatsup 820.
+  ⚠ **The old docs said `depthcues 4373` — that was the PRE-FIX broken count** (19,235 − 14,862, the occlusion subset that had silently vanished). The code and tests always had 19,235; only the docs preserved the bug. *Lesson: when you fix a bug, fix the number the docs recorded too — a stale doc re-introduces a corrected bug into the next session's assumptions.*
 - **Interface decision (M2): `images` is a LIST, not a singular `image`.** ReVSI is video and MindCube is multi-view (4 images/item), so the plan's singular `image` field could not express half the benchmarks. Items also carry a stable origin-carrying `id` (`<dataset>/<original index>`) so eval results always join back to source items, and video items carry `video` + `frame_indices` with **lazy** PyAV decode (nothing materialised to disk).
 - **Raw VSI-Bench skipped:** ReVSI ships its OWN `video.zip` + corrected annotations, so the raw benchmark would add 5.7 GB for nothing. (This was the open question at M2 planning; resolved by inspecting the hub file list.)
 - **⚠ Per-dataset gotchas that cost time — do not relearn:**
@@ -66,7 +130,11 @@
   - **CausalSpatial has TWO schemas.** The four simulation subsets (collision/physics/compatibility/occlusion) have NO `options` column — the choices are inline in the question text ("A. Yes; B. No; C. Not Sure.") and `answer` is a LETTER, with a `not_sure` column naming an **abstain** option (a scorer must not count it as a wrong answer). `realworld` instead has an explicit `options` list and a TEXT answer. The adapter normalises both to `meta.{options,answer_letter,answer_text}`.
   - **DepthCues is NOT a VQA benchmark.** It ships raw probe targets (image + red/green mask pair + label), designed for linear probes on encoder features. There is no question text: ours are **synthesized** (`meta.synthesized_question`) and `answer` is just the label stringified — **consumers must use `meta.label`**. Each of the five subsets has a different schema and image directory. Its **Perspective** subset is annotations-only (the hub zip is literally empty); images live at the original vanishing-point project. Data terms: per-source, non-commercial research use (an `HLW_LICENSE.txt` ships with it); the CODE is MIT.
   - **CV-Bench's 3D `Depth` task is our primitive** ("which object is closer, the one in the red box or the blue box?") and the boxes are **drawn into the image**, so the annotation↔image join is visually verifiable — which is exactly what the contact-sheet eyeball check confirmed.
-- Next: **M3 — reproductions (the load-bearing go-gate)**: Kang reimplementation + Wang & Gao pattern reproduction. **Do not start unprompted.** M3 downloads COCO, which unblocks What'sUp's deferred COCO/GQA-spatial subsets (TODO left in the adapter).
+- **M3 IN PROGRESS (started 2026-07-14).** Prerequisites done this session: all six M2 bugs fixed + the stimulus confound removed and the set re-rendered; **COCO downloaded in full** (train2017 19.3 G + val2017 + annotations — the full set was chosen so Kang's spatial-ID auxiliary-loss result stays reproducible later); **three models cached** (`llava-hf/llava-1.5-7b-hf`, `Qwen/Qwen2.5-VL-7B-Instruct`, `OpenGVLab/InternVL3-8B` — 44 GB in `$HF_HOME`).
+  - **M3.1 = Kang reproduction** (LLaVA-1.5-7B + Qwen2.5-VL-7B). Targets from the paper: steering belief-swap **64.4–64.6% vs 29.5%** norm-matched noise; spatial IDs ≈ **rank-3** transform of the encoder's positional basis (R² ≥ 0.85); mirror-swap patching profile = image patches early, object-word tokens middle, text late.
+  - **M3.2 = Wang & Gao pattern reproduction** on our v0 stimuli, on **Qwen2.5-VL-7B + InternVL3-8B** (their exact two models). Their numbers: x R² = **−0.09**, z R² = **+0.28**, pairwise-distance RSA ρ ≈ **0.01**, shape R² = **1.00**. Pass bar is *pattern* match: semantics ≫ metric; x ≈ chance; z modest.
+  - COCO also unblocks What'sUp's deferred COCO/GQA-spatial subsets (TODO still open in the adapter).
+  - ⚠ M3 front-loads a minimal `extract/` (HF-VLM wrapper + named hook sites + mask-pooling), which is formally M4's deliverable — build it to be EXTENDED by M4, not thrown away.
 
 - **As of 2026-07-10: M1 COMPLETE** (rendering spike + minimal scene generator). **RENDERER DECISION = bpy (Blender 5.0 Python module), rendered headless with Cycles on CPU.** Rationale: `uv add bpy` pulled a 357 MB prebuilt wheel (`bpy==5.0.1`) — no compile, no system Blender, no Apptainer; imports + renders headless with no display; ~1.3 s/img CPU @512² so stimulus generation never touches the shared GPUs (Cycles OPTIX/CUDA also detect all 8 A6000s if ever needed). Apptainer/pyrender fallbacks NOT needed. Built `src/sbind/stimuli/{geometry,scene_spec,sampler,render_bpy}.py`, `scripts/{render_stimuli,contact_sheet}.py`, `configs/stimuli_v0_congruent.yaml`; rendered 500-image congruent-only set + contact-sheet PDF. 44 tests pass (28 M0 + 16 M1), incl. render-consistency: rendered mask centroids match K[R|t] projection <2 px.
 - **numpy pinned <2.0 project-wide (M1 decision):** bpy requires numpy<2; verified torch 2.13 + the analysis stack all run fine under numpy 1.26.4 (scipy floor is exactly 1.26.4; torch↔numpy ABI interop + CUDA confirmed). So ALL extras (stimuli/analysis/extract) coexist in ONE env — the plan's anticipated "isolate stimuli env" is NOT needed. If a future dep hard-requires numpy≥2, revisit via uv conflicting-extras.

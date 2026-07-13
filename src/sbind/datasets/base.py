@@ -84,9 +84,26 @@ def load(name: str, config: dict | None = None, **kwargs) -> Iterable[Item]:
 
 
 def dataset_root(config: dict, name: str) -> Path:
-    """Where dataset ``name`` lives on disk (config-driven, never hardcoded)."""
-    root = config.get("root") or os.environ.get("DATA_ROOT", "") + "/external"
-    return Path(os.path.expandvars(str(root))) / name
+    """Where dataset ``name`` lives on disk (config-driven, never hardcoded).
+
+    Raises if it cannot be resolved. It used to fall back to
+    ``os.environ.get("DATA_ROOT", "") + "/external"``, which with DATA_ROOT unset silently
+    fabricated the absolute path ``/external/<name>`` — a forgotten export became a wrong path
+    instead of an error, which is the bug class this project keeps paying for.
+    """
+    root = config.get("root") or os.environ.get("DATA_ROOT")
+    if not root:
+        raise ValueError(
+            f"cannot resolve the data root for {name!r}: pass config['root'] or export "
+            f"$DATA_ROOT. (Never fall back to a default path — a forgotten export must fail "
+            f"loudly, not write to the wrong place.)"
+        )
+    resolved = os.path.expandvars(str(root))
+    if "$" in resolved:
+        raise ValueError(f"unresolved environment variable in data root: {resolved!r}")
+    if not config.get("root"):
+        resolved = f"{resolved}/external"
+    return Path(resolved) / name
 
 
 # --- What may a dataset be USED FOR? (enforced, not merely documented) -----------------
@@ -187,6 +204,11 @@ def decode_frames(video_path: str | os.PathLike, indices: Iterable[int]) -> list
     """Lazily decode the given frame indices from a video. Returns a list of PIL Images.
 
     PyAV rather than decord (decord has no maintained wheels for our Python/numpy pin).
+
+    RAISES if any requested index is not in the clip. It used to return
+    ``[out[i] for i in wanted if i in out]`` — silently handing back FEWER images than asked
+    for, so a model was fed a different input than the record claimed, and the contact sheet
+    captioned frame 3 as "frame 2". A short read here is a broken assumption, not a shorter list.
     """
     import av
     from PIL import Image
@@ -205,7 +227,13 @@ def decode_frames(video_path: str | os.PathLike, indices: Iterable[int]) -> list
                 out[i] = frame.to_image()
             if len(out) == len(wanted):
                 break
-    return [out[i] for i in wanted if i in out]
+    missing = [i for i in wanted if i not in out]
+    if missing:
+        raise IndexError(
+            f"{video_path}: requested {len(wanted)} frames but {len(missing)} do not exist "
+            f"(e.g. {missing[:5]}). The clip is shorter than the annotation claims."
+        )
+    return [out[i] for i in wanted]
 
 
 def take(iterable: Iterable[Item], n: int) -> list[Item]:

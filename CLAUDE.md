@@ -27,8 +27,9 @@ Mechanistic study of where metric spatial information is lost in VLMs (the visio
 
 Before saying something works, ask: *what must be true of the output if this is correct, that would be false if it were subtly broken?* Then measure that. Concretely:
 
-1. **Check an invariant the output cannot violate if correct.** A sphere is exactly as tall as it is wide. A nearer object subtends more pixels. A projected centre lands inside its own bbox. `loaded_items == source_records`. Invariants catch what smoke tests structurally cannot.
+1. **Check an invariant the output cannot violate if correct.** A nearer object subtends more pixels. A projected centre lands inside its own bbox. `loaded_items == source_records`. Invariants catch what smoke tests structurally cannot.
    - *(The mask pipeline silently bled into bounce-lit floor for an entire milestone. Every test passed. It was caught by asking "is a sphere as tall as it is wide?" — it was 66 px wide and 103 px tall.)*
+   - ⚠ **But state the invariant in its exact form, or it becomes a false alarm.** "A sphere is exactly as tall as it is wide" holds only **on-axis**: a perspective-projected sphere is an *ellipse*, and off-axis in v0 it legitimately measures w/h ∈ [0.984, 1.037] (the exact projected ellipse predicts [0.984, 1.040]). As literally written the invariant now false-positives by up to 3.9%. The robust general form is **measured == analytic**: derive what the quantity *should* be from first principles and compare, rather than asserting a symmetry that only holds in a special case.
 2. **Full scans, not samples.** Smoke-testing 5 items proves nothing about item 4,000. Count integrity, id uniqueness, and file existence must be checked over **every** item.
    - *(A 5-item smoke test missed a whole 14,862-record subset silently resolving to zero, and 2,529 unscoreable MCQs.)*
 3. **NEVER silently skip.** No bare `continue` on a record that fails to parse or resolve. Count skips, log them, and **raise if a subset yields zero** — an empty result is a broken assumption, not an empty dataset.
@@ -50,11 +51,16 @@ Update `docs/IMPLEMENTATION_PLAN.md` and `docs/PROJECT_MEMORY.md` with decisions
 
 ## Environment (filled in at M0 — 2026-07-10, server plant-ai06)
 
+- ⚠ **`$DATA_ROOT` and `$HF_HOME` are NOT exported in any shell profile** — a fresh shell has them unset. Export both at the start of every session (or add them to `~/.bashrc`):
+  ```bash
+  export DATA_ROOT=/data3/hugin/vsr HF_HOME=/data3/hugin/hf_home
+  ```
+  Nothing silently defaults if you forget: `load_config` and `dataset_root` both raise (they used to fabricate the absolute path `/external` instead). The test suite skips its data-dependent tests rather than erroring.
 - `$DATA_ROOT`: `/data3/hugin/vsr` — data3 is a shared 20T NFS mount with ~7.8T free (62% used); ample for models + activation caches + stimuli.
 - `$HF_HOME`: `/data3/hugin/hf_home` — HF model cache on the big disk, NOT on `/home` (home partition is shared NFS, only ~1.5T free at 73%; model zoo grows to ~300–500 GB across Paper 1 + Paper 2 checkpoints). Non-model caches (pip/uv) may stay in `~/.cache`.
 - GPUs: **8× NVIDIA RTX A6000, 48 GB each** on plant-ai06 (the main server). First-come-first-served, no scheduler; multi-GPU allowed. Other servers have 4090/2080 but are rarely used — out of scope. **NOTE: hardware is A6000 48 GB, not A100** — the plan's prose says "A100"; compute all memory budgets against 48 GB. GPU-guard treats a device as occupied-by-another-user when `nvidia-smi` memory-used exceeds a configurable threshold (default 1024 MiB, so a small idle resident does not false-trip) or a foreign compute process is present.
 - Experiment tracking: **CSV by default** (config, git-hash, seed logged to tidy local files under `$DATA_ROOT`); wandb available via config (`tracking.backend: wandb`) — wandb login already cached in `~/.netrc` (verified 2026-07-10), entity **`chaso-hosei-university`** (user `chaso`), default project `vsr`. Switch is a one-line config change; targeted for M4/M5 when the probing grid produces many runs.
-- Git remote: **deferred** (personal research, local-only for now). ⚠ CLAUDE.md hard rule "server is never the only copy" is currently unmet — add a GitHub `origin` and push when convenient.
+- Git remote: **`origin` = `git@github.com:Hugin373/vsr.git`**, and `main` is pushed. The "server is never the only copy" hard rule is **met** (the M0/M1 docs said otherwise for a while — they were stale; verified 2026-07-14). Push every session.
 
 ## Commands
 

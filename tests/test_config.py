@@ -83,3 +83,27 @@ def test_unresolved_env_var_can_be_allowed(tmp_path, monkeypatch):
     cfg.write_text("paths:\n  out: ${DATA_ROOT}/stimuli\n", encoding="utf-8")
     out = load_config(cfg, strict_env=False)
     assert out["paths"]["out"] == "${DATA_ROOT}/stimuli"
+
+
+def test_empty_but_set_env_var_raises(tmp_path, monkeypatch):
+    """An EMPTY var is a forgotten export too — and it defeated the guard.
+
+    `DATA_ROOT=""` made expandvars turn "${DATA_ROOT}/external" into "/external": an absolute
+    path at the filesystem root, with no `${...}` left for the unresolved-check to find. The
+    guard has to look at the vars the config REFERENCES, before expansion destroys the evidence.
+    """
+    monkeypatch.setenv("DATA_ROOT", "")
+    cfg = tmp_path / "c.yaml"
+    cfg.write_text("root: ${DATA_ROOT}/external\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="unset or empty"):
+        load_config(cfg)
+
+
+def test_unbraced_env_var_is_also_checked(tmp_path, monkeypatch):
+    """`$VAR` (no braces) is advertised as supported, and expandvars leaves an unknown one as
+    literal text — so `root: $NOPE/external` sailed through as the path '$NOPE/external'."""
+    monkeypatch.delenv("NOPE", raising=False)
+    cfg = tmp_path / "c.yaml"
+    cfg.write_text("root: $NOPE/external\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="unset or empty"):
+        load_config(cfg)

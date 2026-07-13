@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterator
+from pathlib import Path
 
 from ..utils.logging import get_logger
 from .base import LETTERS, Item, dataset_root, register, strip_option_letters
@@ -23,6 +24,34 @@ from .base import LETTERS, Item, dataset_root, register, strip_option_letters
 log = get_logger("sbind.revsi")
 
 BUDGETS = ("16", "32", "64", "all")
+
+
+_CLIP_LEN: dict[str, int] = {}  # video path -> real frame count (metadata read is not free)
+
+
+def _clip_length(video_path: Path) -> int:
+    """Real frame count of a clip, read from container metadata (no decode). Cached per file.
+
+    ⚠ Do NOT use the parquet's ``num_frames`` column for this. It is a budget LABEL, not a
+    count: in ``all_frame/`` it holds the literal string ``'all'`` for every row, so
+    ``int(num_frames)`` raised ValueError and the entire 'all' budget — one of the four
+    documented settings of the dataset whose whole thesis is budget-sensitivity — was dead.
+    For 16/32/64 the label happens to equal the clip length; 'all' clips run 56–4,337 frames.
+    Deriving the count from the artefact makes all four budgets work and removes the trust.
+    """
+    key = str(video_path)
+    if key not in _CLIP_LEN:
+        import av
+
+        with av.open(key) as c:
+            stream = c.streams.video[0]
+            n = int(stream.frames or 0)
+            if n <= 0:  # container did not declare it — count by demuxing packets (still cheap)
+                n = sum(1 for p in c.demux(stream) if p.pts is not None)
+        if n <= 0:
+            raise RuntimeError(f"{video_path}: could not determine a frame count (got {n})")
+        _CLIP_LEN[key] = n
+    return _CLIP_LEN[key]
 
 
 @register("revsi")
@@ -62,6 +91,8 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
         with open(meta_path, encoding="utf-8") as f:
             sampled = json.load(f)
 
+    missing_video = 0
+    yielded = 0
     for pfile in sorted(bdir.glob("*.parquet")):
         pf = pq.ParquetFile(pfile)
         for batch in pf.iter_batches(batch_size=64):
@@ -69,8 +100,11 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
                 scene_id = row["scene_id"]
                 video = bdir / f"{scene_id}.mp4"
                 if not video.exists():
+                    # counted + reported below, never a silent shrink
+                    missing_video += 1
                     continue
-                n_frames = int(row.get("num_frames") or 0)
+                # derived from the clip itself, NOT from the parquet's num_frames label
+                n_frames = _clip_length(video)
                 # MCQ options ship PRE-LETTERED ("A. wall picture") and ground_truth is the
                 # bare letter — so strip the markers and resolve the letter to its text,
                 # like every other adapter, or a scorer cannot match an answer to an option.
@@ -97,7 +131,8 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
                         "scene_id": scene_id,
                         "source_dataset": row.get("dataset"),  # ARKitScenes | ScanNet | ...
                         "frame_budget": budget,
-                        "n_frames": n_frames,
+                        "n_frames": n_frames,  # real clip length, verified against the artefact
+                        "n_frames_upstream": row.get("num_frames"),  # the raw label ('all', 32…)
                         "queried_object_ids": row.get("queried_object_ids"),
                         "sampled_original_frame_idx": (
                             sampled.get(scene_id, {}).get(f"{budget}-frame")
@@ -105,3 +140,17 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
                         "original_index": row["id"],
                     },
                 )
+                yielded += 1
+
+    # A subset that resolves nothing is a broken assumption, not an empty dataset.
+    if yielded == 0:
+        raise RuntimeError(
+            f"revsi/{budget}: resolved 0 of {missing_video} rows to a video under {bdir}. "
+            f"The on-disk layout is not what the adapter expects."
+        )
+    if missing_video:
+        log.warning(
+            "revsi/%s: %d rows skipped — their scene video is missing on disk",
+            budget,
+            missing_video,
+        )

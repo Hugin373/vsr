@@ -152,19 +152,37 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         return float(axis[0]) * x + float(axis[1]) * y + float(axis[2]) * z + t2
 
     # Factor levels sampled per image.
+    #
+    # ⚠ SEMANTICS MUST NOT PREDICT DEPTH ROLE. Category is sampled as an ORDERED
+    # (near_category, far_category) pair, and that pair is BALANCED — not as two independent
+    # draws. Drawing cat_a/cat_b independently left which shape lands in the near role to the
+    # seed's luck: the v0 set came out sphere-near 148 / far 182 and cube-near 168 / far 147,
+    # so the best shape-only constant strategy ("the cube is closer") scored 55.1% on mixed
+    # pairs — a language-only model gets that for free, and a depth probe can read depth off
+    # object IDENTITY. In a set whose entire purpose is to decorrelate semantics from geometry
+    # that is a construction bug, and it is exactly the confound Wang & Gao residualize out.
+    # Balancing the ordered pair makes "X is nearer than Y" and "Y is nearer than X" equally
+    # frequent for every {X, Y}, so no shape-only strategy can beat chance BY CONSTRUCTION.
+    #
+    # Colour gets the same treatment: it measured clean (p=0.63) but only by luck, and this
+    # project's principle is "congruent by construction, for every measured cue" — a cue that
+    # happens to be balanced this seed is not a guarantee.
+    cat_pairs = [(a, b) for a in categories for b in categories]
+    color_pairs = [(a, b) for a in range(len(color_items)) for b in range(len(color_items))]
     factors = {
         "near_depth_bin": list(range(len(fcfg["near_depth_bins"]))),
         "depth_gap_bin": list(range(len(fcfg["depth_gaps"]))),
         "closer_object": [0, 1],
         "lateral_swap": [0, 1],
-        "cat_a": categories,
-        "cat_b": categories,
-        "color_a": list(range(len(color_items))),
-        "color_b": list(range(len(color_items))),
+        "cat_pair": list(range(len(cat_pairs))),  # (near_cat, far_cat) — balanced
+        "color_pair": list(range(len(color_pairs))),  # (near_col, far_col) — balanced
         "size_multiplier": size_multipliers,  # ONE per image, shared by both objects
     }
     assignments = factorial_assignments(
-        factors, n, rng, balanced_on=["closer_object", "near_depth_bin"]
+        factors,
+        n,
+        rng,
+        balanced_on=["closer_object", "near_depth_bin", "cat_pair", "color_pair"],
     )
 
     specs: list[SceneSpec] = []
@@ -180,17 +198,21 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
 
         # which slot (obj0/obj1) is the nearer object
         closer = a["closer_object"]
+        farther = 1 - closer
+
+        # Category and colour are drawn as ORDERED (near, far) pairs and assigned BY DEPTH
+        # ROLE, not by slot — that is what keeps semantics from predicting depth (see above).
+        near_cat, far_cat = cat_pairs[a["cat_pair"]]
+        near_col, far_col = color_pairs[a["color_pair"]]
 
         # the two objects must be distinguishable: never identical in BOTH category and
         # colour (an identical pair makes "which object is closer?" unanswerable).
-        cat_a, cat_b = a["cat_a"], a["cat_b"]
-        col_a, col_b = a["color_a"], a["color_b"]
-        if cat_a == cat_b and col_a == col_b:
-            alternatives = [c for c in range(len(color_items)) if c != col_a]
-            col_b = int(rng.choice(alternatives))
+        if near_cat == far_cat and near_col == far_col:
+            alternatives = [c for c in range(len(color_items)) if c != near_col]
+            far_col = int(rng.choice(alternatives))
 
-        cats = {0: cat_a, 1: cat_b}
-        cols = {0: color_items[col_a], 1: color_items[col_b]}
+        cats = {closer: near_cat, farther: far_cat}
+        cols = {closer: color_items[near_col], farther: color_items[far_col]}
 
         # One multiplier for the whole pair (see size_multipliers note above). Calibrated
         # per-category sizes mean both objects still subtend equal retinal extent at equal
@@ -261,6 +283,12 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
             "depth_gap_bin": a["depth_gap_bin"],
             "closer_object": closer,
             "lateral_swap": a["lateral_swap"],
+            # the ORDERED semantic pairs, recorded so a probe/analysis can verify that
+            # semantics do not predict depth role (see the balancing note above)
+            "near_category": cats[closer],
+            "far_category": cats[farther],
+            "near_color": cols[closer][0],
+            "far_color": cols[farther][0],
             "near_y": near_y,
             "far_y": far_y,
             "size_multiplier": mult,  # shared by both objects (congruent condition)

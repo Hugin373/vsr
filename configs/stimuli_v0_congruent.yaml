@@ -106,10 +106,21 @@ constraints:
 # We calibrate on HEIGHT (that is what retinal_size_px records) and then use
 # min_depth_ratio to keep AREA congruent too.
 cue_constants:
+  # Re-derive with: uv run --extra analysis scripts/derive_cue_constants.py --set <set>
   # fraction of its bbox each silhouette actually fills
   fill_factor: {cube: 0.939, cylinder: 0.908, sphere: 0.784}
-  # height * depth  (equalised by the size calibration -> height congruence is structural)
-  height_constant: {cube: 409.3, cylinder: 410.3, sphere: 405.3}
+
+  # height * depth, split by NEAR/FAR role, as [min, max] — NOT means.
+  # ⚠ The old single-number form {cube: 409.3, cylinder: 410.3, sphere: 405.3} was a MEAN, and
+  # the height_ratio_threshold derived from it (1.016) was wrong by 5x in excess-over-1: the
+  # true worst case is 1.0905. The cube/cylinder height constant swings ~±13% with image
+  # position — under the tilted camera a cube's silhouette HEIGHT grows as it moves low/near
+  # in frame (its top face comes into view) — while a sphere's swings ~3%. So the size
+  # calibration equalises height only AT THE REFERENCE POINT, not everywhere; the
+  # `_spread_px: 0.0` claim in size_calibration.yaml is true only there.
+  # This is the SAME rule-7 error the project already fixed for area. Extremes, never means.
+  height_constant_near: {cube: [395.7, 450.3], cylinder: [396.0, 448.9], sphere: [401.4, 412.9]}
+  height_constant_far:  {cube: [383.2, 431.5], cylinder: [383.2, 429.7], sphere: [398.9, 409.5]}
 
   # area * depth^2 (calibrated size_m baked in, size_multiplier divided out). NOT
   # equalised by the height calibration -> this is what min_depth_ratio must cover.
@@ -129,8 +140,12 @@ cue_constants:
     near_sphere_far_sphere:     1.016
     near_cube_far_cylinder: 0.964   # never binds
     near_cube_far_sphere:   0.947   # never binds
-  area_ratio_threshold: 1.158       # worst-case; a mean-based estimate (1.096) is unsafe
-  height_ratio_threshold: 1.016
+  # Both thresholds are WORST-CASE (re-derived 2026-07-14 from the rebalanced 500-image set):
+  #   area   = max sqrt(A_far_max / A_near_min) over pairings
+  #   height = max (C_h_far_max / C_h_near_min) over pairings
+  # min_depth_ratio (1.18) clears the binding one (area, 1.1565) with +2.05% headroom.
+  area_ratio_threshold: 1.1565      # worst-case; a mean-based estimate (1.096) is unsafe
+  height_ratio_threshold: 1.0905    # worst-case; the old 1.016 was MEAN-derived and unsafe
 
 condition:
   size_condition: congruent

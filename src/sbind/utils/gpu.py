@@ -55,7 +55,7 @@ class GpuInfo:
 class ComputeApp:
     """One row of ``nvidia-smi --query-compute-apps`` output."""
 
-    gpu_index: int  # note: nvidia-smi reports gpu_uuid; we resolve to index upstream
+    gpu_index: int  # nvidia-smi reports gpu_uuid; resolved to an index by parse_compute_apps
     pid: int
     used_mib: int
     process_name: str
@@ -89,6 +89,76 @@ def parse_gpu_query(csv_text: str) -> list[GpuInfo]:
     return rows
 
 
+def parse_uuid_map(csv_text: str) -> dict[str, int]:
+    """Parse ``--query-gpu=index,uuid`` CSV into {uuid: index}."""
+    out: dict[str, int] = {}
+    for line in csv_text.strip().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        idx, uuid = (p.strip() for p in line.split(",", 1))
+        out[uuid] = int(idx)
+    return out
+
+
+def parse_compute_apps(csv_text: str, uuid_to_index: dict[str, int]) -> list[ComputeApp]:
+    """Parse ``--query-compute-apps=gpu_uuid,pid,used_memory,process_name`` CSV.
+
+    nvidia-smi prints "[N/A]" (not a number) when it cannot read a field, and prints a
+    no-processes notice on some driver versions — both are skipped rather than crashing the
+    guard, since a guard that dies is a guard that gets bypassed.
+    """
+    rows: list[ComputeApp] = []
+    for line in csv_text.strip().splitlines():
+        line = line.strip()
+        if not line or "not supported" in line.lower() or "no running" in line.lower():
+            continue
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) < 4:
+            continue
+        uuid, pid, used, name = parts[0], parts[1], parts[2], ",".join(parts[3:])
+        if not pid.isdigit() or uuid not in uuid_to_index:
+            continue
+        rows.append(
+            ComputeApp(
+                gpu_index=uuid_to_index[uuid],
+                pid=int(pid),
+                used_mib=int(used) if used.isdigit() else 0,
+                process_name=name,
+            )
+        )
+    return rows
+
+
+def process_owner_uid(pid: int) -> int | None:
+    """UID owning ``pid``, or None if the process is gone / unreadable."""
+    try:
+        return os.stat(f"/proc/{pid}").st_uid
+    except (FileNotFoundError, PermissionError, ProcessLookupError):
+        return None
+
+
+def foreign_compute_apps(apps: list[ComputeApp], gpu_index: int, my_uid: int) -> list[ComputeApp]:
+    """Compute processes on ``gpu_index`` that belong to ANOTHER user.
+
+    This is the half of the guard CLAUDE.md promises ("...or a foreign compute process is
+    present") that was declared and never called: the guard was memory-threshold-only, so a
+    freshly-started job that had not yet allocated 1 GiB was invisible and we would have
+    happily claimed a GPU out from under a colleague.
+
+    A process whose owner cannot be determined is treated as foreign — fail safe on a shared
+    machine.
+    """
+    out = []
+    for a in apps:
+        if a.gpu_index != gpu_index:
+            continue
+        uid = process_owner_uid(a.pid)
+        if uid != my_uid:  # includes uid is None (unreadable -> assume someone else's)
+            out.append(a)
+    return out
+
+
 def is_occupied(info: GpuInfo, mem_threshold_mib: int = DEFAULT_MEM_THRESHOLD_MIB) -> bool:
     """True if the GPU's resident memory exceeds the threshold."""
     return info.mem_used_mib > mem_threshold_mib
@@ -97,7 +167,7 @@ def is_occupied(info: GpuInfo, mem_threshold_mib: int = DEFAULT_MEM_THRESHOLD_MI
 # --- subprocess boundary ------------------------------------------------------------
 
 
-def _run_nvidia_smi(query: str) -> str:
+def _nvidia_smi(*args: str) -> str:
     exe = shutil.which("nvidia-smi")
     if exe is None:
         raise NvidiaSmiUnavailable(
@@ -105,7 +175,7 @@ def _run_nvidia_smi(query: str) -> str:
             "run extraction/intervention scripts on the server, not a laptop."
         )
     proc = subprocess.run(
-        [exe, f"--query-gpu={query}", "--format=csv,noheader,nounits"],
+        [exe, *args, "--format=csv,noheader,nounits"],
         capture_output=True,
         text=True,
         check=True,
@@ -115,7 +185,16 @@ def _run_nvidia_smi(query: str) -> str:
 
 def gpu_status() -> list[GpuInfo]:
     """Live snapshot of every visible GPU. Raises NvidiaSmiUnavailable off a GPU host."""
-    return parse_gpu_query(_run_nvidia_smi("index,memory.used,memory.total,utilization.gpu"))
+    query = "--query-gpu=index,memory.used,memory.total,utilization.gpu"
+    return parse_gpu_query(_nvidia_smi(query))
+
+
+def compute_apps() -> list[ComputeApp]:
+    """Live snapshot of every compute process across all GPUs."""
+    uuid_map = parse_uuid_map(_nvidia_smi("--query-gpu=index,uuid"))
+    return parse_compute_apps(
+        _nvidia_smi("--query-compute-apps=gpu_uuid,pid,used_memory,process_name"), uuid_map
+    )
 
 
 # --- the guard ----------------------------------------------------------------------
@@ -126,8 +205,15 @@ def claim_gpu(
     mem_threshold_mib: int = DEFAULT_MEM_THRESHOLD_MIB,
     allow_occupied: bool = False,
     _status_fn=gpu_status,
+    _apps_fn=compute_apps,
+    _uid_fn=os.getuid,
 ) -> int:
     """Reserve exactly one GPU for this process, aborting if another user holds it.
+
+    Two independent occupancy tests, per CLAUDE.md — memory above the threshold, **or a
+    foreign compute process present**. The second one existed only as a dataclass until the
+    M3 audit: the guard was memory-only, so a colleague's job that had not yet allocated
+    1 GiB was invisible to it.
 
     On success sets ``CUDA_VISIBLE_DEVICES`` to ``gpu_index`` and returns it. MUST be
     called before torch initializes CUDA — afterwards the visible-device mask is fixed.
@@ -136,7 +222,7 @@ def claim_gpu(
         gpu_index: physical device index the user passed via ``--gpu``.
         mem_threshold_mib: occupancy threshold; from config (gpu.mem_threshold_mib).
         allow_occupied: escape hatch (e.g. your own earlier process). Off by default.
-        _status_fn: injection point for tests; do not pass in production code.
+        _status_fn, _apps_fn, _uid_fn: injection points for tests; not for production code.
 
     Raises:
         GpuError: if the index is out of range.
@@ -158,6 +244,21 @@ def claim_gpu(
             f"This is a shared server — pick a free GPU or coordinate. "
             f"Pass allow_occupied=True only if this is your own process."
         )
+
+    # Second test: someone else's compute process on this device, at ANY memory footprint.
+    if not allow_occupied:
+        foreign = foreign_compute_apps(_apps_fn(), gpu_index, _uid_fn())
+        if foreign:
+            detail = "; ".join(
+                f"pid {a.pid} ({a.process_name}, {a.used_mib} MiB)" for a in foreign[:4]
+            )
+            raise GpuOccupiedError(
+                f"GPU {gpu_index} has {len(foreign)} compute process(es) belonging to another "
+                f"user: {detail}. This is a shared server — pick a free GPU or coordinate. "
+                f"(Memory used is only {info.mem_used_mib} MiB, below the "
+                f"{mem_threshold_mib} MiB threshold, so the memory check alone would have "
+                f"missed this.)"
+            )
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_index)
     return gpu_index

@@ -17,7 +17,14 @@ DATASETS = ["cvbench", "mindcube", "causalspatial", "depthcues", "revsi", "whats
 
 @pytest.fixture(scope="module")
 def config():
-    return load_config("configs/datasets.yaml")
+    # $DATA_ROOT unset is the normal state on a laptop, and load_config rightly REFUSES to
+    # guess a path for it. That must be a skip, not 35 errors: the suite has to stay green off
+    # the server. (It did not — the "skips cleanly when data is absent" claim only held if the
+    # var was set to a nonexistent path.)
+    try:
+        return load_config("configs/datasets.yaml")
+    except ValueError as e:
+        pytest.skip(f"dataset config needs $DATA_ROOT exported: {e}")
 
 
 def _skip_if_absent(config, name):
@@ -170,17 +177,22 @@ def test_no_silent_record_drops(config, name):
 
 
 def test_mcq_answers_resolve_to_an_option(config):
-    """An MCQ answer must map to one of its options — the join that silently breaks."""
+    """An MCQ answer must map to one of its options — the join that silently breaks.
+
+    Written to be non-vacuous: the previous version skipped items with `options == []` and
+    accepted `answer_text is None`, i.e. it excused exactly the two failures it existed to
+    catch. Both are now hard errors, over the FULL dataset.
+    """
     for name in ("cvbench", "causalspatial", "whatsup", "mindcube"):
         _skip_if_absent(config, name)
-        for it in take(load(name, config), 5):
+        for it in load(name, config):
             if it.meta.get("answer_type") != "mcq":
                 continue
             options = it.meta.get("options") or []
-            if not options:
-                continue
+            assert options, f"{name}/{it.id}: MCQ item with an EMPTY option list"
             text = it.meta.get("answer_text")
-            assert text is None or text in options, f"{name}/{it.id}: answer_text not in options"
+            assert text is not None, f"{name}/{it.id}: MCQ answer resolved to nothing"
+            assert text in options, f"{name}/{it.id}: answer_text {text!r} not in options"
 
 
 def test_revsi_decodes_frames_lazily(config):
@@ -234,3 +246,119 @@ def test_split_and_budget_are_recorded_on_every_item(config):
         assert it.meta["frame_budget"] == "32"
     for it in take(load("revsi", config, frame_budget=16), 3):
         assert it.meta["frame_budget"] == "16"
+
+
+# --- invariant tests: one per bug found in the M3 retro-audit (reports/m0_m2_audit.md) ------
+
+
+def test_mindcube_unknown_split_raises_instead_of_silently_using_tinybench(config):
+    """An unknown split must be an ERROR, never a silent fallback to the dev default.
+
+    `SPLITS.get(split, tinybench)` returned tinybench's 1,050 items STAMPED with the split you
+    asked for — so `split="val"` produced the wrong population under the right-looking label,
+    inverting the very rule it was meant to enforce.
+    """
+    _skip_if_absent(config, "mindcube")
+    with pytest.raises(KeyError, match="unknown mindcube split"):
+        take(load("mindcube", config, split="val"), 1)
+
+    # and a split set in the CONFIG must be honoured (§2.5: it has to be settable there)
+    cfg = dict(config)
+    cfg["datasets"] = dict(config.get("datasets", {}))
+    cfg["datasets"]["mindcube"] = {**cfg["datasets"].get("mindcube", {}), "split": "train"}
+    it = take(load("mindcube", cfg), 1)[0]
+    assert it.meta["split"] == "train"
+
+
+def test_causalspatial_abstain_option_really_reads_like_an_abstain(config):
+    """`not_sure_letter` must name an option that IS an abstain — never the upstream claim.
+
+    Upstream's `not_sure` column is the constant 'C' for all 189 occlusion rows, but 54 of them
+    have four SEMANTIC options and no abstain at all, and on 11 of those C is the GOLD answer.
+    Trusting the column told a scorer to discard the correct answer as a non-answer.
+    """
+    _skip_if_absent(config, "causalspatial")
+    n_abstain = 0
+    for it in load("causalspatial", config):
+        letter = it.meta.get("not_sure_letter")
+        if letter is None:
+            continue
+        n_abstain += 1
+        options = it.meta["options"]
+        idx = "ABCDEFGH".index(letter)
+        assert idx < len(options), f"{it.id}: abstain letter {letter} beyond {len(options)} options"
+        assert "not sure" in options[idx].lower(), (
+            f"{it.id}: not_sure_letter {letter} names {options[idx]!r}, which is not an abstain"
+        )
+        # the gold answer must never BE the abstain we advertise
+        assert it.meta["answer_letter"] != letter, f"{it.id}: gold answer is the abstain option"
+    assert n_abstain > 0, "no abstain options found at all — the detector is broken"
+
+
+def test_causalspatial_corrupt_option_rows_are_flagged_not_hidden(config):
+    """Upstream-corrupted option text must be FLAGGED, not passed off as a clean option list.
+
+    Collision_Level_2_31's question lost its "E. R" upstream, so the strict A,B,C-run parser
+    stops at D and the last "option" is a blob holding D + E + F. Gold is 'A', so every other
+    check passes. A scorer computing chance level as 1/len(options) gets it wrong.
+    """
+    _skip_if_absent(config, "causalspatial")
+    items = list(load("causalspatial", config))
+    suspect = [it for it in items if not it.meta.get("options_parse_ok", True)]
+    # exactly the one known-corrupt upstream row — a golden count, so a regression moves it
+    assert len(suspect) == 1, f"expected 1 corrupt-option row, found {len(suspect)}"
+    assert all(it.meta["options_parse_ok"] for it in items if it not in suspect)
+
+
+def test_whatsup_gold_answer_is_not_always_option_a(config):
+    """The correct caption is FIRST in all 820 upstream items. If we hand a scorer that order,
+    a model with a mere A-bias scores 100% and the qualitative positive control passes for the
+    wrong reason. The adapter must shuffle and record the true index."""
+    _skip_if_absent(config, "whatsup")
+    items = list(load("whatsup", config))
+    idxs = [it.meta["answer_index"] for it in items]
+    assert all(i >= 0 for i in idxs), "some gold caption is not present in its own option list"
+    assert len(set(idxs)) > 1, "gold answer is at a constant position — options were not shuffled"
+    # every position should be used; nothing should be wildly over-represented
+    for pos in range(4):
+        share = idxs.count(pos) / len(idxs)
+        assert 0.15 < share < 0.35, f"answer position {pos} has share {share:.2f} — not shuffled"
+
+    # the shuffle must be REPRODUCIBLE (same seed -> same permutation)
+    again = list(load("whatsup", config))
+    assert [it.meta["options"] for it in again] == [it.meta["options"] for it in items]
+
+    # and the upstream order must still be recoverable, with its correct-caption-first rule
+    for it in items:
+        assert it.meta["answer_text"] == it.meta["options_upstream"][0]
+        assert it.meta["options"][it.meta["answer_index"]] == it.meta["answer_text"]
+
+
+def test_revsi_every_documented_frame_budget_loads(config):
+    """All four budgets in BUDGETS must actually load. 'all' was dead: the parquet's
+    `num_frames` column is a budget LABEL (literally the string 'all'), not a count, so
+    int() raised — and ReVSI's entire thesis is that conclusions change with the budget."""
+    _skip_if_absent(config, "revsi")
+    from sbind.datasets.revsi import BUDGETS
+
+    for budget in BUDGETS:
+        it = take(load("revsi", config, frame_budget=budget), 1)[0]
+        assert it.meta["frame_budget"] == str(budget)
+        assert it.frame_indices, f"budget {budget}: item has no frame indices"
+        # n_frames must be the REAL clip length, not the upstream label
+        assert isinstance(it.meta["n_frames"], int) and it.meta["n_frames"] > 0
+        assert len(it.frame_indices) == it.meta["n_frames"]
+        if str(budget) != "all":
+            assert it.meta["n_frames"] == int(budget)
+
+
+def test_decode_frames_raises_rather_than_returning_fewer_frames(config):
+    """A short read must be an error. It used to silently return fewer images than requested,
+    so the model saw a different input than the record claimed and the contact sheet captioned
+    the wrong frames."""
+    _skip_if_absent(config, "revsi")
+    from sbind.datasets.base import decode_frames
+
+    it = take(load("revsi", config), 1)[0]
+    with pytest.raises(IndexError, match="shorter than the annotation claims"):
+        decode_frames(it.video, [0, 1, 999_999])

@@ -43,16 +43,19 @@ Experiment tracking: wandb (or CSV + git-hash logging if the lab has no wandb). 
 
 All under `$DATA_ROOT/external/<name>/`. Disk is **measured on disk after extraction**, and
 includes the retained source archives (so it exceeds the hub's download size — e.g. ReVSI
-is a 4.9 GB zip plus its extracted videos). **Total 20 GB against 7.8 TB free — a non-issue.**
+is a 4.9 GB zip plus its extracted videos). **Total 23 GB against 7.8 TB free — a non-issue.**
+⚠ **Loading a dataset MUTATES `$DATA_ROOT`:** CV-Bench and CausalSpatial embed their images in
+parquet, so the adapters extract them to disk on first load — both roughly *double* on disk
+(394 M → 782 M, 2.4 G → 4.8 G). The 20 GB figure once quoted here was measured before that.
 
 | Dataset | Status | Adapter | Items loaded | Disk | Notes |
 |---|---|---|---|---|---|
-| What'sUp (`amitakamath/whatsup_vlms`) | ✅ MIT, Google Drive | `whatsup` | 820 | 312 M | Controlled A (412 real photos) + B (408 CLEVR renders). 4 caption options; **first option is always correct** (upstream convention). ⚠ COCO/GQA-spatial subsets deferred to M3 (need COCO/GQA corpora) |
-| CV-Bench (`nyu-visionx/CV-Bench`) | ✅ Apache-2.0 | `cvbench` | 2,638 | 394 M | 2D (Count/Relation) + 3D (**Depth/Distance** — our primitive). Images embedded in parquet; target objects drawn as red/blue boxes |
+| What'sUp (`amitakamath/whatsup_vlms`) | ✅ MIT, Google Drive | `whatsup` | 820 | 313 M | Controlled A (412 real photos) + B (408 CLEVR renders). 4 caption options; the **first option is always correct** upstream (verified against the relation encoded in each image filename, 718/718 — not merely trusted). ⚠ Therefore the adapter **SHUFFLES the options** (seeded) and records the true `answer_index`: served in upstream order, an A-biased model scores 100% and our qualitative positive control passes for the wrong reason. ⚠ COCO/GQA-spatial subsets deferred to M3 (need COCO/GQA corpora) |
+| CV-Bench (`nyu-visionx/CV-Bench`) | ✅ Apache-2.0 | `cvbench` | 2,638 | 782 M | 2D (Count/Relation) + 3D (**Depth/Distance** — our primitive). Images embedded in parquet; target objects drawn as red/blue boxes |
 | VSI-Bench (`nyu-visionx/VSI-Bench`) | ⛔ **SKIPPED** | — | — | 0 | ReVSI ships its own videos + corrected annotations, so the raw benchmark adds 5.7 GB for nothing |
-| **ReVSI** (`3dlg-hcvc/ReVSI`) | ✅ Apache-2.0 | `revsi` | 6,158 | 9.1 G | **Video.** Pre-sampled per frame budget (16/32/64/all); frames decoded **lazily** via PyAV. Numeric + MCQ answers |
-| MindCube (`MLL-Lab/MindCube`) | ✅ MIT | `mindcube` | 1,050 (tinybench) | 1.3 G | **Multi-view** (4 images/item) — the dataset that forces the list-valued `images` interface. Options inline in the question |
-| CausalSpatial (`Mwxinnn/CausalSpatial`) | ✅ MIT | `causalspatial` | 1,541 | 2.4 G | ⚠ **Two schemas**: 4 sim subsets have options inline + letter answers + a `not_sure` abstain option; `realworld` has an explicit options list + text answers. Adapter normalises both |
+| **ReVSI** (`3dlg-hcvc/ReVSI`) | ✅ Apache-2.0 | `revsi` | 16f: 4,568 · **32f: 6,158** · 64f: 6,616 · all: 6,808 | 9.1 G | **Video.** Pre-sampled per frame budget; frames decoded **lazily** via PyAV. Numeric + MCQ answers. ⚠ The parquet's `num_frames` column is a budget **label**, not a count (it is the literal string `'all'` in `all_frame/`) — the adapter derives the real clip length from the video itself |
+| MindCube (`MLL-Lab/MindCube`) | ✅ MIT | `mindcube` | 1,050 (tinybench) · 21,154 (test) · 10,000 (train) | 1.3 G | **Multi-view** (4 images/item) — the dataset that forces the list-valued `images` interface. Options inline in the question. An unknown split now **raises** (it used to silently return tinybench stamped with the split you asked for) |
+| CausalSpatial (`Mwxinnn/CausalSpatial`) | ✅ MIT | `causalspatial` | 1,541 | 4.8 G | ⚠ **Two schemas**: 4 sim subsets have options inline + letter answers + a `not_sure` column; `realworld` has an explicit options list + text answers. Adapter normalises both. ⚠⚠ **Neither the upstream `id` NOR the `not_sure` column can be trusted** — see §2.5(c) |
 | DepthCues (`danier97/depthcues`) | ✅ per-source terms (non-commercial research); code MIT | `depthcues` | **19,235** (test) | 6.7 G | ⚠ **NOT a VQA benchmark** — raw probe targets (image + mask pair + label). Questions are SYNTHESIZED by us; consumers use `meta.label`. ⚠ Perspective subset skipped (its hub zip is empty — images live at the original vanishing-point project) |
 | Kang synthetic grid + COCO-Spatial | ⚠ code-generated, not shipped | — | — | — | M3: run their data-engine recipe; COCO downloaded separately; **no license — reimplement, don't copy** |
 | SynSpat3D (Wang & Gao) | ⚠ NOT released | — | — | — | regenerate equivalent stimuli ourselves (M1 generator covers this) |
@@ -82,6 +85,24 @@ scores a **verbalized** answer must use only datasets with a native task.
 - Note the distinction `meta.synthesized_question` alone is too blunt to make: **What'sUp is
   behavioral-safe** — its *task* and answer key are native (pick the correct caption of four);
   only our prompt *wording* is synthesized. DepthCues has no native task at all.
+
+**(c) An upstream field is a HYPOTHESIS, not a fact — verify it against the artefact.**
+Added at M3's retro-audit, after the *second* upstream field in the same dataset turned out to
+be a lie. Both were silent, and both would have corrupted a reported number:
+- CausalSpatial's `id` is documented as a "unique sample identifier"; **192 physics rows share
+  one string**. Keying the extracted images on it overwrote most of them (1,541 items → 949
+  files). Now keyed on `(subset, shard, row index)`.
+- CausalSpatial's `not_sure` column names the abstain option; it is the **constant `'C'` for all
+  189 occlusion rows**, but 54 of those rows have four *semantic* options and no abstain at all
+  — **and on 11 of them, C is the gold answer.** A scorer honouring the column would have
+  discarded the correct answer as a non-answer. `meta.not_sure_letter` is now derived by
+  checking the option TEXT; the raw claim survives as `meta.not_sure_upstream`.
+- Similarly: ReVSI's `num_frames` is a budget label, not a count; What'sUp's "first option is
+  correct" convention is TRUE but was verified from the filename-encoded relation rather than
+  taken on faith (and, being true, forces an option shuffle — see the table).
+**Rule: before keying, counting, or scoring on any upstream field, verify it against the data.
+A cross-check is nearly always available for free** (option text vs the abstain letter; clip
+length vs the declared frame count; filename vs the answer key).
 
 ## 3. Core data schemas (freeze these in M0)
 

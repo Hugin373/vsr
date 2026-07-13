@@ -16,7 +16,15 @@ from typing import Any
 
 import yaml
 
-_UNRESOLVED = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}")
+# BOTH forms. Matching only ${VAR} left a hole: os.path.expandvars leaves an unresolved $VAR
+# as literal text, so `root: $NOPE/external` sailed through strict_env as the path "$NOPE/…".
+_UNRESOLVED = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}|\$[A-Za-z_][A-Za-z0-9_]*")
+
+# Which env vars a config REFERENCES — collected BEFORE expansion. Checking only the expanded
+# result cannot see an empty-but-SET var: `DATA_ROOT=""` expands `${DATA_ROOT}/external` to
+# "/external" with nothing left to match, i.e. a forgotten export silently became an absolute
+# path at the filesystem root. That is the exact failure this module exists to prevent.
+_VAR_REF = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
 
 
 def _expand(value: Any) -> Any:
@@ -31,13 +39,30 @@ def _expand(value: Any) -> Any:
 
 
 def _find_unresolved(value: Any, path: str = "") -> list[str]:
-    """Collect config keys whose value still contains an unexpanded ``${VAR}``."""
+    """Collect config keys whose value still contains an unexpanded ``$VAR`` / ``${VAR}``."""
     if isinstance(value, str):
         return [f"{path}: {value}"] if _UNRESOLVED.search(value) else []
     if isinstance(value, dict):
         return [x for k, v in value.items() for x in _find_unresolved(v, f"{path}.{k}".lstrip("."))]
     if isinstance(value, list):
         return [x for i, v in enumerate(value) for x in _find_unresolved(v, f"{path}[{i}]")]
+    return []
+
+
+def _find_empty_vars(value: Any, path: str = "") -> list[str]:
+    """Config keys referencing an env var that is unset OR set to the empty string."""
+    if isinstance(value, str):
+        out = []
+        for m in _VAR_REF.finditer(value):
+            name = m.group(1) or m.group(2)
+            if not os.environ.get(name):  # unset or empty — both are misconfiguration
+                state = "empty" if name in os.environ else "unset"
+                out.append(f"{path}: {value}  (${name} is {state})")
+        return out
+    if isinstance(value, dict):
+        return [x for k, v in value.items() for x in _find_empty_vars(v, f"{path}.{k}".lstrip("."))]
+    if isinstance(value, list):
+        return [x for i, v in enumerate(value) for x in _find_empty_vars(v, f"{path}[{i}]")]
     return []
 
 
@@ -69,6 +94,16 @@ def load_config(
         raise ValueError(f"config top level must be a mapping, got {type(data).__name__}: {p}")
     if not expand_env:
         return data
+
+    # Check the vars the config REFERENCES, before expansion wipes the evidence.
+    if strict_env:
+        empty = _find_empty_vars(data)
+        if empty:
+            raise ValueError(
+                f"unresolved environment variable(s) in {p} — unset or empty:\n"
+                + "\n".join(f"  {e}" for e in empty)
+                + "\nExport them (e.g. `export DATA_ROOT=...`) before running."
+            )
 
     expanded = _expand(data)
     if strict_env:
