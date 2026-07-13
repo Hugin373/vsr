@@ -72,6 +72,58 @@ constraints:
   unambiguous_ordinal: true
   ordinal_margin_m: 0.15
 
+  # PRINCIPLE: "congruent" must mean congruent BY CONSTRUCTION, for EVERY measured cue —
+  # not congruent by luck of the seed. Each apparent-size cue has its own structural
+  # threshold on the far/near depth ratio (see cue_constants below):
+  #     height cue : ratio > ~1.016   (calibration equalises height, so this is tiny)
+  #     area   cue : ratio > ~1.158   (calibration does NOT equalise area — see below)
+  # 1.18 clears the worst case (near=cylinder/far=cube, 1.158) with ~2% headroom.
+  #
+  # NB the area threshold MUST be computed from WORST-CASE constants, not mean ones: a
+  # cube's silhouette area varies ~±11% with pose/depth (a nearer cube shows more of its
+  # faces), so a mean-based threshold (which gives a far-too-low 1.096) does not
+  # guarantee anything. A 1.12 floor was tried and left a 0.6% worst-case margin.
+  #
+  # This is a UNIFORM floor on purpose. Per-pairing thresholds would be less restrictive
+  # (near=cube/far=sphere needs no constraint at all) but would make SHAPE predict the
+  # depth-ratio distribution — a confound a probe could exploit. Uniform keeps the depth
+  # ratio independent of the shape pairing.
+  min_depth_ratio: 1.18
+
+# Measured cue constants (from the calibrated v0 renders). Kept here for reuse by M4's
+# CONFLICT designs, which need to invert a cue on purpose by a known amount.
+#
+# You cannot equalise height and area simultaneously across shapes: silhouettes fill
+# their bounding boxes differently, so equalising one leaves the other shape-dependent.
+# We calibrate on HEIGHT (that is what retinal_size_px records) and then use
+# min_depth_ratio to keep AREA congruent too.
+cue_constants:
+  # fraction of its bbox each silhouette actually fills
+  fill_factor: {cube: 0.939, cylinder: 0.908, sphere: 0.784}
+  # height * depth  (equalised by the size calibration -> height congruence is structural)
+  height_constant: {cube: 409.3, cylinder: 410.3, sphere: 405.3}
+
+  # area * depth^2 (calibrated size_m baked in, size_multiplier divided out). NOT
+  # equalised by the height calibration -> this is what min_depth_ratio must cover.
+  # Split by NEAR/FAR role because perspective differs: a nearer cube shows more of its
+  # faces, so its area constant is larger. Mean values hide an ~±11% cube spread, so the
+  # thresholds below use worst-case (max as FAR / min as NEAR), never means.
+  area_constant_far:  {cube: [139863, 171495], cylinder: [124010, 137850], sphere: [128132, 133094]}  # [min, max]
+  area_constant_near: {cube: [148480, 182933], cylinder: [127900, 143832], sphere: [128932, 135860]}  # [min, max]
+
+  # required depth ratio per pairing = sqrt( max(A_far as FAR) / min(A_near as NEAR) )
+  required_ratio_by_pairing:
+    near_cylinder_far_cube: 1.158   # <-- worst case, sets min_depth_ratio
+    near_sphere_far_cube:   1.153
+    near_cube_far_cube:     1.075
+    near_cylinder_far_cylinder: 1.038
+    near_sphere_far_cylinder:   1.034
+    near_sphere_far_sphere:     1.016
+    near_cube_far_cylinder: 0.964   # never binds
+    near_cube_far_sphere:   0.947   # never binds
+  area_ratio_threshold: 1.158       # worst-case; a mean-based estimate (1.096) is unsafe
+  height_ratio_threshold: 1.016
+
 condition:
   size_condition: congruent
   elevation_condition: congruent

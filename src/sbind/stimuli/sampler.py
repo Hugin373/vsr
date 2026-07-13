@@ -132,17 +132,23 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     constraints = config.get("constraints", {})
     unambiguous = bool(constraints.get("unambiguous_ordinal", True))
     ordinal_margin = float(constraints.get("ordinal_margin_m", 0.15))
-    axis = None
-    if unambiguous:
-        _, R_cv, _, _ = geometry.camera_frame(
-            cam_cfg["pos_world"],
-            cam_cfg["target_world"],
-            float(cam_cfg["f_mm"]),
-            float(cam_cfg["sensor_width_mm"]),
-            int(render_cfg["res_x"]),
-            int(render_cfg["res_y"]),
-        )
-        axis = geometry.optical_axis(R_cv)
+    # Minimum far/near CENTRE-depth ratio. Every measured cue must be congruent by
+    # construction, and each cue has its own structural threshold (see the config):
+    # height ~1.012, area ~1.096. 1.12 clears both with margin.
+    min_depth_ratio = float(constraints.get("min_depth_ratio", 1.0))
+    _, R_cv, t_cv, _ = geometry.camera_frame(
+        cam_cfg["pos_world"],
+        cam_cfg["target_world"],
+        float(cam_cfg["f_mm"]),
+        float(cam_cfg["sensor_width_mm"]),
+        int(render_cfg["res_x"]),
+        int(render_cfg["res_y"]),
+    )
+    axis = geometry.optical_axis(R_cv)
+    t2 = float(t_cv[2])
+
+    def _depth(x: float, y: float, z: float) -> float:
+        return float(axis[0]) * x + float(axis[1]) * y + float(axis[2]) * z + t2
 
     # Factor levels sampled per image.
     factors = {
@@ -191,17 +197,31 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         mult = float(a["size_multiplier"])
         obj_size = {slot: size_by_cat[cats[slot]] * mult for slot in (0, 1)}
 
-        # Unambiguous ordinal: centre-depth order and nearest-surface order must agree.
-        # A far cube can present a nearer surface than a near sphere when the centre gap
-        # is small, since half-extents along the viewing axis differ by shape. Push the
-        # far object back until the centre gap exceeds |h_near - h_far| + margin.
-        if unambiguous and axis is not None and abs(axis[1]) > 1e-9:
+        # Push the far object back until BOTH structural constraints hold. Work in true
+        # optical-axis depth (not world-y): the objects rest at different heights now,
+        # because the calibrated size_m differs per category.
+        z_near = _rest_height(cats[closer], obj_size[closer])
+        z_far = _rest_height(cats[1 - closer], obj_size[1 - closer])
+        d_near = _depth(near_x, near_y, z_near)
+        required_d_far = _depth(far_x, far_y, z_far)
+
+        # (a) Unambiguous ordinal: centre-depth order and nearest-surface order must
+        #     agree. Half-extents along the viewing axis differ by shape, so a far cube
+        #     could otherwise present a nearer surface than a near sphere.
+        if unambiguous:
             h_near = geometry.half_extent_along(cats[closer], obj_size[closer], axis)
             h_far = geometry.half_extent_along(cats[1 - closer], obj_size[1 - closer], axis)
-            required = abs(h_near - h_far) + ordinal_margin
-            lateral_term = float(axis[0]) * (far_x - near_x)
-            min_far_y = near_y + (required - lateral_term) / float(axis[1])
-            far_y = max(far_y, min_far_y)
+            required_d_far = max(required_d_far, d_near + abs(h_near - h_far) + ordinal_margin)
+
+        # (b) Minimum depth ratio: makes every apparent-size cue congruent BY
+        #     CONSTRUCTION rather than by luck of the seed (see config cue_constants).
+        if min_depth_ratio > 1.0:
+            required_d_far = max(required_d_far, min_depth_ratio * d_near)
+
+        if abs(axis[1]) > 1e-9:
+            far_y = (
+                required_d_far - t2 - float(axis[0]) * far_x - float(axis[2]) * z_far
+            ) / float(axis[1])
 
         depth_y = {closer: near_y, 1 - closer: far_y}
         xpos = {closer: near_x, 1 - closer: far_x}

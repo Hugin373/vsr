@@ -174,6 +174,21 @@ def test_unambiguous_ordinal_enforces_margin():
         assert gap >= abs(h_near - h_far) + 0.15 - 1e-6
 
 
+def test_min_depth_ratio_enforced():
+    # every apparent-size cue must be congruent BY CONSTRUCTION: the area cue needs a
+    # far/near depth ratio above ~1.158 (worst case), so the sampler floors it at 1.18.
+    cfg = {
+        **CONFIG,
+        "constraints": {"unambiguous_ordinal": True, "ordinal_margin_m": 0.15,
+                        "min_depth_ratio": 1.18},
+    }
+    for seed in range(3):
+        for s in build_scene_specs(cfg, seed=seed):
+            (d0, _), (d1, _) = _centre_and_surface_depths(s)
+            ratio = max(d0, d1) / min(d0, d1)
+            assert ratio >= 1.18 - 1e-6, f"{s.id}: depth ratio {ratio:.4f} < 1.18"
+
+
 def test_constraint_can_be_disabled():
     cfg = {**CONFIG, "constraints": {"unambiguous_ordinal": False}}
     specs = build_scene_specs(cfg, seed=0)

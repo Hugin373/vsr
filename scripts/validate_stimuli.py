@@ -114,12 +114,17 @@ def main() -> int:
         if objs[0]["category"] == objs[1]["category"] and objs[0]["name"] == objs[1]["name"]:
             fails["identical_pair"] += 1
 
-        # RETINAL CONGRUENCE: in a congruent set the nearer object MUST subtend the larger
-        # retinal size. With per-category size calibration + a pair-shared size multiplier
-        # this holds by construction, so any violation is a bug, not an edge case.
+        # CUE CONGRUENCE: in a congruent set the nearer object MUST look bigger by EVERY
+        # measured apparent-size cue. Height is made structural by the per-category size
+        # calibration; area is made structural by the sampler's min_depth_ratio (the
+        # calibration equalises height, not area). Any violation of either is a
+        # construction bug, not an edge case.
         near_c = 0 if d0 < d1 else 1
-        if objs[near_c]["retinal_size_px"] <= objs[1 - near_c]["retinal_size_px"]:
+        far_c = 1 - near_c
+        if objs[near_c]["retinal_size_px"] <= objs[far_c]["retinal_size_px"]:
             fails["retinal_congruence"] += 1
+        if objs[near_c]["mask_area_px"] <= objs[far_c]["mask_area_px"]:
+            fails["area_congruence"] += 1
 
         # the pair must share ONE physical-size multiplier (no independent size jitter):
         # each object's size_m must equal its category base times the image's multiplier
@@ -145,6 +150,7 @@ def main() -> int:
         "geometry",
         "bbox_bottom",
         "retinal_congruence",
+        "area_congruence",
         "ordinal_disagree",
         "ordinal_label",
         "ratio",
