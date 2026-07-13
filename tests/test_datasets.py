@@ -192,3 +192,45 @@ def test_revsi_decodes_frames_lazily(config):
     frames = decode_frames(it.video, it.frame_indices[:3])
     assert len(frames) == 3
     assert frames[0].size[0] > 0
+
+
+def test_probe_only_datasets_are_barred_from_behavioral_claims():
+    """DepthCues must never be scored as a verbalized-answer benchmark.
+
+    Its questions are SYNTHESIZED by us and its answers are raw probe targets, so a model's
+    "accuracy" on them is not a behavioral result about anything. What'sUp, by contrast, has
+    a NATIVE task and answer key (pick the correct caption of 4) — only our prompt wording is
+    synthesized — so it stays behavioral-safe. `meta.synthesized_question` alone is too blunt
+    to separate the two; that is what this classification is for.
+    """
+    from sbind.datasets.base import (
+        BEHAVIORAL_SAFE,
+        PROBE_ONLY,
+        assert_behavioral_safe,
+    )
+
+    assert PROBE_ONLY == {"depthcues"}
+    assert BEHAVIORAL_SAFE == {"cvbench", "mindcube", "causalspatial", "revsi", "whatsup"}
+    assert set(DATASETS) == BEHAVIORAL_SAFE | PROBE_ONLY  # every dataset is classified
+
+    with pytest.raises(ValueError, match="PROBE_ONLY"):
+        assert_behavioral_safe("depthcues")
+    for name in BEHAVIORAL_SAFE:
+        assert_behavioral_safe(name)  # must not raise
+
+
+def test_split_and_budget_are_recorded_on_every_item(config):
+    """A dev-speed default split must never slip silently into a reported result.
+
+    MindCube's split (tinybench=1,050 vs the full ~21k) and ReVSI's frame budget are
+    SCIENTIFIC parameters — ReVSI's whole point is that conclusions change with the budget.
+    Both are logged at load and recorded per item so a result can always be traced to them.
+    """
+    _skip_if_absent(config, "mindcube")
+    for it in take(load("mindcube", config), 3):
+        assert it.meta["split"] == "tinybench"
+    _skip_if_absent(config, "revsi")
+    for it in take(load("revsi", config), 3):
+        assert it.meta["frame_budget"] == "32"
+    for it in take(load("revsi", config, frame_budget=16), 3):
+        assert it.meta["frame_budget"] == "16"

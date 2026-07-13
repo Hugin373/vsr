@@ -17,7 +17,10 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 
+from ..utils.logging import get_logger
 from .base import LETTERS, Item, dataset_root, register, strip_option_letters
+
+log = get_logger("sbind.revsi")
 
 BUDGETS = ("16", "32", "64", "all")
 
@@ -29,9 +32,20 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
 
     root = dataset_root(config, "revsi")
     entry = (config.get("datasets") or {}).get("revsi", {})
+    explicit = frame_budget is not None
     budget = str(frame_budget or entry.get("frame_budget", 32))
     if budget not in BUDGETS:
         raise ValueError(f"frame_budget must be one of {BUDGETS}, got {budget!r}")
+    # The frame budget is a SCIENTIFIC parameter, not a loader detail — ReVSI's whole point
+    # is that conclusions change with it. Never let a default slip silently into a result:
+    # log it, and record it in meta.frame_budget on every item.
+    log.info(
+        "revsi: frame_budget=%s (%s)",
+        budget,
+        "explicit"
+        if explicit
+        else "DEFAULT — set it in the experiment config for any reported result",
+    )
 
     bdir = root / f"{budget}_frame"
     if not bdir.exists():

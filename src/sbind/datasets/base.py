@@ -89,6 +89,40 @@ def dataset_root(config: dict, name: str) -> Path:
     return Path(os.path.expandvars(str(root))) / name
 
 
+# --- What may a dataset be USED FOR? (enforced, not merely documented) -----------------
+#
+# `meta.synthesized_question` alone is too blunt a flag: it is true for BOTH What'sUp and
+# DepthCues, but they are not the same kind of thing.
+#
+#   NATIVE_QA      native question AND native answer -> safe for behavioral claims.
+#   NATIVE_TASK    the TASK and answer key are native (What'sUp: pick the correct caption
+#                  from 4); only our prompt WORDING is synthesized. Safe for behavioral
+#                  claims — it is our qualitative positive control.
+#   PROBE_ONLY     NOT a question-answering benchmark at all. DepthCues ships regression /
+#                  binary probe targets (image + mask pair + label) with NO task text; the
+#                  "question" is entirely our invention and its "answer" is a raw label.
+#
+# RULE: nothing that scores a VERBALIZED answer may touch a PROBE_ONLY dataset. A model's
+# "accuracy" on a question we made up is not a behavioral result about anything. Call
+# assert_behavioral_safe() at the top of any eval/scoring entrypoint.
+NATIVE_QA = frozenset({"cvbench", "mindcube", "causalspatial", "revsi"})
+NATIVE_TASK = frozenset({"whatsup"})
+PROBE_ONLY = frozenset({"depthcues"})
+
+BEHAVIORAL_SAFE = NATIVE_QA | NATIVE_TASK
+
+
+def assert_behavioral_safe(name: str) -> None:
+    """Raise if ``name`` must not be used for a verbalized-answer / behavioral claim."""
+    if name in PROBE_ONLY:
+        raise ValueError(
+            f"{name!r} is PROBE_ONLY: its questions are synthesized by us and its answers are "
+            f"raw probe targets, so scoring verbalized answers on it would be meaningless. "
+            f"Use it for encoder-level probing (meta.label) only. "
+            f"Behavioral-safe datasets: {', '.join(sorted(BEHAVIORAL_SAFE))}."
+        )
+
+
 LETTERS = "ABCDEFGH"
 
 # Options written into a question body. Several benchmarks do this, in different formats:

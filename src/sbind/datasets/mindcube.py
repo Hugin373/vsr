@@ -14,7 +14,10 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 from ..utils.io import read_jsonl
+from ..utils.logging import get_logger
 from .base import Item, dataset_root, parse_inline_options, register
+
+log = get_logger("sbind.mindcube")
 
 SPLITS = {
     "tinybench": "MindCube_tinybench.jsonl",
@@ -36,6 +39,15 @@ def _parse_options(question: str) -> tuple[str, list[str], dict[str, str]]:
 @register("mindcube")
 def load_mindcube(config: dict, split: str = "tinybench") -> Iterator[Item]:
     """Yield MindCube items. ``split`` in {tinybench, test, train}."""
+    # The split is a SCIENTIFIC parameter: tinybench is 1,050 items, the full set ~21k.
+    # A dev-speed default must never slip silently into a reported result.
+    log.info(
+        "mindcube: split=%s (%s)",
+        split,
+        "explicit"
+        if split != "tinybench"
+        else "DEFAULT tinybench — set it explicitly for any reported result",
+    )
     root = dataset_root(config, "mindcube")
     data_dir = root / "data"
     jsonl = data_dir / "raw" / SPLITS.get(split, SPLITS["tinybench"])

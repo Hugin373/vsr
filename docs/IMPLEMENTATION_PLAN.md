@@ -58,6 +58,31 @@ is a 4.9 GB zip plus its extracted videos). **Total 20 GB against 7.8 TB free �
 | SynSpat3D (Wang & Gao) | ⚠ NOT released | — | — | — | regenerate equivalent stimuli ourselves (M1 generator covers this) |
 | Metric VQA (Ill-Posed by Design) | ❌ NOT released | — | — | — | do not plan around it; re-check monthly |
 
+## 2.5 Dataset usage rules (set at M2 — these are SCIENTIFIC constraints, not loader details)
+
+**(a) Split / frame-budget is an experiment parameter, never a loader default.**
+The adapters default to MindCube `tinybench` (1,050 items, vs the full ~21k) and ReVSI's
+**32-frame** budget purely for development speed. Which split/budget a *reported result* uses
+is a scientific choice and **must be stated explicitly in the experiment config** — a dev
+default must never be inherited into a paper number by accident. Both adapters now LOG the
+value at load (flagging when it is a default) and record it on every item
+(`meta.split`, `meta.frame_budget`), so any result is traceable to it.
+- **TODO (M5 validation layer):** ReVSI's whole point is that *conclusions change with the
+  frame budget* — the paper should report **2–3 budgets (e.g. 16 / 32 / 64)**, not one. Treat
+  a single-budget result as provisional.
+
+**(b) DepthCues is PROBE-ONLY and must never appear in a behavioral claim.**
+It ships raw probe targets (image + red/green mask pair + label) with **no task text**: its
+"questions" are synthesized by us and its "answers" are regression/binary labels. A model's
+"accuracy" on a question we invented is not a behavioral result about anything. Anything that
+scores a **verbalized** answer must use only datasets with a native task.
+- Enforced in code, not just documented: `datasets/base.py` classifies every dataset as
+  `NATIVE_QA` / `NATIVE_TASK` / `PROBE_ONLY`, and `assert_behavioral_safe(name)` raises on
+  PROBE_ONLY. **Call it at the top of every eval/scoring entrypoint (M5, M7).**
+- Note the distinction `meta.synthesized_question` alone is too blunt to make: **What'sUp is
+  behavioral-safe** — its *task* and answer key are native (pick the correct caption of four);
+  only our prompt *wording* is synthesized. DepthCues has no native task at all.
+
 ## 3. Core data schemas (freeze these in M0)
 
 **Stimulus annotation (`annotations.jsonl`, one line per image):**
@@ -109,6 +134,11 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
 
 ### M5 — Probing & the core result (Phase-2 science)
 Probe runner: for every (model, site, layer, target, axis) → ridge/logistic with 5 seeds × 5 splits, shuffled-label control, selectivity contrast (qualitative vs metric), rank-correlation metrics; verbalized-answer collection on identical stimuli (+ few-shot calibrated variant + oracle-text condition); anchor experiment (scenes ± known-size reference object).
+**Dataset usage rules (§2.5) apply here:** call `assert_behavioral_safe(name)` in the
+verbalized-answer collector (DepthCues is PROBE-ONLY — probe `meta.label` only, never score
+its synthesized questions); and state the MindCube split + ReVSI frame budget **explicitly**
+in the experiment config, reporting ReVSI at **2–3 budgets** since its conclusions change with
+the budget.
 **Adopted standards (from Dual Mechanisms v2, 2603.22278v2):** (a) probe BOTH mask-pooled object tokens AND all-visual-token / strip-level representations — their central negative control shows spatial signal is distributed across background tokens, so object-pooled-only probing underestimates what survives (M4's cache must store an all-token pooled variant per layer too); (b) two-ordering strict protocol for all verbalized MCQ answers (ask both option orders, correct only if both pass); (c) random-direction nulls for any steering/injection; (d) report fixed-α and per-example-α (Probe*) intervention variants. Outputs: tidy parquet (§3) + the Figure-1 plotting script (decodability profile across sites/layers vs verbalized accuracy).
 **Accept:** full grid runs from cached features on CPU in hours; every plotted number traceable to config+seed; positive control (qualitative) shows the Kang-consistent profile.
 
