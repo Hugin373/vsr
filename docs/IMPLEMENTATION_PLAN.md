@@ -104,6 +104,34 @@ be a lie. Both were silent, and both would have corrupted a reported number:
 A cross-check is nearly always available for free** (option text vs the abstain letter; clip
 length vs the declared frame count; filename vs the answer key).
 
+**(d) ⚠⚠ THE v0 CONGRUENT SET CANNOT CARRY A METRIC-DECODABILITY CLAIM (found at M3.2, 2026-07-14).**
+Probing mask-pooled object tokens on `stimuli/v0_congruent` gives **x R² = 0.997 and z R² = 0.990
+at EVERY LM layer** of Qwen2.5-VL-7B and InternVL3-8B (shape and colour = 1.000; all
+shuffled-label controls exactly at chance). Wang & Gao report **x = −0.09, z = +0.28**. We do not
+get "semantics ≫ metric" because **we get no difficulty gradient at all**. The probes are fine —
+the stimuli are not. Three measured defects, each of which M4 MUST fix:
+
+1. **`x` is not a metric coordinate — it is a binary side label.** It takes **exactly 2 values
+   (±0.7)**: the sampler puts the near object at ±`lateral_offset` and the far one at ∓ it. And
+   mask-pooling *selects its tokens by the object's image position*, so "decode x" is answered by
+   **which tokens were pooled**, before the model contributes anything. → **`lateral_offset` must
+   become a continuous range.**
+2. **`z` is over-determined.** Depth is **86% predictable from apparent size alone**
+   (r = 0.93 between `depth_m` and `size_m / retinal_size_px`), because a congruent set is
+   *defined* by every depth cue agreeing. This is exactly the monocular-depth shortcut Wang & Gao
+   flag and discount. → **M4's `size_condition` (independent per-object size jitter) is
+   LOAD-BEARING, not optional** — it is the thing that breaks the size↔depth shortcut.
+3. **Too few degrees of freedom.** Two primitives on a bare plane, fixed camera. "Modest
+   decodability" is not even expressible. → **add camera-pose jitter, backgrounds, distractors.**
+
+**And a methodological constraint that outlives the stimulus fix: mask-pooling from
+position-indexed visual tokens LEAKS POSITION BY CONSTRUCTION.** The pooled vector averages the
+tokens *at the object's image location*, and those tokens carry positional information — so a
+high x/z R² is not by itself evidence of a metric representation. **Every Phase-2 mask-pooled
+probe must report a position-leak control** (regress out the pooled tokens' grid coordinates),
+alongside the strip/all-token variant (already cached) and Wang & Gao's cross-scene
+residualization of the semantic subspace.
+
 ## 3. Core data schemas (freeze these in M0)
 
 **Stimulus annotation (`annotations.jsonl`, one line per image):**
@@ -142,10 +170,25 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
 **Status:** all criteria met. Six adapters (`src/sbind/datasets/`), `scripts/{download_dataset,dataset_contact_sheet}.py`, `configs/datasets.yaml`. 16 dataset tests pass (skip cleanly when data is absent, so the suite stays green on a laptop); HTML contact sheets with question+answer under each image, eyeballed. 20 GB on disk, inventory above.
 **Interface note:** the spec's singular `image` became **`images: list[str]`** — ReVSI is video and MindCube is multi-view, so a singular field could not express half the benchmarks. Items also carry a stable origin-carrying `id` (`<dataset>/<index>`) so eval results join back to source, and video items carry `video` + `frame_indices` with **lazy** frame decode (nothing materialised).
 
-### M3 — Reproductions (load-bearing gate)
+### M3 — Reproductions (load-bearing gate) — ⚠ DONE 2026-07-14: **M3.1 PASS (mechanism), M3.2 FAIL (our stimuli)**
 1. **Kang reproduction (reimplemented):** mirror-swap activation patching + spatial-ID derivation + steering on LLaVA-1.5-7B and Qwen2.5-VL-7B, using their data-engine recipe (tile two objects on grid; COCO-Spatial from downloaded COCO). Pass bar: steering belief-swap ≫ noise control, direction of all key effects matches paper (~64% vs ~30%; exact numbers within a few points).
 2. **Wang & Gao pattern reproduction:** mask-pooled object tokens on our M1 stimuli, ridge probes for x/z/pairwise distance + color/shape. Pass bar: pattern match — semantics ≫ metric; x ≈ chance; z modest.
 **Accept:** a short internal report (numbers table vs paper) committed to `reports/`. **If either fails after honest effort, STOP and rethink framing before Phase 2 — this is the project's go-gate.**
+
+**RESULT — full report: `reports/m3_reproduction.md`.**
+- **M3.1 = PASS on the mechanism, FAIL on the absolute magnitude.** The mirror-swap patching
+  profile reproduces *exactly* on both models (**image patches early → object-word tokens middle
+  → text late**), rank-3 R² = **0.87 / 0.84** vs their ≥0.85, and steering along the spatial-ID
+  mirror direction is dramatically selective: **31.3% vs 0.0% norm-matched noise** (Qwen, at the
+  paper's α=5). What does NOT reproduce is the absolute swap rate (19–31%, not ~64%) — but our
+  noise floor is also ~0%, not their ~30%, so the paper's own summary statistic, the
+  **above-chance influence**, matches or exceeds theirs (+31.3 pts at α=5, **+43.3 pts** at the
+  dose-response peak, vs their +34.9). Our models are simply far more certain on this task
+  (95–98% accuracy), so a random nudge never flips a belief. **Nothing was tuned to close the gap.**
+- **M3.2 = FAIL, and the cause is OUR STIMULI, not the method.** See §2.5(d) below — this is the
+  most consequential thing M3 produced.
+
+**⚠ M3.2's failure is the go-gate's real output. Read §2.5(d) before touching M4.**
 
 ### M4 — Full stimulus battery + extraction pipeline
 1. Generator v1: conflict conditions (fixed-retinal-size, elevation-conflict), canonical-object set (import a few CC0 models: chair, mug, bottle) alongside primitives, question templates per taxonomy level (qualitative / ordinal / ratio / absolute) with balanced answer keys. Scale: ~5–10k images per config decision.

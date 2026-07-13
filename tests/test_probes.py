@@ -67,3 +67,75 @@ def test_probe_result_records_its_control():
     d = ridge_probe(X, y, "t", seeds=(0,)).to_dict()
     assert "control_value" in d and d["control_value"] is not None
     assert d["n"] == 100 and d["metric"] == "r2"
+
+
+def test_dual_ridge_matches_sklearn_ridgecv():
+    """The fast dual solver must be the SAME estimator as RidgeCV, not merely 'close enough'.
+
+    We swapped RidgeCV for a dual-form solver purely for speed (d >> n made RidgeCV ~20 s per
+    fit, i.e. ~20 h for the grid). A speedup that quietly changes the estimator would change
+    every reported number, so the equivalence is TESTED against sklearn rather than argued.
+    """
+    from sklearn.linear_model import RidgeCV
+    from sklearn.preprocessing import StandardScaler
+
+    from sbind.probes.ridge import ALPHAS, _ridge_dual_fit_predict
+
+    rng = np.random.default_rng(7)
+    n, d = 120, 400  # d >> n, the regime we actually probe in
+    Xtr = rng.normal(size=(n, d))
+    ytr = Xtr[:, 0] * 1.5 - Xtr[:, 3] * 0.8 + rng.normal(size=n) * 0.3
+    Xte = rng.normal(size=(40, d))
+
+    sc = StandardScaler().fit(Xtr)
+    A, B = sc.transform(Xtr), sc.transform(Xte)
+
+    mine = _ridge_dual_fit_predict(A, ytr, B, alphas=ALPHAS)
+    theirs = RidgeCV(alphas=ALPHAS).fit(A, ytr).predict(B)
+
+    assert np.corrcoef(mine, theirs)[0, 1] > 0.999, "dual solver is not the same estimator"
+    assert np.abs(mine - theirs).max() < 0.05 * float(np.std(theirs)) + 1e-6
+
+
+def test_kernel_features_preserve_inner_products_exactly():
+    """The reduction is lossless: it must preserve every inner product it is used through."""
+    from sbind.probes.ridge import kernel_features
+
+    rng = np.random.default_rng(11)
+    Xtr = rng.normal(size=(60, 300))  # d >> n
+    Xte = rng.normal(size=(20, 300))
+    Ztr, Zte = kernel_features(Xtr, Xte)
+
+    assert Ztr.shape[1] <= Xtr.shape[0], "reduction did not reduce the dimension"
+    assert np.allclose(Ztr @ Ztr.T, Xtr @ Xtr.T, atol=1e-6), "train Gram not preserved"
+    assert np.allclose(Zte @ Ztr.T, Xte @ Xtr.T, atol=1e-6), "test-train inner products lost"
+
+
+def test_logistic_on_kernel_features_matches_logistic_on_raw_features():
+    """Same estimator, different coordinates — the predictions must agree.
+
+    L2-penalised logistic depends on X only through inner products and its penalty is
+    rotation-invariant, so this equivalence is exact. It is asserted here because the whole
+    reason for the reduction is speed, and a speedup that changes the answer is a bug.
+    """
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.preprocessing import StandardScaler
+
+    from sbind.probes.ridge import kernel_features
+
+    rng = np.random.default_rng(12)
+    n, d = 90, 400
+    labels = np.array(["a", "b", "c"] * (n // 3))
+    X = rng.normal(size=(n, d)) * 0.7
+    for i, lab in enumerate("abc"):
+        X[labels == lab, i] += 2.0
+    Xte = rng.normal(size=(30, d))
+
+    sc = StandardScaler().fit(X)
+    A, B = sc.transform(X), sc.transform(Xte)
+    Ztr, Zte = kernel_features(A, B)
+
+    raw = LogisticRegression(max_iter=5000, C=1.0).fit(A, labels).predict(B)
+    red = LogisticRegression(max_iter=5000, C=1.0).fit(Ztr, labels).predict(Zte)
+    agree = (raw == red).mean()
+    assert agree > 0.95, f"reduction changed the classifier's predictions ({agree:.2f} agree)"

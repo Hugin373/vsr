@@ -115,33 +115,42 @@ def extract(config: dict, model_cfg: dict) -> dict:
 
 def probe(config: dict, model_cfg: dict) -> list[dict]:
     """CPU stage: ridge/logistic probes per layer, each with its shuffled-label control."""
-    from sbind.probes.ridge import logistic_probe, ridge_probe
+    from sbind.probes.ridge import probe_layer
 
+    a = config["analysis"]
     out_dir = Path(config["output"]["root"]) / model_cfg["name"]
     data = np.load(out_dir / "features.npz")
     with open(out_dir / "meta.json", encoding="utf-8") as f:
         meta = json.load(f)
 
-    x = np.array([m["x"] for m in meta], dtype=np.float64)
-    z = np.array([m["z"] for m in meta], dtype=np.float64)
-    shape = np.array([m["shape"] for m in meta])
-    color = np.array([m["color"] for m in meta])
+    targets = {
+        # the METRIC quantities (Wang & Gao's x and z)
+        "x_lateral": ("reg", np.array([m["x"] for m in meta], dtype=np.float64)),
+        "z_depth": ("reg", np.array([m["z"] for m in meta], dtype=np.float64)),
+        # the SEMANTIC controls — the contrast the whole claim rests on
+        "shape": ("cls", np.array([m["shape"] for m in meta])),
+        "color": ("cls", np.array([m["color"] for m in meta])),
+    }
 
     rows = []
     for key in sorted(data.files, key=lambda k: int(k[1:])):
         L = int(key[1:])
         X = data[key].astype(np.float64)
-        res = [
-            ridge_probe(X, x, "x_lateral"),
-            ridge_probe(X, z, "z_depth"),
-            logistic_probe(X, shape, "shape"),
-            logistic_probe(X, color, "color"),
-        ]
+        res = probe_layer(
+            X, targets, seeds=tuple(a.get("seeds", (0, 1, 2, 3, 4))),
+            n_folds=int(a.get("n_folds", 5)),
+        )
+        by = {r.target: r for r in res}
         for r in res:
             rows.append({"model": model_cfg["name"], "layer": L, **r.to_dict()})
         log.info(
-            "L%-2d  x R2=%+.3f  z R2=%+.3f  shape acc=%.3f  colour acc=%.3f",
-            L, res[0].value, res[1].value, res[2].value, res[3].value,
+            "L%-2d  x R2=%+.3f (ctrl %+.3f)  z R2=%+.3f (ctrl %+.3f)  "
+            "shape acc=%.3f (ctrl %.3f)  colour acc=%.3f (ctrl %.3f)",
+            L,
+            by["x_lateral"].value, by["x_lateral"].control,
+            by["z_depth"].value, by["z_depth"].control,
+            by["shape"].value, by["shape"].control,
+            by["color"].value, by["color"].control,
         )
     write_json(rows, out_dir / "probes.json")
     return rows

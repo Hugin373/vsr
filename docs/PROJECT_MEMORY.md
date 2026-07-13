@@ -34,6 +34,70 @@
 - `cue_constants` in `configs/stimuli_v0_congruent.yaml` records the measured fill factors, `height×depth`, `area×depth²` (split by near/far role) and per-pairing required depth ratios — the numbers a conflict design needs to invert a cue by a *known* amount.
 - Anything M4 adds (new primitive, new pose freedom, per-object size jitter) **invalidates the M1 calibration and the 1.158 area threshold** — recalibrate (`scripts/calibrate_sizes.py`) and re-derive the thresholds from worst-case constants.
 
+## 🚦 M3 — THE GO-GATE (2026-07-14). Full report: `reports/m3_reproduction.md`
+
+**M3.1 (Kang) = PASS on the mechanism. M3.2 (Wang & Gao) = FAIL, and the cause is OUR STIMULI.**
+Nothing was tuned to make either pass.
+
+### M3.1 — the project's core premise SURVIVES
+Reimplemented from the paper (their repo has no license). 640 two-object 4×4-grid scenes, COCO
+cutouts (deviation: they used Objaverse), on LLaVA-1.5-7B + Qwen2.5-VL-7B.
+- **The mirror-swap patching profile reproduces EXACTLY on both models: image patches early →
+  object-word tokens middle → text late.** This is Kang's central localization claim and it comes
+  out crisply (LLaVA object-word peaks at 0.31–0.34 on L12–14; Qwen at L16).
+- **rank-3 R² = 0.87 (LLaVA) / 0.84 (Qwen)** vs the paper's ≥0.85. Spatial IDs really are a
+  low-rank position code.
+- **Steering is dramatically selective: 31.3% belief-swap vs 0.0% norm-matched noise** (Qwen, at
+  the paper's α=5); dose-response is monotone and saturating (10→23→31→43% as α goes 1→10) while
+  **noise never moves at any dose**.
+- **What does NOT reproduce: the absolute swap rate** (19–31%, not their 64.4%). But our noise
+  floor is ~0%, not their 29.5% — so the paper's own summary statistic, **above-chance influence**,
+  matches or beats theirs (+31.3 pts at α=5, **+43.3 pts** at peak, vs their +34.9). Our models are
+  simply far more certain here (95–98% task accuracy, mean confidence 0.89), so a random nudge
+  essentially never flips a belief. Report the mechanism; do not claim the magnitudes.
+
+### 🔴 M3.2 — THE FINDING THAT MATTERS: v0 CANNOT CARRY THE METRIC SCIENCE
+Mask-pooled object tokens at LM layers of Qwen2.5-VL-7B + InternVL3-8B (their exact models) on our
+v0 congruent set → **x R² = 0.997, z R² = 0.990 at EVERY layer**, shape/colour = 1.000, all
+shuffled controls exactly at chance. Wang & Gao get **x = −0.09, z = +0.28**. We do not reproduce
+"semantics ≫ metric" because **there is no difficulty gradient in our stimuli at all.**
+**The probes are fine (controls at chance; token registration verified to 0.019 grid units). The
+stimuli are the problem:**
+1. **`x` has exactly 2 unique values (±0.7)** — it is a binary SIDE label, not a metric coordinate.
+   And mask-pooling picks its tokens BY the object's image position, so "decode x" is answered by
+   *which tokens were pooled*. R²=0.997 measures the pooling, not the model.
+2. **`z` is 86% predictable from apparent size alone** (r=0.93 for `size_m/retinal_px` vs depth) —
+   because "congruent" *means* every depth cue agrees. This is the exact monocular-depth shortcut
+   Wang & Gao flag and discount.
+3. Two primitives on a bare plane, fixed camera: too few degrees of freedom for "modest
+   decodability" to even be expressible.
+**→ M4 MUST: make `lateral_offset` continuous; treat `size_condition` (independent per-object size
+jitter) as LOAD-BEARING (it is what breaks the size↔depth shortcut); add camera/background/
+distractor variation.** See IMPLEMENTATION_PLAN §2.5(d).
+
+### ⚠ METHOD CONSTRAINT that outlives the stimulus fix
+**Mask-pooling from position-indexed visual tokens LEAKS POSITION BY CONSTRUCTION** — the pooled
+vector averages tokens *at the object's image location*, and those tokens carry positional
+information. A high x/z R² is therefore NOT by itself evidence of a metric representation. Every
+Phase-2 mask-pooled probe needs a **position-leak control** (regress out the pooled tokens' grid
+coordinates), plus the strip/all-token variant (already cached) and Wang & Gao's cross-scene
+residualization.
+
+### Bugs in OUR OWN M3 code, all caught by writing the invariant BEFORE trusting the number
+- Scene generator systematically tied each object to a cell subset (TV=0.45) → the spatial-ID
+  derivation would have been **circular**. Then the pairing dropped its unpairable tail
+  non-uniformly → balance re-broken (TV=0.030). Now every object is in every cell exactly twice,
+  TV = 0.000.
+- **~1/4 of scenes put both objects in the SAME COLUMN**, where "left or right" has no ground truth
+  — and the code confidently labelled them "right" (answer key skewed 253/640).
+- **The belief readout was measuring nothing.** `" left"`/`" right"` share their FIRST TOKEN (the
+  LLaMA whitespace token 29871), so both options got an identical logit and every belief came out
+  exactly 0.5/0.5 — *even under zero-ablation*. Once fixed, LLaVA turned out to answer
+  **"Left"/"Right"** (capitalised, ~all the mass) while lowercase sits at p≈2e-5: the readout was
+  reading the far TAIL of the distribution. Now marginalised over surface forms, disjointness
+  asserted. **Lesson: verify that an intervention MOVES the quantity you are measuring before you
+  trust a null result** — a 0% steering effect looked like a real negative for an hour.
+
 ## SECOND retro-audit — all of M0/M1/M2 (2026-07-14, at the M3 gate). Full report: `reports/m0_m2_audit.md`
 
 **Verdict: the DATA is clean; the CODE and the DOCS were not.** Every count, id, media file and
