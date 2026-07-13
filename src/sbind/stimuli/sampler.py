@@ -87,6 +87,11 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     categories = list(obj_cfg["categories"])
     color_items = list(obj_cfg["colors"].items())  # [(name, rgb), ...]
     lateral = float(fcfg["lateral_offset"])
+    # continuous depth: bin centres are jittered so depth is not a handful of discrete
+    # values (a discrete target would make ratio/absolute regression probes artificially
+    # easy and would alias with the bin factor).
+    jitter = float(fcfg.get("depth_jitter", 0.0))
+    min_gap = float(fcfg.get("min_gap", 0.25))
 
     # Factor levels sampled per image.
     factors = {
@@ -105,8 +110,10 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
 
     specs: list[SceneSpec] = []
     for i, a in enumerate(assignments):
-        near_y = float(fcfg["near_depth_bins"][a["near_depth_bin"]])
-        far_y = near_y + float(fcfg["depth_gaps"][a["depth_gap_bin"]])
+        near_y = float(fcfg["near_depth_bins"][a["near_depth_bin"]]) + rng.uniform(-jitter, jitter)
+        gap = float(fcfg["depth_gaps"][a["depth_gap_bin"]]) + rng.uniform(-jitter, jitter)
+        gap = max(gap, min_gap)  # keep the pair strictly ordered in depth
+        far_y = near_y + gap
 
         # lateral placement: near object on one side, far on the other (swap by factor)
         near_x = -lateral if a["lateral_swap"] == 0 else lateral
@@ -117,8 +124,16 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         depth_y = {closer: near_y, 1 - closer: far_y}
         xpos = {closer: near_x, 1 - closer: far_x}
 
-        cats = {0: a["cat_a"], 1: a["cat_b"]}
-        cols = {0: color_items[a["color_a"]], 1: color_items[a["color_b"]]}
+        # the two objects must be distinguishable: never identical in BOTH category and
+        # colour (an identical pair makes "which object is closer?" unanswerable).
+        cat_a, cat_b = a["cat_a"], a["cat_b"]
+        col_a, col_b = a["color_a"], a["color_b"]
+        if cat_a == cat_b and col_a == col_b:
+            alternatives = [c for c in range(len(color_items)) if c != col_a]
+            col_b = int(rng.choice(alternatives))
+
+        cats = {0: cat_a, 1: cat_b}
+        cols = {0: color_items[col_a], 1: color_items[col_b]}
 
         objects = []
         for slot in (0, 1):

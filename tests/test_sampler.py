@@ -25,6 +25,8 @@ CONFIG = {
     "factors": {
         "near_depth_bins": [1.5, 2.25, 3.0, 3.75, 4.5],
         "depth_gaps": [0.75, 1.5, 2.25],
+        "depth_jitter": 0.15,
+        "min_gap": 0.3,
         "lateral_offset": 0.7,
     },
     "condition": {"size_condition": "congruent", "elevation_condition": "congruent"},
@@ -88,3 +90,36 @@ def test_congruent_geometry_nearer_is_lower_y():
         closer = s.factors["closer_object"]
         other = 1 - closer
         assert s.objects[closer].pos_world[1] < s.objects[other].pos_world[1]
+
+
+def test_depth_is_continuous_not_binned():
+    # jitter must break depth off the discrete bin centres, otherwise ratio/absolute
+    # regression targets would collapse onto a handful of values.
+    specs = build_scene_specs(CONFIG, seed=0)
+    near_ys = {round(s.factors["near_y"], 6) for s in specs}
+    assert len(near_ys) > 100  # not just the 5 bin centres
+    bins = set(CONFIG["factors"]["near_depth_bins"])
+    assert not near_ys.issubset(bins)
+
+
+def test_pair_always_strictly_depth_ordered():
+    # jitter must never collapse or invert the near/far ordering
+    specs = build_scene_specs(CONFIG, seed=0)
+    for s in specs:
+        gap = s.factors["far_y"] - s.factors["near_y"]
+        assert gap >= CONFIG["factors"]["min_gap"] - 1e-9
+
+
+def test_pairs_never_identical_in_both_colour_and_category():
+    # an identical pair would make "which object is closer?" unanswerable
+    specs = build_scene_specs(CONFIG, seed=0)
+    for s in specs:
+        a, b = s.objects
+        assert not (a.category == b.category and a.color == b.color)
+
+
+def test_pair_constraint_holds_across_seeds():
+    for seed in range(5):
+        for s in build_scene_specs(CONFIG, seed=seed):
+            a, b = s.objects
+            assert not (a.category == b.category and a.color == b.color)
