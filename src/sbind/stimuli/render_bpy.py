@@ -171,6 +171,34 @@ def _add_sun(scene, spec: SceneSpec):
     return light
 
 
+def _disable_metadata_stamping(scene) -> None:
+    """Stop Blender writing Date / RenderTime into the PNG's tEXt chunks.
+
+    Those chunks make every render byte-different even when the pixels are IDENTICAL, which
+    breaks the determinism rule (and any content-hash provenance we key caches on later).
+    """
+    r = scene.render
+    r.use_stamp = False  # no burn-in
+    for prop in (
+        "use_stamp_date",
+        "use_stamp_time",
+        "use_stamp_render_time",
+        "use_stamp_frame",
+        "use_stamp_scene",
+        "use_stamp_camera",
+        "use_stamp_lens",
+        "use_stamp_filename",
+        "use_stamp_hostname",
+        "use_stamp_memory",
+        "use_stamp_note",
+        "use_stamp_marker",
+        "use_stamp_sequencer_strip",
+        "use_stamp_frame_range",
+    ):
+        if hasattr(r, prop):
+            setattr(r, prop, False)
+
+
 def _configure_beauty(scene, render_cfg):
     scene.render.engine = render_cfg.get("engine", "CYCLES")
     scene.render.resolution_x = int(render_cfg["res_x"])
@@ -183,9 +211,17 @@ def _configure_beauty(scene, render_cfg):
         scene.cycles.device = render_cfg.get("device", "CPU")
         scene.cycles.samples = int(render_cfg.get("samples", 32))
         scene.cycles.seed = int(render_cfg.get("cycles_seed", 0))
-        scene.cycles.use_denoising = bool(render_cfg.get("denoise", True))
+        # TWO sources of render non-determinism, both default OFF so that identical
+        # (config, seed) reproduces byte-identical images (CLAUDE.md determinism rule):
+        #   - denoising (OIDN): thread scheduling perturbs ~0.01% of pixels by 1 LSB;
+        #   - adaptive sampling: per-pixel stopping depends on thread timing, leaving a
+        #     few 1-LSB pixels different between runs.
+        # Compensate with more `samples` rather than by denoising.
+        scene.cycles.use_denoising = bool(render_cfg.get("denoise", False))
+        scene.cycles.use_adaptive_sampling = bool(render_cfg.get("adaptive_sampling", False))
     scene.view_settings.view_transform = "Standard"
     scene.render.film_transparent = False
+    _disable_metadata_stamping(scene)
 
 
 def _render_to(scene, path):

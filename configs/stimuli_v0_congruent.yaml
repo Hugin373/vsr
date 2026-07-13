@@ -18,8 +18,11 @@ render:
   device: CPU
   res_x: 512
   res_y: 512
-  samples: 32
-  denoise: true
+  samples: 128         # no denoiser (see below), so more samples for cleanliness
+  # OIDN denoising is NON-DETERMINISTIC (thread scheduling perturbs ~0.01% of pixels
+  # by 1 LSB between runs), which broke the 'reproducible from config+seed' rule.
+  denoise: false
+  adaptive_sampling: false   # per-pixel stopping depends on thread timing -> not reproducible
   cycles_seed: 0
 
 camera:

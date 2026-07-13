@@ -73,9 +73,19 @@ class CsvRunLogger(RunLogger):
     heterogeneous metric dicts across steps stay in one tidy file.
     """
 
-    def __init__(self, run_dir: str | Path, metadata: dict | None = None):
+    def __init__(
+        self, run_dir: str | Path, metadata: dict | None = None, overwrite: bool = False
+    ):
         self.run_dir = ensure_dir(run_dir)
         self.csv_path = Path(self.run_dir) / "metrics.csv"
+        # Refuse to clobber a previous run's results. Reusing a run_dir used to overwrite
+        # metrics.csv silently — with the M5 probing grid writing many runs, a repeated
+        # run_name would have destroyed earlier results with no warning at all.
+        if self.csv_path.exists() and not overwrite:
+            raise FileExistsError(
+                f"{self.csv_path} already exists — refusing to overwrite a previous run. "
+                f"Use a distinct tracking.run_name, or set tracking.overwrite: true."
+            )
         self._fieldnames: list[str] = []
         self._rows: list[dict[str, Any]] = []
         if metadata is not None:
@@ -134,7 +144,9 @@ def make_run_logger(config: dict, metadata: dict | None = None) -> RunLogger:
         name = tracking.get("run_name")
         if name:
             run_dir = str(Path(run_dir) / name)
-        return CsvRunLogger(run_dir, metadata=metadata)
+        return CsvRunLogger(
+            run_dir, metadata=metadata, overwrite=bool(tracking.get("overwrite", False))
+        )
     if backend == "wandb":
         return WandbRunLogger(config, metadata=metadata)
     raise ValueError(f"unknown tracking.backend: {backend!r} (expected csv|wandb|none)")

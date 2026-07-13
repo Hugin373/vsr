@@ -61,3 +61,31 @@ def test_projection_matches_render_within_2px(tmp_path):
         assert depth > 0
         # stored depth must equal the CV-frame z
         assert np.isclose(obj.depth_m, depth, atol=1e-4)
+
+
+def test_render_is_deterministic(tmp_path):
+    """Same (config, seed) -> identical pixels. The determinism hard rule.
+
+    Two renderer settings silently broke this: OIDN denoising and adaptive sampling, whose
+    thread scheduling perturbed a few pixels by 1 LSB between runs. Both now default OFF.
+    """
+    import numpy as np
+    from PIL import Image
+
+    from sbind.stimuli.scene_spec import CameraSpec, ObjectSpec, SceneSpec
+
+    cam = CameraSpec([0.0, -2.5, 1.4], [0.0, 1.2, 0.35], 35.0, 36.0, 256, 256)
+    spec = SceneSpec(
+        id="det_a",
+        camera=cam,
+        objects=[ObjectSpec("c", "cube", [0.8, 0.2, 0.2], 0.6, [-0.7, 1.0, 0.3])],
+    )
+    rc = {"engine": "CYCLES", "device": "CPU", "res_x": 256, "res_y": 256, "samples": 16}
+
+    a = render_scene(spec, tmp_path, rc)
+    pa = np.asarray(Image.open(tmp_path / a.image).convert("RGB")).astype(int)
+    spec.id = "det_b"
+    b = render_scene(spec, tmp_path, rc)
+    pb = np.asarray(Image.open(tmp_path / b.image).convert("RGB")).astype(int)
+
+    assert np.abs(pa - pb).max() == 0, "renderer is not deterministic across runs"

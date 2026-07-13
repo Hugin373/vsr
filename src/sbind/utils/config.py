@@ -9,11 +9,14 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+_UNRESOLVED = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}")
 
 
 def _expand(value: Any) -> Any:
@@ -27,16 +30,33 @@ def _expand(value: Any) -> Any:
     return value
 
 
-def load_config(path: str | os.PathLike, *, expand_env: bool = True) -> dict:
+def _find_unresolved(value: Any, path: str = "") -> list[str]:
+    """Collect config keys whose value still contains an unexpanded ``${VAR}``."""
+    if isinstance(value, str):
+        return [f"{path}: {value}"] if _UNRESOLVED.search(value) else []
+    if isinstance(value, dict):
+        return [x for k, v in value.items() for x in _find_unresolved(v, f"{path}.{k}".lstrip("."))]
+    if isinstance(value, list):
+        return [x for i, v in enumerate(value) for x in _find_unresolved(v, f"{path}[{i}]")]
+    return []
+
+
+def load_config(
+    path: str | os.PathLike, *, expand_env: bool = True, strict_env: bool = True
+) -> dict:
     """Load a YAML config to a dict, expanding environment variables in string values.
 
     Args:
         path: path to the YAML file.
         expand_env: if True (default), expand ``${VAR}`` references against os.environ.
+        strict_env: if True (default), RAISE when a ``${VAR}`` cannot be resolved. Without
+            this, ``os.path.expandvars`` leaves the text as-is and a forgotten
+            ``export DATA_ROOT`` silently writes the whole dataset into a directory named
+            literally ``${DATA_ROOT}`` — a failure that looks like success.
 
     Raises:
         FileNotFoundError: if the file is missing.
-        ValueError: if the top-level document is not a mapping.
+        ValueError: if the top level is not a mapping, or a ${VAR} is unresolved.
     """
     p = Path(path)
     if not p.exists():
@@ -47,7 +67,20 @@ def load_config(path: str | os.PathLike, *, expand_env: bool = True) -> dict:
         data = {}
     if not isinstance(data, dict):
         raise ValueError(f"config top level must be a mapping, got {type(data).__name__}: {p}")
-    return _expand(data) if expand_env else data
+    if not expand_env:
+        return data
+
+    expanded = _expand(data)
+    if strict_env:
+        unresolved = _find_unresolved(expanded)
+        if unresolved:
+            names = sorted({m.group(0) for u in unresolved for m in _UNRESOLVED.finditer(u)})
+            raise ValueError(
+                f"unresolved environment variable(s) in {p}: {', '.join(names)}\n"
+                + "\n".join(f"  {u}" for u in unresolved)
+                + "\nExport them (e.g. `export DATA_ROOT=...`) before running."
+            )
+    return expanded
 
 
 def git_hash(short: bool = True) -> str:

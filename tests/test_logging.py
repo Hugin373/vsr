@@ -52,3 +52,14 @@ def test_csv_logger_uses_run_name_subdir(tmp_path):
     logger = make_run_logger(cfg)
     logger.log_metrics({"x": 1})
     assert (tmp_path / "exp_a" / "metrics.csv").exists()
+
+
+def test_csv_logger_refuses_to_clobber_a_previous_run(tmp_path):
+    """Reusing a run_dir silently overwrote the previous run's metrics.csv — data loss."""
+    import pytest
+
+    CsvRunLogger(tmp_path).log_metrics({"a": 1})
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        CsvRunLogger(tmp_path)
+    # explicit opt-in still works
+    CsvRunLogger(tmp_path, overwrite=True).log_metrics({"a": 2})

@@ -62,3 +62,24 @@ def test_run_metadata_shape():
     assert meta["seed"] == 3
     assert meta["config"] == {"experiment": "t"}
     assert "git_hash" in meta
+
+
+def test_unresolved_env_var_raises(tmp_path, monkeypatch):
+    """A forgotten `export DATA_ROOT` must FAIL, not silently write to a '${DATA_ROOT}' dir.
+
+    os.path.expandvars leaves an unknown ${VAR} as literal text, so the whole dataset would
+    land in a directory named '${DATA_ROOT}' and every check would still pass.
+    """
+    monkeypatch.delenv("DATA_ROOT", raising=False)
+    cfg = tmp_path / "c.yaml"
+    cfg.write_text("paths:\n  out: ${DATA_ROOT}/stimuli\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="unresolved environment variable"):
+        load_config(cfg)
+
+
+def test_unresolved_env_var_can_be_allowed(tmp_path, monkeypatch):
+    monkeypatch.delenv("DATA_ROOT", raising=False)
+    cfg = tmp_path / "c.yaml"
+    cfg.write_text("paths:\n  out: ${DATA_ROOT}/stimuli\n", encoding="utf-8")
+    out = load_config(cfg, strict_env=False)
+    assert out["paths"]["out"] == "${DATA_ROOT}/stimuli"
