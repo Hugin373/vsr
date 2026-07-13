@@ -32,23 +32,25 @@ extract = [
     # NOTE: flash-attn is intentionally NOT listed. It needs build isolation disabled
     # (see [tool.uv] below) and a matching CUDA toolchain; models run fine with eager/
     # sdpa attention. Add it per-model when a checkpoint benefits, not by default.
+    "torchvision>=0.28.0",
 ]
 
 # --- CPU / laptop. Probing, analysis, plotting. Reads cached features from disk. ---
 analysis = [
     "scikit-learn>=1.4",
     "pandas>=2.2",
-    "pyarrow>=15.0",     # parquet for the tidy probe-result + cache-meta tables
+    "pyarrow>=15.0", # parquet for the tidy probe-result + cache-meta tables
     "scipy>=1.12",
     "matplotlib>=3.8",
     "seaborn>=0.13",
-    "wandb>=0.17",       # optional tracking backend; the logger imports it lazily,
-                         # so CSV-only users never need it installed.
+    "wandb>=0.17", # optional tracking backend; the logger imports it lazily,
+    # so CSV-only users never need it installed.
     # --- M2 external dataset adapters (CPU; laptop-runnable) ---
-    "datasets>=2.19",        # HF hub datasets (CV-Bench, ReVSI, CausalSpatial, ...)
+    "datasets>=2.19", # HF hub datasets (CV-Bench, ReVSI, CausalSpatial, ...)
     "huggingface-hub>=0.23",
-    "gdown>=5.2",            # What'sUp is hosted on Google Drive, not HF
-    "av>=12.0",              # lazy video frame decode for ReVSI (PyAV; no decord)
+    "gdown>=5.2", # What'sUp is hosted on Google Drive, not HF
+    "av>=12.0", # lazy video frame decode for ReVSI (PyAV; no decord)
+    "pycocotools>=2.0.11",
 ]
 
 # --- Stimulus generation. Renderer decided at M1.1 (2026-07-10): bpy (Blender 5.0

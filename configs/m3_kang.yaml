@@ -1,0 +1,56 @@
+# M3.1 — Kang et al. reproduction (arXiv 2601.12626), REIMPLEMENTED.
+#
+# ⚠ Their repo (Raphoo/linear-mech-vlms) has NO LICENSE — read for understanding, never
+# copied. Every parameter below comes from the paper's description.
+#
+# Pass bar (IMPLEMENTATION_PLAN M3): steering belief-swap far above the norm-matched noise
+# control; all key effect DIRECTIONS match the paper; magnitudes within a few points.
+#   paper: 64.4-64.6% spatial-ID steering vs 29.5% noise; rank-3 R^2 >= 0.85.
+
+seed: 0
+
+output:
+  root: ${DATA_ROOT}/m3_kang
+
+gpu:
+  mem_threshold_mib: 1024        # a device with more resident memory is someone else's
+
+models:
+  # Both 7B models the milestone names. Any HF checkpoint of the same architecture is a
+  # config change only (CLAUDE.md): the wrapper LOCATES the decoder layers, never hardcodes.
+  - name: llava-1.5-7b
+    checkpoint: llava-hf/llava-1.5-7b-hf
+    dtype: bfloat16
+  - name: qwen2.5-vl-7b
+    checkpoint: Qwen/Qwen2.5-VL-7B-Instruct
+    dtype: bfloat16
+
+# --- the synthetic data engine (Kang's recipe) ---
+grid:
+  grid_m: 4                      # m = 4  -> a 4x4 grid of cells
+  n_objects: 40                  # distinct named objects, tiled in pairs
+  # Every object is placed EXACTLY this many times in EVERY cell, so object identity is
+  # decorrelated from position BY CONSTRUCTION (TV-from-uniform = 0, not "small").
+  # n_scenes is DERIVED: n_objects * m^2 * repeats / 2 = 40 * 16 * 2 / 2 = 640.
+  # (A first version cycled object pairs against cell pairs with modular indexing and
+  # systematically tied each object to a subset of cells — the check caught it at TV=0.45.)
+  repeats_per_cell: 2
+  resolution: 672
+  pad: 0.15                      # margin inside each cell
+  # DEVIATION FROM THE PAPER, stated openly: Kang tile Objaverse renders, which we do not
+  # have. We tile COCO instance-mask cutouts instead — real, nameable objects, and the SAME
+  # vocabulary as the COCO-Spatial arm. Object appearance is not the mechanism under test
+  # (the spatial ID is what SURVIVES mean-centering across objects), but it is a deviation.
+  object_source: coco_cutouts
+  coco_split: val2017
+  min_instance_area: 40000
+
+# --- what to measure ---
+analysis:
+  # Kang bind spatial IDs in the MIDDLE THIRD of the LM's layers. We scan the whole depth for
+  # the patching profile (the profile IS the result) and derive IDs at every scanned layer.
+  layer_stride: 2                # scan every k-th layer
+  steering_alpha: 5.0            # paper's grid-searched value
+  n_steer_scenes: 150            # scenes used for the steering + noise control
+  n_patch_scenes: 60             # patching is 3 forwards x n_layers x n_groups -> keep small
+  rank_max: 8                    # rank sweep for the low-rank positional-code claim

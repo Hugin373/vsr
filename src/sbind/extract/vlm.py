@@ -81,31 +81,44 @@ class VLM:
         return inputs["input_ids"][0].tolist()
 
     def find_word_positions(self, inputs: dict, word: str) -> list[int]:
-        """Token positions of ``word`` in the prompt (the LAST subword token of the word).
+        """Token positions of ``word`` in the prompt (the LAST subword token of each match).
 
         Kang bind spatial IDs to the object's WORD token; for a multi-token word the paper
-        uses the final token, which is the one that carries the aggregated word representation
-        under causal attention. Tokenizers differ, so we decode-and-match rather than assume a
-        single-token word.
+        uses the final token, which carries the aggregated word representation under causal
+        attention.
+
+        Matching is done on WHITESPACE-STRIPPED text with a char -> token index map, because
+        naive concatenation of per-token `decode()` output is not reliable: the LLaMA tokenizer
+        renders "fire hydrant" as pieces that concatenate to "firehydrant", so a literal
+        substring search for the object name found nothing and every multi-word COCO category
+        ("fire hydrant", "traffic light", "baseball glove") raised.
         """
         tok = self.processor.tokenizer
         ids = self.token_ids(inputs)
-        # decode each token, find the contiguous run whose concatenation contains `word`
-        pieces = [tok.decode([i]) for i in ids]
-        target = word.strip().lower()
+
+        norm_chars: list[str] = []
+        owner: list[int] = []  # norm_chars[k] came from token owner[k]
+        for t_idx, t_id in enumerate(ids):
+            for ch in tok.decode([t_id]):
+                if ch.isspace():
+                    continue
+                norm_chars.append(ch.lower())
+                owner.append(t_idx)
+        hay = "".join(norm_chars)
+        needle = "".join(word.split()).lower()
+        if not needle:
+            raise ValueError("empty word")
+
         hits: list[int] = []
-        for start in range(len(pieces)):
-            acc = ""
-            for end in range(start, min(start + 8, len(pieces))):
-                acc += pieces[end]
-                if target in acc.strip().lower():
-                    hits.append(end)  # LAST subword token of the match
-                    break
-                if len(acc.strip()) > len(target) + 4:
-                    break
+        start = hay.find(needle)
+        while start != -1:
+            hits.append(owner[start + len(needle) - 1])  # LAST token of the match
+            start = hay.find(needle, start + 1)
         if not hits:
             raise ValueError(f"word {word!r} not found in the tokenized prompt")
-        return hits
+        # de-duplicate while preserving order (overlapping matches can land on one token)
+        seen: set[int] = set()
+        return [h for h in hits if not (h in seen or seen.add(h))]
 
     # --- forward with capture + intervention ------------------------------------------
 
@@ -166,23 +179,58 @@ class VLM:
 
     # --- reading a belief off the model -----------------------------------------------
 
-    def option_logprobs(self, logits: torch.Tensor, options: Sequence[str]) -> dict[str, float]:
-        """Log-probs of each option's FIRST token, renormalised over the option set.
+    def option_first_tokens(self, option: str) -> list[int]:
+        """First contentful token ids for every SURFACE FORM of an option ("left"/"Left"/...).
 
-        This is how a binary spatial "belief" is read out: P("left") vs P("right"). Comparing
-        first-token probabilities is valid here only because the options are single distinct
-        words — assert that rather than assume it.
+        Two traps, both of which silently produced a meaningless belief:
+
+        1. Not ``encode(" left")[0]``. The LLaMA tokenizer emits a standalone whitespace token
+           (id 29871) for the leading space, so ``encode(" left")[0] == encode(" right")[0]``:
+           both options scored the IDENTICAL logit and every belief came out exactly 0.5/0.5,
+           even under a zero-ablation. Skip whitespace-only tokens.
+        2. Not lowercase only. Asked "…left or right? Answer with one word.", LLaVA answers
+           **"Left"/"Right"** — capitalised, carrying essentially all the mass — while
+           " left"/" right" sit at logprob ≈ −11 (p ≈ 2e-5). Scoring the lowercase form alone
+           was reading the far TAIL of the distribution, so the belief barely moved even when
+           the token it depends on was ablated.
+
+        So we marginalise over casing variants: P(option) = Σ_forms P(first token of form).
         """
         tok = self.processor.tokenizer
+        variants = {option, option.lower(), option.capitalize(), option.upper()}
+        ids: list[int] = []
+        for v in variants:
+            for enc in (tok.encode(f" {v}", add_special_tokens=False),
+                        tok.encode(v, add_special_tokens=False)):
+                for i in enc:
+                    if tok.decode([i]).strip():
+                        ids.append(i)
+                        break
+        if not ids:
+            raise ValueError(f"option {option!r} tokenizes to whitespace only")
+        return sorted(set(ids))
+
+    def option_logprobs(self, logits: torch.Tensor, options: Sequence[str]) -> dict[str, float]:
+        """Log-prob mass of each option, marginalised over its surface forms.
+
+        Reading a belief off these is only valid if the options' token sets are DISJOINT.
+        Asserted, not assumed — it was silently false (see ``option_first_tokens``).
+        """
+        by_opt = {o: self.option_first_tokens(o) for o in options}
+        seen: set[int] = set()
+        for o, ids in by_opt.items():
+            clash = seen & set(ids)
+            if clash:
+                raise ValueError(
+                    f"option {o!r} shares first-token(s) {clash} with another option — a "
+                    f"belief read off them would be meaningless."
+                )
+            seen |= set(ids)
         logprobs = torch.log_softmax(logits, dim=-1)
-        out: dict[str, float] = {}
-        for o in options:
-            # leading space: the option follows "... is to the" in the generation position
-            ids = tok.encode(f" {o}", add_special_tokens=False) or tok.encode(
-                o, add_special_tokens=False
-            )
-            out[o] = float(logprobs[ids[0]])
-        return out
+        return {
+            o: float(torch.logsumexp(logprobs[torch.tensor(ids)], dim=0))
+            for o, ids in by_opt.items()
+        }
 
 
 def _find_decoder_layers(model) -> Any:
@@ -213,13 +261,14 @@ def _find_decoder_layers(model) -> Any:
 
 def load_vlm(checkpoint: str, dtype: str = "bfloat16", device: str = "cuda") -> VLM:
     """Load any HF VLM checkpoint. Call claim_gpu() BEFORE this — it initialises CUDA."""
-    from transformers import AutoModelForVision2Seq, AutoProcessor
+    # transformers 5.x: AutoModelForVision2Seq was renamed AutoModelForImageTextToText.
+    from transformers import AutoModelForImageTextToText, AutoProcessor
 
     torch_dtype = getattr(torch, dtype)
     log.info("loading %s (%s)", checkpoint, dtype)
     processor = AutoProcessor.from_pretrained(checkpoint, trust_remote_code=True)
-    model = AutoModelForVision2Seq.from_pretrained(
-        checkpoint, torch_dtype=torch_dtype, trust_remote_code=True
+    model = AutoModelForImageTextToText.from_pretrained(
+        checkpoint, dtype=torch_dtype, trust_remote_code=True
     ).to(device)
     model.eval()
     return VLM(

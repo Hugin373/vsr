@@ -1,0 +1,42 @@
+# M3.2 — Wang & Gao pattern reproduction (arXiv 2605.07148) on OUR v0 stimuli.
+#
+# ⚠ Their repo (pittisl/vlm-latent-shaping) has NO LICENSE — read for understanding, never
+# copied. Their dataset (SynSpat3D) was never released, which is exactly why M1 built an
+# equivalent generator.
+#
+# Pass bar (IMPLEMENTATION_PLAN M3): PATTERN match only — semantics >> metric; x ~ chance;
+# z modest. Their numbers: x R2 = -0.09, z R2 = +0.28, distance RSA rho ~ 0.01, shape R2 = 1.00.
+
+seed: 0
+
+output:
+  root: ${DATA_ROOT}/m3_wanggao
+
+gpu:
+  mem_threshold_mib: 1024
+
+stimuli:
+  # Our M1 generator's congruent set — REBUILT at M3 after the audit found that category was
+  # not balanced against the near/far depth role (a shape-only strategy scored 55.1%, so a
+  # z-probe could read depth off object IDENTITY). Now balanced: shape-only = 50.2%.
+  # That confound mattered here more than anywhere: 'z modest' is the number it would inflate.
+  set_dir: ${DATA_ROOT}/stimuli/v0_congruent
+
+models:
+  # Wang & Gao's exact two models, so the pattern comparison is like-for-like.
+  - name: qwen2.5-vl-7b
+    checkpoint: Qwen/Qwen2.5-VL-7B-Instruct
+    dtype: bfloat16
+  # The "-hf" conversion, NOT OpenGVLab/InternVL3-8B: the original ships custom remote code
+  # (InternVLChatConfig) that AutoModelForImageTextToText refuses. Same weights, native
+  # transformers implementation — and it exposes the token grid we need to pool over.
+  - name: internvl3-8b
+    checkpoint: OpenGVLab/InternVL3-8B-hf
+    dtype: bfloat16
+
+analysis:
+  layer_stride: 2
+  # 5 seeds x 5 folds, ridge alpha by inner CV, scaler fit on TRAIN only, and every probe
+  # reports its SHUFFLED-LABEL control (a probe score without one is uninterpretable).
+  seeds: [0, 1, 2, 3, 4]
+  n_folds: 5
