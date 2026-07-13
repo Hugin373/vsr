@@ -13,6 +13,23 @@ from pathlib import Path
 from typing import Any
 
 
+def _json_default(o: Any):
+    """Coerce non-JSON scalars (numpy int64/float32, arrays) without importing numpy.
+
+    Dataset annotations arrive from pickles and parquet carrying numpy scalars; duck-typing
+    keeps this module stdlib-only while still serialising them.
+    """
+    if hasattr(o, "tolist"):  # numpy arrays and scalars
+        return o.tolist()
+    if hasattr(o, "item"):  # other 0-d scalar types
+        return o.item()
+    if isinstance(o, (set, frozenset)):
+        return sorted(o)
+    if isinstance(o, Path):
+        return str(o)
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+
+
 def ensure_dir(path: str | os.PathLike) -> Path:
     """Create ``path`` (and parents) if absent; return it as a Path."""
     p = Path(path)
@@ -26,7 +43,7 @@ def write_json(obj: Any, path: str | os.PathLike, *, indent: int = 2) -> None:
     ensure_dir(p.parent)
     tmp = p.with_suffix(p.suffix + ".tmp")
     with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(obj, f, indent=indent, ensure_ascii=False)
+        json.dump(obj, f, indent=indent, ensure_ascii=False, default=_json_default)
     os.replace(tmp, p)
 
 
@@ -43,7 +60,7 @@ def write_jsonl(records: Iterable[dict], path: str | os.PathLike) -> int:
     n = 0
     with open(tmp, "w", encoding="utf-8") as f:
         for rec in records:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            f.write(json.dumps(rec, ensure_ascii=False, default=_json_default) + "\n")
             n += 1
     os.replace(tmp, p)
     return n

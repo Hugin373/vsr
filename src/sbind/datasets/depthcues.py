@@ -30,7 +30,10 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+from ..utils.logging import get_logger
 from .base import Item, dataset_root, register
+
+log = get_logger("sbind.depthcues")
 
 # cue -> (annotation file stem per split, synthesized question, answer type)
 CUES: dict[str, dict[str, Any]] = {
@@ -70,27 +73,31 @@ CUES: dict[str, dict[str, Any]] = {
 }
 
 
-def _resolve_image(cue_dir: Path, fname: str, source: str | None) -> str | None:
-    """Find the image on disk. Layouts differ per cue, so try the known candidates."""
+def _resolve_image(cue_dir: Path, fname: str, source: str | None, split: str) -> str | None:
+    """Find the image on disk. Layouts differ per cue, so try the known candidates.
+
+    NB occlusion nests by split (``images_COCO/test/x.jpg``) while elevation does not
+    (``images/x.jpg``) — missing the nested case made the whole occlusion subset silently
+    resolve to nothing.
+    """
     if not fname:
         return None
     name = str(fname)
-    candidates = [
-        cue_dir / name,
-        cue_dir / "images" / name,
-        cue_dir / f"images_{source}" / name if source else None,
-        cue_dir / "images_indoor" / name,
-        cue_dir / "images_outdoor" / name,
-        cue_dir / "images_BSDS" / name,
-        cue_dir / "images_COCO" / name,
-    ]
+    img_dirs = ["images", "images_indoor", "images_outdoor", "images_BSDS", "images_COCO"]
+    if source:
+        img_dirs.insert(0, f"images_{source}")
+
+    candidates = [cue_dir / name]
+    for d in img_dirs:
+        candidates.append(cue_dir / d / name)  # flat layout
+        candidates.append(cue_dir / d / split / name)  # split-nested layout
     # lightshadow stores a full relative path like "gen_datasets/<cue>/images/test/x.png"
     parts = Path(name).parts
     if "images" in parts:
-        tail = Path(*parts[parts.index("images") :])
-        candidates.append(cue_dir / tail)
+        candidates.append(cue_dir / Path(*parts[parts.index("images") :]))
+
     for c in candidates:
-        if c is not None and c.exists():
+        if c.exists():
             return str(c)
     return None
 
@@ -120,15 +127,18 @@ def load_depthcues(
                 f"{cue_dir} missing. Run: uv run --extra analysis "
                 f"scripts/download_dataset.py --name depthcues"
             )
+        yielded = 0
+        skipped = 0
         for fname in spec["files"].get(split, []):
             ann_path = cue_dir / fname
             if not ann_path.exists():
                 continue
             for key, rec in _records(ann_path):
                 img_name = rec.get("fname") or rec.get("img_fname")
-                img = _resolve_image(cue_dir, img_name, rec.get("source"))
+                img = _resolve_image(cue_dir, img_name, rec.get("source"), split)
                 if img is None:
-                    continue  # image not on disk (e.g. an external-source subset)
+                    skipped += 1
+                    continue
                 label = rec.get("label", rec.get("class"))
                 meta = {
                     "dataset_name": "depthcues",
@@ -148,6 +158,7 @@ def load_depthcues(
                         meta[f"{k}_present"] = v is not None
                         continue
                     meta[k] = v.tolist() if hasattr(v, "tolist") else v
+                yielded += 1
                 yield Item(
                     id=f"depthcues/{cue}/{key}",
                     images=[img],
@@ -155,3 +166,14 @@ def load_depthcues(
                     answer=str(meta["label"]),
                     meta=meta,
                 )
+
+        # A subset that resolves NO images is a broken layout assumption, not an empty
+        # dataset — fail loudly. (occlusion_v4 nests images by split; missing that made the
+        # whole 14k-record subset vanish silently.)
+        if yielded == 0:
+            raise RuntimeError(
+                f"depthcues/{cue}: resolved 0 of {skipped} records to images under {cue_dir}. "
+                f"The on-disk image layout is not what the adapter expects."
+            )
+        if skipped:
+            log.warning("depthcues/%s: skipped %d records with unresolvable images", cue, skipped)

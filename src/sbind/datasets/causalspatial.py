@@ -14,17 +14,24 @@ populated, so a downstream scorer never has to know which subset it came from.
 ``meta.not_sure_letter`` marks the abstain option where one exists — a scorer should treat
 it as a non-answer, not as a wrong answer.
 
-⚠ THE UPSTREAM `id` IS NOT UNIQUE. The card calls it a "Unique sample identifier", but the
-`collision` subset holds 826 samples = TWO question types over the SAME 413 scenes ("will
-the car collide?" and "which object should be removed to prevent it?"), and BOTH reuse the
-same id string (`Collision_Level_1_3` appears twice, with different questions and different
-answers, in different shard groups). We therefore key Item.id by (subset, source file, id)
-so it stays unique and joins back to the exact source row; the upstream id is preserved in
-``meta.original_index`` and the file in ``meta.source_file``.
+⚠⚠ THE UPSTREAM `id` IS BADLY BROKEN — DO NOT KEY ANYTHING ON IT. The card calls it a
+"Unique sample identifier". Measured reality:
 
-Images are embedded as parquet bytes; they are extracted to <root>/images/ on first access.
-Because the id is not unique, the extracted image is keyed by the source file too — the two
-question types share a scene image but must not overwrite each other's file.
+    subset          rows   unique upstream ids
+    collision        826   413   (two question types reuse one id namespace)
+    physics          311     2   ('Physics_Level_1_' is repeated 192x)
+    compatibility     99     2
+    occlusion        189     2
+    realworld        116   116   (the only sane one)
+
+So we key Item.id on (subset, source file, ROW INDEX) — always unique, and it addresses the
+exact source row. The upstream string is kept as ``meta.original_id`` (non-unique, for
+reference only); ``meta.row_index`` and ``meta.source_file`` complete the provenance.
+
+This matters beyond ids: the parquet-embedded images are extracted to <root>/images/, and
+keying those filenames on the upstream id silently OVERWROTE them — 1541 items produced only
+949 image files, so most physics/compatibility/occlusion items pointed at an image belonging
+to a different question. Extraction is now keyed by row index too.
 """
 
 from __future__ import annotations
@@ -37,14 +44,41 @@ from .base import Item, dataset_root, materialize_image, register
 SUBSETS = ("collision", "physics", "compatibility", "occlusion", "realworld")
 _LETTERS = "ABCDEFGH"
 
-# " A. Yes; B. No; C. Not Sure." -> [(letter, text), ...]
-_INLINE_OPT_RE = re.compile(r"(?:^|[\s;])([A-H])\.\s*([^;.]+)")
+# The sim subsets write their choices INTO the question body, in two formats and at varying
+# lengths, with an instruction paragraph sometimes spliced BETWEEN two options:
+#   collision:  "... A. Remove the vase; B. ...; D. There is no collision.
+#                Note: The floor strips indicate perspective... ; E. Not Sure."
+#   physics/occlusion/compatibility:
+#               "... Answer by (A) Yes, (B) No or (C) Not sure."
+# So: scan the WHOLE question (a fixed tail window truncated the long 5-option lists), accept
+# only a properly ordered A,B,C,... run, and cut any embedded "Note:" out of the option text.
+# NB the space after the marker is OPTIONAL: some upstream rows read "E.Removing the vase"
+# with no space, which a \s+ requirement silently dropped. The ordered-run check below is
+# what protects against matching stray "A." in prose.
+_OPT_MARKER = re.compile(r"(?:^|[\s;(])([A-H])[.)]\s*(?=\S)")
 
 
 def _parse_inline_options(question: str) -> dict[str, str]:
-    """Recover {letter: text} from choices written into the question body."""
-    tail = question[-200:]  # options sit at the end; avoid matching prose earlier on
-    return {m.group(1): m.group(2).strip() for m in _INLINE_OPT_RE.finditer(tail)}
+    """Recover {letter: text} from choices written into the question body (either format)."""
+    markers = []
+    expected = 0
+    for m in _OPT_MARKER.finditer(question):
+        if _LETTERS.index(m.group(1)) == expected:  # keep a strictly ordered A, B, C, ... run
+            markers.append(m)
+            expected += 1
+    if len(markers) < 2:
+        return {}
+
+    out: dict[str, str] = {}
+    for i, m in enumerate(markers):
+        end = markers[i + 1].start() if i + 1 < len(markers) else len(question)
+        text = question[m.end() : end]
+        text = re.split(r"\bNote\s*:", text)[0]  # drop a spliced-in instruction paragraph
+        text = text.strip().strip(";,.").strip()
+        text = re.sub(r"\s+or$", "", text).strip()
+        if text:
+            out[m.group(1)] = text
+    return out
 
 
 def _normalise(row: dict) -> tuple[list[str], str | None, str | None]:
@@ -83,17 +117,21 @@ def load_causalspatial(config: dict, subsets: list[str] | None = None) -> Iterat
                 f"scripts/download_dataset.py --name causalspatial"
             )
         for pfile in sorted(sub_dir.glob("*.parquet")):
-            shard = pfile.stem  # disambiguates the reused upstream ids (see module docstring)
+            shard = pfile.stem
             pf = pq.ParquetFile(pfile)
+            row_idx = 0
             for batch in pf.iter_batches(batch_size=32):
                 for row in batch.to_pylist():
-                    rid = row["id"]
+                    # row index, NOT the upstream id — see the docstring: the upstream id is
+                    # duplicated (e.g. 192 physics rows share one string), and keying the
+                    # extracted image on it silently overwrote most of them.
+                    key = f"{row_idx:05d}"
                     options, letter, text = _normalise(row)
                     img_path = materialize_image(
-                        row["image"]["bytes"], img_dir / subset / shard / f"{rid}.png"
+                        row["image"]["bytes"], img_dir / subset / shard / f"{key}.png"
                     )
                     yield Item(
-                        id=f"causalspatial/{subset}/{shard}/{rid}",
+                        id=f"causalspatial/{subset}/{shard}/{key}",
                         images=[img_path],
                         question=row["question"],
                         answer=str(row.get("answer")),
@@ -108,6 +146,9 @@ def load_causalspatial(config: dict, subsets: list[str] | None = None) -> Iterat
                             "task": row.get("type") or subset,
                             "subset": subset,
                             "source_file": pfile.name,
-                            "original_index": rid,  # NOT unique upstream — see docstring
+                            "row_index": row_idx,
+                            "original_id": row["id"],  # NOT unique upstream — reference only
+                            "original_index": f"{shard}:{row_idx}",
                         },
                     )
+                    row_idx += 1

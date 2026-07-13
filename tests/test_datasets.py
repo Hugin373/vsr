@@ -76,19 +76,69 @@ def test_ids_are_unique(config, name):
     assert not dupes, f"{name}: duplicate ids, e.g. {sorted(dupes)[:3]}"
 
 
-def test_causalspatial_collision_has_both_question_types(config):
-    """The full collision subset: 826 items over 413 scenes, all ids distinct.
+def test_causalspatial_full_scan_ids_and_images_unique(config):
+    """FULL scan of CausalSpatial: every item distinct, every item its OWN image file.
 
-    Guards the specific upstream trap — two question types ("will it collide?" and "which
-    object to remove?") share one id namespace.
+    Guards two upstream traps that both caused silent corruption:
+      * the upstream `id` is badly non-unique (192 physics rows share one string), so ids
+        must be keyed on the row index, not on it;
+      * the parquet-embedded images are extracted to disk, and keying those FILENAMES on the
+        upstream id overwrote them — 1541 items previously produced only 949 image files, so
+        most items pointed at another question's image.
     """
     _skip_if_absent(config, "causalspatial")
-    items = list(load("causalspatial", config, subsets=["collision"]))
-    assert len(items) == 826, f"expected 826 collision samples, got {len(items)}"
-    assert len({it.id for it in items}) == 826, "collision ids are not unique"
-    # the same upstream id is reused by the two question types
-    originals = [it.meta["original_index"] for it in items]
-    assert len(set(originals)) == 413, "expected 413 distinct upstream ids reused twice"
+    items = list(load("causalspatial", config))
+
+    assert len(items) == 1541, f"expected 1541 items (per the dataset card), got {len(items)}"
+    assert len({it.id for it in items}) == len(items), "duplicate item ids"
+
+    # one distinct image file per item — the invariant the overwrite bug violated
+    paths = [it.images[0] for it in items]
+    assert len(set(paths)) == len(items), (
+        f"{len(items)} items share only {len(set(paths))} image files — extraction overwrote"
+    )
+    for p in set(paths):
+        assert Path(p).exists()
+
+    # collision really is two question types over one id namespace (826 = 2 x 413)
+    collision = [it for it in items if it.meta["subset"] == "collision"]
+    assert len(collision) == 826
+    assert len({it.meta["original_id"] for it in collision}) == 413
+
+
+def test_causalspatial_every_item_has_resolved_options(config):
+    """Every CausalSpatial item must expose its options and a resolved answer_text.
+
+    The sim subsets write their choices INTO the question text in two different formats
+    ("A. Yes; B. No;" vs "Answer by (A) Yes, (B) No or (C) Not sure."). Parsing only one left
+    three of the five subsets with options=[] and answer_text=None — an MCQ you cannot score.
+    """
+    _skip_if_absent(config, "causalspatial")
+    bad = []
+    for it in load("causalspatial", config):
+        if not it.meta["options"] or it.meta["answer_text"] is None:
+            bad.append((it.meta["subset"], it.id))
+    assert not bad, f"{len(bad)} items without resolved options/answer_text, e.g. {bad[:3]}"
+
+
+@pytest.mark.parametrize("name", DATASETS)
+def test_no_silent_record_drops(config, name):
+    """An adapter must not silently drop source records.
+
+    DepthCues' occlusion_v4 subset (14,862 records — the largest) resolved to ZERO items for
+    a whole milestone because its images nest by split and the resolver quietly `continue`d.
+    """
+    _skip_if_absent(config, name)
+    counts = {
+        "cvbench": 2638,
+        "mindcube": 1050,  # tinybench split
+        "causalspatial": 1541,
+        "depthcues": 19235,  # test split, all five shipped cues
+        "revsi": 6158,  # 32-frame budget
+        "whatsup": 820,  # 412 real photos + 408 CLEVR
+    }
+    got = sum(1 for _ in load(name, config))
+    assert got == counts[name], f"{name}: expected {counts[name]} items, loaded {got}"
 
 
 def test_mcq_answers_resolve_to_an_option(config):
