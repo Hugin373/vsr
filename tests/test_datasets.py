@@ -62,10 +62,33 @@ def test_item_round_trip(config, name):
     assert Item.from_dict(it.to_dict()) == it
 
 
-def test_ids_are_unique(config):
-    _skip_if_absent(config, "cvbench")
-    ids = [it.id for it in take(load("cvbench", config), 50)]
-    assert len(ids) == len(set(ids))
+@pytest.mark.parametrize("name", DATASETS)
+def test_ids_are_unique(config, name):
+    """Item.id must be unique — it is the join key back to the source item.
+
+    This test previously only covered cvbench, and so missed that CausalSpatial's upstream
+    `id` is NOT unique: its `collision` subset is 826 samples = two question types over the
+    same 413 scenes, and BOTH reuse the same id string with different questions/answers.
+    """
+    _skip_if_absent(config, name)
+    ids = [it.id for it in take(load(name, config), 400)]
+    dupes = {i for i in ids if ids.count(i) > 1}
+    assert not dupes, f"{name}: duplicate ids, e.g. {sorted(dupes)[:3]}"
+
+
+def test_causalspatial_collision_has_both_question_types(config):
+    """The full collision subset: 826 items over 413 scenes, all ids distinct.
+
+    Guards the specific upstream trap — two question types ("will it collide?" and "which
+    object to remove?") share one id namespace.
+    """
+    _skip_if_absent(config, "causalspatial")
+    items = list(load("causalspatial", config, subsets=["collision"]))
+    assert len(items) == 826, f"expected 826 collision samples, got {len(items)}"
+    assert len({it.id for it in items}) == 826, "collision ids are not unique"
+    # the same upstream id is reused by the two question types
+    originals = [it.meta["original_index"] for it in items]
+    assert len(set(originals)) == 413, "expected 413 distinct upstream ids reused twice"
 
 
 def test_mcq_answers_resolve_to_an_option(config):

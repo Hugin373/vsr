@@ -14,7 +14,17 @@ populated, so a downstream scorer never has to know which subset it came from.
 ``meta.not_sure_letter`` marks the abstain option where one exists — a scorer should treat
 it as a non-answer, not as a wrong answer.
 
+⚠ THE UPSTREAM `id` IS NOT UNIQUE. The card calls it a "Unique sample identifier", but the
+`collision` subset holds 826 samples = TWO question types over the SAME 413 scenes ("will
+the car collide?" and "which object should be removed to prevent it?"), and BOTH reuse the
+same id string (`Collision_Level_1_3` appears twice, with different questions and different
+answers, in different shard groups). We therefore key Item.id by (subset, source file, id)
+so it stays unique and joins back to the exact source row; the upstream id is preserved in
+``meta.original_index`` and the file in ``meta.source_file``.
+
 Images are embedded as parquet bytes; they are extracted to <root>/images/ on first access.
+Because the id is not unique, the extracted image is keyed by the source file too — the two
+question types share a scene image but must not overwrite each other's file.
 """
 
 from __future__ import annotations
@@ -73,16 +83,17 @@ def load_causalspatial(config: dict, subsets: list[str] | None = None) -> Iterat
                 f"scripts/download_dataset.py --name causalspatial"
             )
         for pfile in sorted(sub_dir.glob("*.parquet")):
+            shard = pfile.stem  # disambiguates the reused upstream ids (see module docstring)
             pf = pq.ParquetFile(pfile)
             for batch in pf.iter_batches(batch_size=32):
                 for row in batch.to_pylist():
                     rid = row["id"]
                     options, letter, text = _normalise(row)
                     img_path = materialize_image(
-                        row["image"]["bytes"], img_dir / subset / f"{rid}.png"
+                        row["image"]["bytes"], img_dir / subset / shard / f"{rid}.png"
                     )
                     yield Item(
-                        id=f"causalspatial/{subset}/{rid}",
+                        id=f"causalspatial/{subset}/{shard}/{rid}",
                         images=[img_path],
                         question=row["question"],
                         answer=str(row.get("answer")),
@@ -96,6 +107,7 @@ def load_causalspatial(config: dict, subsets: list[str] | None = None) -> Iterat
                             "not_sure_letter": row.get("not_sure"),
                             "task": row.get("type") or subset,
                             "subset": subset,
-                            "original_index": rid,
+                            "source_file": pfile.name,
+                            "original_index": rid,  # NOT unique upstream — see docstring
                         },
                     )
