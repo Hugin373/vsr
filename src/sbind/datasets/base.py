@@ -18,6 +18,7 @@ Every adapter yields the same ``Item``, whatever the source format. Notes on the
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -86,6 +87,49 @@ def dataset_root(config: dict, name: str) -> Path:
     """Where dataset ``name`` lives on disk (config-driven, never hardcoded)."""
     root = config.get("root") or os.environ.get("DATA_ROOT", "") + "/external"
     return Path(os.path.expandvars(str(root))) / name
+
+
+LETTERS = "ABCDEFGH"
+
+# Options written into a question body. Several benchmarks do this, in different formats:
+#   "A. Curtain B. Gray-green backrest C. TV"        (MindCube)
+#   "A. Yes; B. No; C. Not Sure."                    (CausalSpatial collision)
+#   "Answer by (A) Yes, (B) No or (C) Not sure."     (CausalSpatial physics/...)
+# and sometimes with an instruction paragraph spliced BETWEEN two options.
+#
+# The space after the marker is OPTIONAL (some rows read "E.Removing the vase"). The
+# ordered-run check in parse_inline_options is what guards against matching a stray "A."
+# in prose — NOT a character class on the option text: a naive `[^A-H]*?` for the text
+# stops dead on the "C" in "Curtain".
+_OPT_MARKER = re.compile(r"(?:^|[\s;(])([A-H])[.)]\s*(?=\S)")
+
+
+def parse_inline_options(question: str) -> dict[str, str]:
+    """Recover {letter: text} from multiple-choice options written into the question body."""
+    markers = []
+    expected = 0
+    for m in _OPT_MARKER.finditer(question):
+        if LETTERS.index(m.group(1)) == expected:  # accept only a strict A, B, C, ... run
+            markers.append(m)
+            expected += 1
+    if len(markers) < 2:
+        return {}
+
+    out: dict[str, str] = {}
+    for i, m in enumerate(markers):
+        end = markers[i + 1].start() if i + 1 < len(markers) else len(question)
+        text = question[m.end() : end]
+        text = re.split(r"\bNote\s*:", text)[0]  # drop a spliced-in instruction paragraph
+        text = text.strip().strip(";,.").strip()
+        text = re.sub(r"\s+or$", "", text).strip()
+        if text:
+            out[m.group(1)] = text
+    return out
+
+
+def strip_option_letters(options: list[str]) -> list[str]:
+    """Drop a leading "A. " / "(A) " marker from options that ship pre-lettered (ReVSI)."""
+    return [re.sub(r"^\(?([A-H])[.)]\s*", "", str(o)).strip() for o in options]
 
 
 def materialize_image(data: bytes, path: str | os.PathLike) -> str:

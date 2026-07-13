@@ -11,14 +11,10 @@ resolve ``meta.answer_text``.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Iterator
 
 from ..utils.io import read_jsonl
-from .base import Item, dataset_root, register
-
-# " A. foo B. bar C. baz D. qux" -> [(letter, text), ...]
-_OPT_RE = re.compile(r"(?:^|\s)([A-H])\.\s*([^A-H]*?)(?=\s+[A-H]\.\s|\s*$)")
+from .base import Item, dataset_root, parse_inline_options, register
 
 SPLITS = {
     "tinybench": "MindCube_tinybench.jsonl",
@@ -29,11 +25,11 @@ SPLITS = {
 
 def _parse_options(question: str) -> tuple[str, list[str], dict[str, str]]:
     """Split an inline-MCQ question into (stem, options, letter->text)."""
-    matches = list(_OPT_RE.finditer(question))
-    if not matches:
+    by_letter = parse_inline_options(question)
+    if not by_letter:
         return question, [], {}
-    stem = question[: matches[0].start()].strip()
-    by_letter = {m.group(1): m.group(2).strip() for m in matches}
+    first = question.find(" A.")
+    stem = question[:first].strip() if first > 0 else question
     return stem, [by_letter[k] for k in sorted(by_letter)], by_letter
 
 

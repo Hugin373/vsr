@@ -122,6 +122,34 @@ def test_causalspatial_every_item_has_resolved_options(config):
 
 
 @pytest.mark.parametrize("name", DATASETS)
+def test_full_integrity(config, name):
+    """FULL scan of every dataset: unique ids, every media file present, every MCQ scoreable.
+
+    This is the check that caught what the 5-item smoke test could not:
+      * depthcues size_v2 loads an indoor AND an outdoor pkl, both indexed from 0 -> id clash
+      * mindcube's option parser died on the "C" in "Curtain" (a naive [^A-H] char class)
+      * revsi never resolved MCQ answers at all (options ship pre-lettered, answer is a letter)
+    """
+    _skip_if_absent(config, name)
+    ids, unresolved, missing = set(), 0, 0
+    n = 0
+    for it in load(name, config):
+        n += 1
+        assert it.id not in ids, f"{name}: duplicate id {it.id}"
+        ids.add(it.id)
+        if it.video:
+            missing += 0 if Path(it.video).exists() else 1
+        for p in it.images:
+            missing += 0 if Path(p).exists() else 1
+        m = it.meta
+        if m.get("answer_type") == "mcq" and m.get("options") and m.get("answer_text") is None:
+            unresolved += 1
+    assert missing == 0, f"{name}: {missing} media files referenced but missing"
+    assert unresolved == 0, f"{name}: {unresolved} MCQ items whose answer resolves to no option"
+    assert n > 0
+
+
+@pytest.mark.parametrize("name", DATASETS)
 def test_no_silent_record_drops(config, name):
     """An adapter must not silently drop source records.
 

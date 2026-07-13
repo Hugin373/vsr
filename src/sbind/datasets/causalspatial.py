@@ -36,49 +36,13 @@ to a different question. Extraction is now keyed by row index too.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Iterator
 
-from .base import Item, dataset_root, materialize_image, register
+from .base import Item, dataset_root, materialize_image, parse_inline_options, register
 
 SUBSETS = ("collision", "physics", "compatibility", "occlusion", "realworld")
 _LETTERS = "ABCDEFGH"
 
-# The sim subsets write their choices INTO the question body, in two formats and at varying
-# lengths, with an instruction paragraph sometimes spliced BETWEEN two options:
-#   collision:  "... A. Remove the vase; B. ...; D. There is no collision.
-#                Note: The floor strips indicate perspective... ; E. Not Sure."
-#   physics/occlusion/compatibility:
-#               "... Answer by (A) Yes, (B) No or (C) Not sure."
-# So: scan the WHOLE question (a fixed tail window truncated the long 5-option lists), accept
-# only a properly ordered A,B,C,... run, and cut any embedded "Note:" out of the option text.
-# NB the space after the marker is OPTIONAL: some upstream rows read "E.Removing the vase"
-# with no space, which a \s+ requirement silently dropped. The ordered-run check below is
-# what protects against matching stray "A." in prose.
-_OPT_MARKER = re.compile(r"(?:^|[\s;(])([A-H])[.)]\s*(?=\S)")
-
-
-def _parse_inline_options(question: str) -> dict[str, str]:
-    """Recover {letter: text} from choices written into the question body (either format)."""
-    markers = []
-    expected = 0
-    for m in _OPT_MARKER.finditer(question):
-        if _LETTERS.index(m.group(1)) == expected:  # keep a strictly ordered A, B, C, ... run
-            markers.append(m)
-            expected += 1
-    if len(markers) < 2:
-        return {}
-
-    out: dict[str, str] = {}
-    for i, m in enumerate(markers):
-        end = markers[i + 1].start() if i + 1 < len(markers) else len(question)
-        text = question[m.end() : end]
-        text = re.split(r"\bNote\s*:", text)[0]  # drop a spliced-in instruction paragraph
-        text = text.strip().strip(";,.").strip()
-        text = re.sub(r"\s+or$", "", text).strip()
-        if text:
-            out[m.group(1)] = text
-    return out
 
 
 def _normalise(row: dict) -> tuple[list[str], str | None, str | None]:
@@ -95,7 +59,7 @@ def _normalise(row: dict) -> tuple[list[str], str | None, str | None]:
         return explicit, letter, raw_answer
 
     # sim subsets: options inline in the question, answer is a LETTER
-    by_letter = _parse_inline_options(str(row.get("question") or ""))
+    by_letter = parse_inline_options(str(row.get("question") or ""))
     options = [by_letter[k] for k in sorted(by_letter)]
     return options, (raw_answer or None), by_letter.get(raw_answer)
 

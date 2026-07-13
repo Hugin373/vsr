@@ -160,7 +160,9 @@ def load_depthcues(
                     meta[k] = v.tolist() if hasattr(v, "tolist") else v
                 yielded += 1
                 yield Item(
-                    id=f"depthcues/{cue}/{key}",
+                    # the source file must be in the id: size_v2 loads an indoor AND an
+                    # outdoor pkl, both list-indexed from 0, so `size_v2/0` collided.
+                    id=f"depthcues/{cue}/{Path(fname).stem}/{key}",
                     images=[img],
                     question=spec["question"],
                     answer=str(meta["label"]),

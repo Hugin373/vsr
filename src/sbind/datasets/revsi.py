@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 
-from .base import Item, dataset_root, register
+from .base import LETTERS, Item, dataset_root, register, strip_option_letters
 
 BUDGETS = ("16", "32", "64", "all")
 
@@ -57,7 +57,14 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
                 if not video.exists():
                     continue
                 n_frames = int(row.get("num_frames") or 0)
-                options = list(row.get("options") or [])
+                # MCQ options ship PRE-LETTERED ("A. wall picture") and ground_truth is the
+                # bare letter — so strip the markers and resolve the letter to its text,
+                # like every other adapter, or a scorer cannot match an answer to an option.
+                raw_options = list(row.get("options") or [])
+                options = strip_option_letters(raw_options)
+                gt = str(row["ground_truth"]).strip()
+                letter = gt if options and gt in LETTERS[: len(options)] else None
+                answer_text = options[LETTERS.index(letter)] if letter else None
                 yield Item(
                     id=f"revsi/{budget}/{row['id']}",
                     images=[],  # video item: frames are decoded on demand
@@ -69,6 +76,9 @@ def load_revsi(config: dict, frame_budget: str | int | None = None) -> Iterator[
                         "dataset_name": "revsi",
                         "answer_type": "mcq" if options else "numeric",
                         "options": options,
+                        "answer_letter": letter,
+                        "answer_text": answer_text,
+                        "options_raw": raw_options,
                         "task": row.get("question_type"),
                         "scene_id": scene_id,
                         "source_dataset": row.get("dataset"),  # ARKitScenes | ScanNet | ...
