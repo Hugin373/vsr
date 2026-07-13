@@ -102,6 +102,36 @@ def project(K, R, t, points_world) -> np.ndarray:
     return out[0] if single else out
 
 
+def optical_axis(R) -> np.ndarray:
+    """Unit world-space direction along which ``depth_m`` is measured.
+
+    depth = (R @ X + t)[2], so the gradient of depth w.r.t. X — i.e. the direction that
+    increases depth — is the third row of R.
+    """
+    return np.asarray(R, dtype=float)[2]
+
+
+def half_extent_along(category: str, size_m: float, axis) -> float:
+    """Half-extent of a primitive along a world direction (its support function).
+
+    Used to turn a centre depth into a nearest-surface depth: the object's surface is
+    ``half_extent_along`` metres nearer than its centre along the viewing axis. Objects
+    are axis-aligned in world; ``size_m`` is the cube edge / sphere diameter / cylinder
+    height (cylinder axis = world Z, radius = size_m/2).
+    """
+    a = np.abs(np.asarray(axis, dtype=float))
+    h = size_m / 2.0
+    if category == "sphere":
+        return h  # isotropic: same half-extent in every direction
+    if category == "cube":
+        # support function of an axis-aligned box with half-sizes (h, h, h)
+        return float(h * (a[0] + a[1] + a[2]))
+    if category == "cylinder":
+        # radius in the XY plane, half-height along Z
+        return float(h * np.hypot(a[0], a[1]) + h * a[2])
+    raise ValueError(f"unknown category: {category!r}")
+
+
 def camera_frame(cam_pos, target, f_mm, sensor_width_mm, res_x, res_y, height_m=None):
     """Convenience: build (K, R, t, R_cw) for a look-at camera in one call.
 

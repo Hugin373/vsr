@@ -35,6 +35,7 @@ def _example_annotation() -> StimulusAnnotation:
         retinal_size_px=88.2,
         elevation_px=312.0,
         mask="masks/set3_00142_obj0.png",
+        nearest_surface_m=1.85,
     )
     obj1 = ObjectAnnotation(
         name="blue_sphere",
@@ -59,7 +60,12 @@ def _example_annotation() -> StimulusAnnotation:
             "size_condition": "fixed_retinal",
         },
         pair_relations={
-            "(0,1)": PairRelation(ordinal_depth="0_closer", dist_ratio=1.83, dist_m=1.2)
+            "(0,1)": PairRelation(
+                ordinal_depth="0_closer",
+                dist_ratio=1.83,
+                dist_m=1.2,
+                ordinal_depth_surface="0_closer",
+            )
         },
     )
 
@@ -73,6 +79,9 @@ def test_stimulus_annotation_round_trip():
     assert isinstance(restored.objects[0], ObjectAnnotation)
     assert isinstance(restored.pair_relations["(0,1)"], PairRelation)
     assert restored.objects[1].mask is None
+    # centre-based and surface-based depth fields both survive the round-trip
+    assert restored.objects[0].nearest_surface_m == 1.85
+    assert restored.pair_relations["(0,1)"].ordinal_depth_surface == "0_closer"
 
 
 def test_annotation_jsonl_round_trip(tmp_path):

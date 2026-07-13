@@ -198,16 +198,35 @@ def _load_rgb(path) -> np.ndarray:
         return np.asarray(im.convert("RGB"))
 
 
-def _render_id_pass(scene, objects, tmp_path) -> list[np.ndarray]:
-    """Swap to emission materials, render a flat ID pass, return per-object bool masks."""
+def _render_id_pass(scene, objects, ground, lights, tmp_path) -> list[np.ndarray]:
+    """Swap to emission materials, render a flat ID pass, return per-object bool masks.
+
+    Every surface must be a pure emitter and there must be NO indirect light. Otherwise a
+    red emissive object bounces red light onto the ground beneath it, that lit floor falls
+    within the ID colour's match tolerance, and the mask bleeds downward — silently
+    inflating bbox bottoms and retinal_size_px. Hence: ground -> black emission, lights
+    off, max_bounces = 0.
+    """
     id_colors = _ID_COLORS[: len(objects)]
     for i, ob in enumerate(objects):
         idmat = _emission_material(f"id_{i}", id_colors[i])
         ob.data.materials.clear()
         ob.data.materials.append(idmat)
-    # crisp, un-tone-mapped, single-sample render
+    # ground emits pure black: it can neither be lit nor bounce colour onto anything
+    black = _emission_material("id_ground", (0.0, 0.0, 0.0))
+    ground.data.materials.clear()
+    ground.data.materials.append(black)
+    for light in lights:
+        light.data.energy = 0.0
+
+    # crisp, un-tone-mapped, single-sample, zero-bounce render
     scene.cycles.samples = 1
     scene.cycles.use_denoising = False
+    scene.cycles.max_bounces = 0
+    scene.cycles.diffuse_bounces = 0
+    scene.cycles.glossy_bounces = 0
+    scene.cycles.transmission_bounces = 0
+    scene.cycles.transparent_max_bounces = 0
     # near-zero box pixel filter -> point sampling, so ID colours stay crisp (no AA bleed)
     scene.cycles.pixel_filter_type = "BOX"
     scene.cycles.filter_width = 0.01
@@ -245,19 +264,21 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
     mask_dir = ensure_dir(out_dir / "masks")
 
     scene = _reset_scene()
-    _add_ground(spec.ground_color)
+    ground = _add_ground(spec.ground_color)
     objects = [_add_object(o, i) for i, o in enumerate(spec.objects)]
     K, R, t = _add_camera(scene, spec)
-    _add_sun(scene, spec)
+    sun = _add_sun(scene, spec)
     _configure_beauty(scene, render_cfg)
 
     img_path = img_dir / f"{spec.id}.png"
     _render_to(scene, img_path)
 
     tmp_id = out_dir / f".{spec.id}_id.png"
-    masks = _render_id_pass(scene, objects, tmp_id)
+    masks = _render_id_pass(scene, objects, ground, [sun], tmp_id)
     if tmp_id.exists():
         os.remove(tmp_id)
+
+    axis = geometry.optical_axis(R)  # world direction along which depth_m is measured
 
     obj_anns: list[ObjectAnnotation] = []
     for i, o in enumerate(spec.objects):
@@ -265,6 +286,10 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
         uvd = geometry.project(K, R, t, p_world)
         pos_cam = (R @ p_world + t).tolist()
         depth_m = float(uvd[2])
+        # nearest surface: centre depth minus the half-extent along the viewing axis.
+        # This is what the bbox bottom / a human viewer tracks; depth_m is the centre.
+        half_ext = geometry.half_extent_along(o.category, o.size_m, axis)
+        nearest_surface_m = depth_m - half_ext
         # elevation_px = v-pixel of the ground-contact point below the object centre
         # (the "relative height" depth cue). Strictly monotonic with depth on the ground
         # plane, and the quantity M4's elevation-conflict condition will manipulate.
@@ -294,6 +319,7 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
                 retinal_size_px=retinal,
                 elevation_px=elevation_px,
                 mask=mask_rel,
+                nearest_surface_m=nearest_surface_m,
             )
         )
 
@@ -317,11 +343,17 @@ def _pair_relations(objs: list[ObjectAnnotation]) -> dict[str, PairRelation]:
             di, dj = objs[i].depth_m, objs[j].depth_m
             near, far = (di, dj) if di <= dj else (dj, di)
             ordinal = f"{i}_closer" if di < dj else f"{j}_closer"
+            # surface-based ordinal: what a viewer (and the bbox bottom) actually reads
+            si, sj = objs[i].nearest_surface_m, objs[j].nearest_surface_m
+            ordinal_surface = f"{i}_closer" if si < sj else f"{j}_closer"
             dist_ratio = float(far / near) if near > 1e-9 else float("inf")
             dist_m = float(
                 np.linalg.norm(np.asarray(objs[i].pos_world) - np.asarray(objs[j].pos_world))
             )
             rels[f"({i},{j})"] = PairRelation(
-                ordinal_depth=ordinal, dist_ratio=dist_ratio, dist_m=dist_m
+                ordinal_depth=ordinal,
+                dist_ratio=dist_ratio,
+                dist_m=dist_m,
+                ordinal_depth_surface=ordinal_surface,
             )
     return rels

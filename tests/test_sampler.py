@@ -123,3 +123,58 @@ def test_pair_constraint_holds_across_seeds():
         for s in build_scene_specs(CONFIG, seed=seed):
             a, b = s.objects
             assert not (a.category == b.category and a.color == b.color)
+
+
+def _centre_and_surface_depths(spec):
+    from sbind.stimuli import geometry
+
+    K, R, t, _ = geometry.camera_frame(
+        spec.camera.pos_world,
+        spec.camera.target_world,
+        spec.camera.f_mm,
+        spec.camera.sensor_width_mm,
+        spec.camera.res_x,
+        spec.camera.res_y,
+    )
+    axis = geometry.optical_axis(R)
+    out = []
+    for o in spec.objects:
+        d = geometry.project(K, R, t, o.pos_world)[2]
+        h = geometry.half_extent_along(o.category, o.size_m, axis)
+        out.append((d, d - h))
+    return out
+
+
+def test_unambiguous_ordinal_centre_and_surface_agree():
+    # with the constraint on, the centre-depth order and nearest-surface order must
+    # never disagree — otherwise "which is closer?" is perceptually ambiguous
+    cfg = {**CONFIG, "constraints": {"unambiguous_ordinal": True, "ordinal_margin_m": 0.15}}
+    for seed in range(3):
+        for s in build_scene_specs(cfg, seed=seed):
+            (d0, s0), (d1, s1) = _centre_and_surface_depths(s)
+            assert (d0 < d1) == (s0 < s1), f"{s.id}: centre/surface order disagree"
+
+
+def test_unambiguous_ordinal_enforces_margin():
+    cfg = {**CONFIG, "constraints": {"unambiguous_ordinal": True, "ordinal_margin_m": 0.15}}
+    from sbind.stimuli import geometry
+
+    for s in build_scene_specs(cfg, seed=0):
+        depths = _centre_and_surface_depths(s)
+        (d0, _), (d1, _) = depths
+        near, far = (0, 1) if d0 < d1 else (1, 0)
+        K, R, t, _ = geometry.camera_frame(
+            s.camera.pos_world, s.camera.target_world, s.camera.f_mm,
+            s.camera.sensor_width_mm, s.camera.res_x, s.camera.res_y,
+        )
+        axis = geometry.optical_axis(R)
+        h_near = geometry.half_extent_along(s.objects[near].category, s.objects[near].size_m, axis)
+        h_far = geometry.half_extent_along(s.objects[far].category, s.objects[far].size_m, axis)
+        gap = abs(d1 - d0)
+        assert gap >= abs(h_near - h_far) + 0.15 - 1e-6
+
+
+def test_constraint_can_be_disabled():
+    cfg = {**CONFIG, "constraints": {"unambiguous_ordinal": False}}
+    specs = build_scene_specs(cfg, seed=0)
+    assert len(specs) == CONFIG["n_images"]  # still produces a full set

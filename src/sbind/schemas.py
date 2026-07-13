@@ -42,7 +42,17 @@ class Camera:
 
 @dataclass
 class ObjectAnnotation:
-    """One object instance with world/camera geometry and image-space measurements."""
+    """One object instance with world/camera geometry and image-space measurements.
+
+    Two depth notions, deliberately both stored (see PROJECT_MEMORY):
+      - ``depth_m``: depth of the object CENTRE along the optical axis. This is the
+        continuous regression target the probes use.
+      - ``nearest_surface_m``: centre depth minus the object's half-extent along the
+        viewing axis, i.e. the depth of its nearest surface. This is what a viewer (and
+        the bbox bottom) actually tracks, so verbalized "which is closer?" QA uses it.
+    They can disagree for near-equal depths when the objects differ in shape, which is
+    why the sampler's ``unambiguous_ordinal`` constraint forces them to agree.
+    """
 
     name: str
     category: str
@@ -54,6 +64,7 @@ class ObjectAnnotation:
     retinal_size_px: float
     elevation_px: float
     mask: str | None = None  # relative path to the object mask PNG, if rendered
+    nearest_surface_m: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -71,16 +82,23 @@ class ObjectAnnotation:
             retinal_size_px=d["retinal_size_px"],
             elevation_px=d["elevation_px"],
             mask=d.get("mask"),
+            nearest_surface_m=d.get("nearest_surface_m", 0.0),
         )
 
 
 @dataclass
 class PairRelation:
-    """Pairwise relation between two objects (keyed by "(i,j)" in the annotation)."""
+    """Pairwise relation between two objects (keyed by "(i,j)" in the annotation).
+
+    ``ordinal_depth`` is centre-based (probe target); ``ordinal_depth_surface`` is
+    nearest-surface-based (what a viewer answers, so verbalized QA uses it). With the
+    sampler's ``unambiguous_ordinal`` constraint on, the two always agree.
+    """
 
     ordinal_depth: str  # e.g. "0_closer"
     dist_ratio: float
     dist_m: float
+    ordinal_depth_surface: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -91,6 +109,7 @@ class PairRelation:
             ordinal_depth=d["ordinal_depth"],
             dist_ratio=d["dist_ratio"],
             dist_m=d["dist_m"],
+            ordinal_depth_surface=d.get("ordinal_depth_surface", ""),
         )
 
 

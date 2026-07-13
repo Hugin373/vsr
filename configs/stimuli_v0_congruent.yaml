@@ -34,8 +34,15 @@ scene:
   sun_direction: [5.0, -5.0, 8.0]
 
 objects:
-  size_m: 0.6                      # larger objects -> larger retinal footprint
+  base_size_m: 0.6                 # starting size for the calibrator only
   categories: [cube, sphere, cylinder]
+  # Per-category sizes calibrated by scripts/calibrate_sizes.py so that a cube, a sphere
+  # and a cylinder subtend the SAME retinal pixel-height at the same depth (the metric
+  # retinal_size_px records). Without this, a cube's silhouette reaches its diagonal
+  # while a sphere's reaches only its diameter, so a FAR cube could out-measure a NEAR
+  # sphere and invert the size cue. Regenerate with:
+  #   uv run --extra stimuli scripts/calibrate_sizes.py --config <this file> --target-px 90
+  size_calibration_file: configs/size_calibration.yaml
   colors:
     red: [0.80, 0.05, 0.05]
     green: [0.05, 0.55, 0.10]
@@ -48,6 +55,22 @@ factors:
   depth_jitter: 0.15                             # ± uniform jitter -> continuous depth
   min_gap: 0.3                                   # floor on far-near after jitter
   lateral_offset: 0.7                            # objects offset ±0.7 m laterally
+  # Physical-size variation across images. In the CONGRUENT condition BOTH objects of a
+  # pair share the SAME multiplier: independent per-object size jitter would let physical
+  # size invert the retinal cue (a physically-bigger far object out-measuring a nearer
+  # one), which is exactly the manipulation the M4 conflict designs will make on purpose.
+  # Independent per-object size jitter therefore belongs to the `size_condition` factor
+  # (M4: size_condition = fixed_retinal / conflict), NOT here.
+  size_multipliers: [0.9, 1.0, 1.1]              # shared by both objects in a pair
+
+constraints:
+  # Centre-depth order and nearest-surface order must agree, so "which is closer?" is
+  # never perceptually ambiguous. Objects of different shape have different half-extents
+  # along the viewing axis, so a far cube can present a nearer surface than a near
+  # sphere when the centre gap is small. The far object is pushed back until the centre
+  # gap exceeds |h_near - h_far| + ordinal_margin_m.
+  unambiguous_ordinal: true
+  ordinal_margin_m: 0.15
 
 condition:
   size_condition: congruent

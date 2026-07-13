@@ -61,6 +61,47 @@ def test_points_in_front_have_positive_depth():
         assert d > 0
 
 
+def test_optical_axis_is_depth_gradient():
+    K, R, t, _ = geometry.camera_frame([0, -2.5, 1.4], [0, 1.2, 0.35], 35.0, 36.0, 512, 512)
+    a = geometry.optical_axis(R)
+    assert np.isclose(np.linalg.norm(a), 1.0)
+    # stepping 1 m along the optical axis must increase depth by exactly 1 m
+    p = np.array([0.0, 1.0, 0.3])
+    d0 = geometry.project(K, R, t, p)[2]
+    d1 = geometry.project(K, R, t, p + a)[2]
+    assert np.isclose(d1 - d0, 1.0)
+
+
+def test_half_extent_sphere_is_isotropic():
+    for axis in ([0, 1, 0], [1, 0, 0], [0.5, 0.5, 0.7071]):
+        assert np.isclose(geometry.half_extent_along("sphere", 0.6, axis), 0.3)
+
+
+def test_half_extent_cube_axis_aligned_vs_diagonal():
+    # along a principal axis the cube's half-extent is just half its edge
+    assert np.isclose(geometry.half_extent_along("cube", 0.6, [0, 1, 0]), 0.3)
+    # along the body diagonal it is larger (sum of |components| * half-edge)
+    d = np.array([1.0, 1.0, 1.0]) / np.sqrt(3)
+    assert np.isclose(geometry.half_extent_along("cube", 0.6, d), 0.3 * np.sqrt(3))
+
+
+def test_half_extent_cylinder():
+    # straight down the cylinder's Z axis -> half its height
+    assert np.isclose(geometry.half_extent_along("cylinder", 0.6, [0, 0, 1]), 0.3)
+    # horizontally -> its radius
+    assert np.isclose(geometry.half_extent_along("cylinder", 0.6, [0, 1, 0]), 0.3)
+
+
+def test_cube_half_extent_exceeds_sphere_off_axis():
+    # the whole reason nearest_surface_m exists: at a typical viewing angle a cube
+    # reaches further toward the camera than a sphere of the same size_m
+    K, R, t, _ = geometry.camera_frame([0, -2.5, 1.4], [0, 1.2, 0.35], 35.0, 36.0, 512, 512)
+    a = geometry.optical_axis(R)
+    assert geometry.half_extent_along("cube", 0.6, a) > geometry.half_extent_along(
+        "sphere", 0.6, a
+    )
+
+
 def test_project_batched_matches_single():
     K, R, t, _ = geometry.camera_frame([0, -4, 1.5], [0, 1.5, 0.5], 35.0, 36.0, 512, 512)
     pts = np.array([[0.0, 1.5, 0.5], [1.0, 2.0, 0.2], [-1.0, 3.0, 0.2]])

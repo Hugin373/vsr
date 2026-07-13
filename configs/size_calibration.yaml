@@ -1,0 +1,12 @@
+_generated_by: scripts/calibrate_sizes.py
+_reference_depth_m: 4.4708
+_target_px: 90.0
+_measured_px_at_ref:
+  cube: 90.0
+  sphere: 90.0
+  cylinder: 90.0
+_spread_px: 0.0
+size_m_by_category:
+  cube: 0.6659
+  sphere: 0.8094
+  cylinder: 0.6659

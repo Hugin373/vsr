@@ -12,8 +12,12 @@ depth. Conflict conditions (fixed-retinal-size, elevation-conflict) arrive in M4
 
 from __future__ import annotations
 
-import numpy as np
+from pathlib import Path
 
+import numpy as np
+import yaml
+
+from . import geometry
 from .scene_spec import CameraSpec, ObjectSpec, SceneSpec
 
 
@@ -67,6 +71,32 @@ def _rest_height(category: str, size_m: float) -> float:
     return size_m / 2.0
 
 
+def _resolve_sizes(obj_cfg: dict, categories: list[str]) -> dict[str, float]:
+    """Per-category size_m: inline map, else the calibration file, else a flat base size.
+
+    The calibrated sizes make every primitive subtend the same retinal pixel-height at a
+    given depth (see scripts/calibrate_sizes.py) — without them a far cube can out-measure
+    a near sphere and invert the size cue.
+    """
+    sizes = dict(obj_cfg.get("size_m_by_category") or {})
+    if not sizes and obj_cfg.get("size_calibration_file"):
+        path = Path(obj_cfg["size_calibration_file"])
+        if not path.exists():
+            raise FileNotFoundError(
+                f"size calibration file not found: {path}. Generate it with "
+                f"`uv run --extra stimuli scripts/calibrate_sizes.py --config <stimulus config>`."
+            )
+        with open(path, encoding="utf-8") as f:
+            sizes = dict(yaml.safe_load(f)["size_m_by_category"])
+    if not sizes:
+        base = float(obj_cfg.get("base_size_m", obj_cfg.get("size_m", 0.6)))
+        sizes = {c: base for c in categories}
+    missing = [c for c in categories if c not in sizes]
+    if missing:
+        raise ValueError(f"no calibrated size_m for categories: {missing}")
+    return {c: float(sizes[c]) for c in categories}
+
+
 def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     """Turn a stimulus-set config dict into a deterministic list of SceneSpec.
 
@@ -83,8 +113,12 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     cond = config.get("condition", {})
     fcfg = config["factors"]
 
-    size_m = float(obj_cfg["size_m"])
     categories = list(obj_cfg["categories"])
+    size_by_cat = _resolve_sizes(obj_cfg, categories)
+    # Physical-size variation is SHARED by both objects of a pair in the congruent
+    # condition: independent per-object jitter would let physical size invert the retinal
+    # cue, which is the M4 `size_condition` conflict manipulation, not a congruent one.
+    size_multipliers = list(fcfg.get("size_multipliers", [1.0]))
     color_items = list(obj_cfg["colors"].items())  # [(name, rgb), ...]
     lateral = float(fcfg["lateral_offset"])
     # continuous depth: bin centres are jittered so depth is not a handful of discrete
@@ -92,6 +126,23 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     # easy and would alias with the bin factor).
     jitter = float(fcfg.get("depth_jitter", 0.0))
     min_gap = float(fcfg.get("min_gap", 0.25))
+
+    # Ordinal-unambiguity constraint (see the loop below). Needs the camera's optical
+    # axis, since half-extents are measured along the direction depth is measured in.
+    constraints = config.get("constraints", {})
+    unambiguous = bool(constraints.get("unambiguous_ordinal", True))
+    ordinal_margin = float(constraints.get("ordinal_margin_m", 0.15))
+    axis = None
+    if unambiguous:
+        _, R_cv, _, _ = geometry.camera_frame(
+            cam_cfg["pos_world"],
+            cam_cfg["target_world"],
+            float(cam_cfg["f_mm"]),
+            float(cam_cfg["sensor_width_mm"]),
+            int(render_cfg["res_x"]),
+            int(render_cfg["res_y"]),
+        )
+        axis = geometry.optical_axis(R_cv)
 
     # Factor levels sampled per image.
     factors = {
@@ -103,6 +154,7 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         "cat_b": categories,
         "color_a": list(range(len(color_items))),
         "color_b": list(range(len(color_items))),
+        "size_multiplier": size_multipliers,  # ONE per image, shared by both objects
     }
     assignments = factorial_assignments(
         factors, n, rng, balanced_on=["closer_object", "near_depth_bin"]
@@ -121,8 +173,6 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
 
         # which slot (obj0/obj1) is the nearer object
         closer = a["closer_object"]
-        depth_y = {closer: near_y, 1 - closer: far_y}
-        xpos = {closer: near_x, 1 - closer: far_x}
 
         # the two objects must be distinguishable: never identical in BOTH category and
         # colour (an identical pair makes "which object is closer?" unanswerable).
@@ -135,17 +185,39 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         cats = {0: cat_a, 1: cat_b}
         cols = {0: color_items[col_a], 1: color_items[col_b]}
 
+        # One multiplier for the whole pair (see size_multipliers note above). Calibrated
+        # per-category sizes mean both objects still subtend equal retinal extent at equal
+        # depth, so within a pair retinal size is ordered by depth alone.
+        mult = float(a["size_multiplier"])
+        obj_size = {slot: size_by_cat[cats[slot]] * mult for slot in (0, 1)}
+
+        # Unambiguous ordinal: centre-depth order and nearest-surface order must agree.
+        # A far cube can present a nearer surface than a near sphere when the centre gap
+        # is small, since half-extents along the viewing axis differ by shape. Push the
+        # far object back until the centre gap exceeds |h_near - h_far| + margin.
+        if unambiguous and axis is not None and abs(axis[1]) > 1e-9:
+            h_near = geometry.half_extent_along(cats[closer], obj_size[closer], axis)
+            h_far = geometry.half_extent_along(cats[1 - closer], obj_size[1 - closer], axis)
+            required = abs(h_near - h_far) + ordinal_margin
+            lateral_term = float(axis[0]) * (far_x - near_x)
+            min_far_y = near_y + (required - lateral_term) / float(axis[1])
+            far_y = max(far_y, min_far_y)
+
+        depth_y = {closer: near_y, 1 - closer: far_y}
+        xpos = {closer: near_x, 1 - closer: far_x}
+
         objects = []
         for slot in (0, 1):
             cat = cats[slot]
             cname, crgb = cols[slot]
-            z = _rest_height(cat, size_m)
+            s = obj_size[slot]
+            z = _rest_height(cat, s)
             objects.append(
                 ObjectSpec(
                     name=f"{cname}_{cat}",
                     category=cat,
                     color=list(crgb),
-                    size_m=size_m,
+                    size_m=s,
                     pos_world=[xpos[slot], depth_y[slot], z],
                 )
             )
@@ -166,6 +238,7 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
             "lateral_swap": a["lateral_swap"],
             "near_y": near_y,
             "far_y": far_y,
+            "size_multiplier": mult,  # shared by both objects (congruent condition)
             "size_condition": cond.get("size_condition", "congruent"),
             "elevation_condition": cond.get("elevation_condition", "congruent"),
         }
