@@ -22,7 +22,7 @@
 | Stage | Question | Unlock gate | Maturity |
 |---|---|---|---|
 | **S1 — Visible metric** | where metric fidelity becomes inaccessible to the language computation | M3 GO ✅ | **executable paper plan** |
-| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | M4 clears the transferred W&G bar | **well-formed extension** |
+| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | **M4b** clears the transferred W&G bar | **well-formed extension** |
 | **S2 — The method audit** | what do spatial "fixes" actually change? | S1's probes + baselines exist | **strong next-paper candidate** |
 | **S3 — Other readouts (generation)** | does the generation pathway read the same spatial code? | an S1 finding (S3 tests it) | comparative framework — **needs operational definitions** |
 | **S4 — The unseen** | what is maintained about what cannot currently be seen? | S1.5's amodal result | **long-horizon agenda** (three candidate projects, not one experiment) |
@@ -168,7 +168,7 @@ First versions stay minimal (linear directions, scalar doses); formalization hap
 
 **S1 — Visible metric** *(executable paper plan)*: §1–2 above.
 
-**S1.5 — Occlusion & the amodal probe** *(well-formed extension; unlocks on M4's gate)*. Hypothesis **H-occ** as stated in §1 (ordinal-visibility cue, **not** "the only categorical cue"). The amodal question splits into three, and they must not be conflated:
+**S1.5 — Occlusion & the amodal probe** *(well-formed extension; unlocks on M4b's gate)*. Hypothesis **H-occ** as stated in §1 (ordinal-visibility cue, **not** "the only categorical cue"). The amodal question splits into three, and they must not be conflated:
 - **H1.5a — object persistence:** an entity-level representation survives partial visibility.
 - **H1.5b — amodal geometry:** the **hidden extent** is recoverable *beyond* what visible-fragment features already give.
 - **H1.5c — amodal binding:** that information is available **at object-referential tokens**.

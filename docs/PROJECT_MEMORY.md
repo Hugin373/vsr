@@ -83,7 +83,7 @@ agenda from being read as a queued experiment.
 | Stage | Question | Unlock gate | Maturity / status |
 |---|---|---|---|
 | **S1 — Visible metric** | where metric fidelity becomes inaccessible to the language computation | M3 GO ✅ | **executable paper plan** — running; M4 is the real gate |
-| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | M4 clears the transferred W&G bar | **well-formed extension** — spec'd as milestone **M4.5** (plan §4) |
+| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | **M4b** clears the transferred W&G bar | **well-formed extension** — spec'd as milestone **M4.5** (plan §4) |
 | **S2 — The method audit** | what do spatial "fixes" actually change? | S1's probes + baselines exist | **strong next-paper candidate** (M7) — stays ahead of S3 unless S1 yields a strong readout-specific result |
 | **S3 — Other readouts (generation)** | does the generation pathway read the same spatial code? | an S1 finding (S3 tests it) | **comparative framework needing operational definitions** — parked |
 | **S4 — The unseen** | what is maintained about what cannot currently be seen: occluded (by things), out-of-view (by framing), future (by time) | S1.5's amodal result | **long-horizon agenda — THREE candidate projects, not one experiment.** Do not build |
@@ -275,7 +275,7 @@ unsuitability were **both invisible** from the dataset descriptions we had been 
 - Anything M4 adds (new primitive, new pose freedom, per-object size jitter) **invalidates the M1 calibration and the 1.158 area threshold** — recalibrate (`scripts/calibrate_sizes.py`) and re-derive the thresholds from worst-case constants.
 
 ### Forward constraints from S1.5 / M4.5 (added 2026-07-15) — M4 should not paint itself into a corner
-M4.5 (occlusion) runs only AFTER M4 passes the transferred W&G bar, but two of its needs are cheap
+M4.5 (occlusion) runs only AFTER **M4b** passes the transferred W&G bar, but two of its needs are cheap
 to accommodate now and expensive to retrofit:
 - **The amodal mask is nearly free — take it.** The composite ID pass gives the *visible* mask
   (current pipeline); rendering each object **alone** in a solo ID pass gives the **amodal** mask
@@ -498,6 +498,27 @@ against the ROLE it could predict, not just its own marginal.**
     producing a confident, publishable-looking null.)*
   - **The check that caught it: zero-ablate the thing you are intervening on.** If destroying it
     does not move your metric, your metric is not measuring it. Now CLAUDE.md rule 11.
+- **🔴 AN ARGUMENT THAT MAKES YOUR FINDING FOLLOW FROM A DEFINITION IS A BUG, NOT AN INSIGHT**
+  (CLAUDE.md **rule 13**, added 2026-07-15). Every other verification rule in this project validates
+  an **output**. **None of them can catch a bad INFERENCE** — and on 2026-07-14 we shipped one into
+  two docs and a commit.
+  - *The claim:* "occlusion is the only **categorical** depth cue, it carries **ZERO metric
+    content**, **therefore** if VLMs lean on it their best cue *cannot* carry metric information — so
+    the qualitative-vs-metric asymmetry follows **in principle**." Nothing was mis-measured. The
+    **deduction** was wrong (T-junctions/containment/support are also ordinal; occlusion boundaries +
+    known shapes + camera geometry *do* constrain metric depth) — and, worse, it was **shaped to make
+    the program's headline result true a priori.**
+  - **Why it got through:** it felt like insight *because it was cheap*. An argument that derives your
+    central finding from a definition is the most seductive object in a research project, and it is
+    exactly the one nobody stress-tests, because agreeing with it feels like understanding.
+  - **The smell test: if the claim would survive even if every experiment came back null, it is not an
+    empirical claim.** A result you cannot lose is a result you cannot earn.
+  - **The controls:** any deduction load-bearing for a headline claim gets an **adversarial domain
+    read before it enters a doc** (this one died in a single external review pass). Prefer the weak
+    measurable form ("over-reliance on an ordinal cue *could* leave metric depth poorly represented")
+    over the strong deductive one ("therefore it *cannot*"). And **when a claim is retracted, leave
+    the retraction visible** — a silent deletion lets the same elegant argument walk back in next
+    session.
 - **A shuffled-label control is NOT enough — every probe needs a DUMB-FEATURES CEILING** (CLAUDE.md
   rule 12). The shuffled control catches a probe fitting *noise*; it cannot catch a probe reading a
   trivially available **non-representational** feature. Both of this session's worst findings passed
@@ -552,7 +573,7 @@ against the ROLE it could predict, not just its own marginal.**
 - **🧭 PROGRAM REFRAMED (2026-07-14/15): stages, not papers — then DESIGN REVISION 2 (2026-07-15).**
   See "The research program" above. The work is S1 → S1.5 → S2 → S3 → S4, dependency-gated; papers and
   degree documents are *bindings* of whatever is defensible at a deadline. **M4.5 (= stage S1.5) now
-  exists as a milestone** in IMPLEMENTATION_PLAN §4, between M4 and M5, **LOCKED until M4 passes the
+  exists as a milestone** in IMPLEMENTATION_PLAN §4, between M4 and M5, **LOCKED until M4b passes the
   transferred Wang & Gao bar** — the same gate that guards M5. If M4's battery still gives R² ≈ 0.99
   everywhere after the leak controls, **neither M4.5 nor M5 starts.** Do not start M4.5 unprompted.
 - **⚠ WHAT DESIGN REVISION 2 CHANGED THAT YOU MUST NOT REVERT** (two external reviews + a
@@ -595,13 +616,21 @@ against the ROLE it could predict, not just its own marginal.**
 - **✅ M3 COMPLETE (2026-07-14) — GATE DECISION: GO.** See the M3 section at the top of this file.
   M3.1 PASS on the mechanism; M3.2 FAIL because v0 cannot measure models, only itself. **M3.2's bar
   transfers to M4.**
-- **➡ NEXT: M4 — and M4 IS NOW THE REAL GATE ON PHASE 2.** Do not start unprompted. Before touching
-  it, read IMPLEMENTATION_PLAN §2.5(d), the M4 spec (five required decorrelations + three leak
-  controls + the transferred W&G acceptance criterion), and `reports/m3_reproduction.md` §2.4.
-  The one-line version: **make the stimuli able to disagree with the mask, or Phase 2 measures the
-  instrument.** M4 now gates **two** downstream milestones, not one: M5 (probing) *and* M4.5
-  (occlusion / S1.5). Also read the "Forward constraints from S1.5 / M4.5" note above — the solo-ID
-  amodal pass is nearly free to add while the generator is open, and expensive to retrofit later.
+- **➡ NEXT: M4a — and M4 IS THE REAL GATE ON PHASE 2. ⚠ M4 IS NOW SPLIT INTO M4a + M4b (2026-07-15);
+  they are TWO SESSIONS, not one.** Do not start unprompted. Before touching it, read
+  IMPLEMENTATION_PLAN §2.5(d), the M4a/M4b specs, and `reports/m3_reproduction.md` §2.4.
+  - **M4a = the stimulus battery.** Gate: **image-identifiability** — *do our images actually contain
+    the evidence?* Needs **no VLM at all**, which is exactly why it runs first.
+  - **M4b = the extraction pipeline.** Gate: **the transferred W&G bar** — *does our instrument
+    measure models, or itself?*
+  - **Why split:** M4 had two deliverables and two gates, and run as one milestone **a failure at
+    either gate could not be attributed** — "metric is not decodable" would be indistinguishable from
+    "the images never contained it" *and* from "the extraction is mis-mapping tokens". With M4a
+    cleared first, a failure at M4b is unambiguous.
+  - The one-line version: **make the stimuli able to disagree with the mask, or Phase 2 measures the
+    instrument.** **M4b** gates two downstream milestones: M5 (probing) *and* M4.5 (occlusion / S1.5).
+  - ⚠ Read the "Forward constraints from S1.5 / M4.5" note above — **the solo-ID amodal pass belongs
+    to M4a**, while the generator is open. It is nearly free now and expensive to retrofit.
 - **Infrastructure now in place for M4/M5** (built at M3, designed to be extended not thrown away):
   `extract/vlm.py` (generic HF-VLM wrapper; locates decoder layers; one forward captures AND
   intervenes), `extract/pooling.py` (mask→token mapping per family, validated by centroid

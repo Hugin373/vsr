@@ -281,10 +281,26 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
 
 **⚠ M3.2's failure is the go-gate's real output. Read §2.5(d) before touching M4.**
 
-### M4 — Full stimulus battery + extraction pipeline
-**⚠ M4 IS NOW THE REAL GATE.** M3.2's pass bar transferred here (advisor decision, 2026-07-14).
-Read §2.5(d) and `reports/m3_reproduction.md` §2.4 first — v0 could not measure models, only
-itself.
+### M4 — Full stimulus battery + extraction pipeline — **SPLIT INTO M4a + M4b (2026-07-15)**
+**⚠ M4 IS THE REAL GATE ON PHASE 2.** M3.2's pass bar transferred here (advisor decision,
+2026-07-14). Read §2.5(d) and `reports/m3_reproduction.md` §2.4 first — v0 could not measure models,
+only itself.
+
+**🔀 WHY THE SPLIT (decided 2026-07-15).** M4 had accumulated two independent deliverables (a
+generator and an extraction pipeline) **and two independent gates** — the image-identifiability gate
+and the transferred Wang & Gao bar. Run as one milestone, **a failure at either gate leaves you
+unable to say which half was wrong**: "metric is not decodable" would be indistinguishable from "the
+images never contained it" *and* from "the extraction is mis-mapping tokens". They are now separate
+milestones with **separate gates**, in dependency order. *(This is a sub-split like M1.1/M1.2 and
+M3.1/M3.2 — **M0–M7 are NOT renumbered**; M4.5 still follows M4b.)*
+
+| | Deliverable | Its gate | The question that gate answers |
+|---|---|---|---|
+| **M4a** | stimulus battery v1 (generator) | **image-identifiability** | *Do our images actually contain the evidence?* |
+| **M4b** | extraction pipeline + cache | **transferred W&G bar** | *Does our instrument measure models, or itself?* |
+
+**M4a's gate is a property of the STIMULI and needs no VLM at all** — which is exactly why it must
+pass first. Do not build M4b against a battery that has not cleared it.
 
 **⚠ M4 IS A PILOT THAT FIXES THE FINAL ANALYSIS MATRIX — not just a generator run.** Scope it to the
 **minimal publishable core** (6k): **2 architectures** (Qwen2.5-VL-7B + LLaVA-1.5-7B — both cached),
@@ -292,6 +308,10 @@ itself.
 leak-controlled linear+MLP probes, one behavioral test, one intervention. **Expansion to 4–6 models
 happens only after the site-wise pattern stabilizes on two.** (Qwen2.5-VL-3B stays cached for S2
 forward-compat but is outside the core matrix.)
+
+---
+
+#### M4a — Stimulus battery v1 (generator). Gate: IMAGE-IDENTIFIABILITY
 
 **THREE STIMULUS REGIMES, not two (6e):**
 1. **natural-congruent** — all cues agree. *Controls only.*
@@ -320,41 +340,59 @@ forward-compat but is outside the core matrix.)
    - **(e) Recalibrate.** Any new primitive, pose freedom, or per-object size jitter invalidates
      the M1 calibration and the 1.18 depth-ratio floor — re-derive from WORST CASE
      (`scripts/derive_cue_constants.py`).
-2. `extract/`: generic HF-VLM wrapper (LLaVA-1.5/1.6, Qwen2-VL, Qwen2.5-VL-7B, **Qwen2.5-VL-3B**, InternVL, Gemma-3) with named hook sites {enc_out, proj_out, lm_vis_L*, lm_txt_L*}; mask-pooling (coverage-weighted, per Wang & Gao's method — reimplemented) and object-word token extraction (needs tokenizer-aware span finding); writes §3 caches; per-batch checkpointing + `--resume`.
+2. ⚠ **While the generator is open, add the SOLO-OBJECT ID PASS** (M4.5's prerequisite). It is nearly
+   free now — one extra tiny render per object — and expensive to retrofit once 5–10k images are
+   rendered. M4.5 does not *run* until M4b's gate passes; its cheap prerequisite belongs **here**.
+
+**Accept — M4a:**
+- The battery renders end-to-end from one config across all three regimes; **determinism re-verified
+  by byte-compare** (hard rule); validation suite green **with margins reported, not pass/fail**;
+  recalibrated cue constants derived from **worst case** (evaluation law, clause 1 — these are
+  constructed quantities).
+- **🚦 M4a's GATE — THE IMAGE-IDENTIFIABILITY GATE (6f). Exact renderer GT ≠ pixel-inferable GT.**
+  A **directly-supervised model on raw pixels** (or oracle geometric image features) must recover
+  each target variable **from the image**, plus a **human spot-check** on a subset.
+  **If the image does not contain the evidence, no site can** — and a "low everywhere" probing
+  profile would then be an **instrument failure wearing a finding's clothes** (CLAUDE.md rule 11).
+  **This gate needs no VLM, and it is why M4a runs first:** clearing it is what makes a later null at
+  *any* site interpretable at all.
+- **Do not start M4b against a battery that has not cleared this gate.**
+
+---
+
+#### M4b — Extraction pipeline + cache. Gate: THE TRANSFERRED W&G BAR
+
+1. `extract/`: generic HF-VLM wrapper (LLaVA-1.5/1.6, Qwen2-VL, Qwen2.5-VL-7B, **Qwen2.5-VL-3B**, InternVL, Gemma-3) over the **five functional stages** of §3 — including the **new `lm_ans_L{k}` readout hook, which does not exist yet**; mask-pooling (coverage-weighted, per Wang & Gao's method — reimplemented) and object-word token extraction (tokenizer-aware span finding); writes §3 caches; per-batch checkpointing + `--resume`.
    **S2 forward-compatibility:** include both Qwen2.5-VL-7B and -3B Instruct in the model list — they are the shared bases of the method-audit checkpoints (S2/M7: SpaceR + ViLaSR on 7B; SpatialLadder + SpaceQwen/SpaceOm + Spatial-MLLM on 3B), so every S1 measurement on them doubles as the audit baseline. The wrapper must accept arbitrary HF checkpoint paths of the same architecture (base vs fine-tune swap = config change only).
    **⚠ The cache MUST contain the strip/all-token variant, not only the mask-pooled one.**
    `extract/pooling.py` has `strip_pool()`, but M3.2 cached mask-pooled features only. Fixed-grid
    strips are not selected by object position, so they are the **primary leak-free estimator** —
    promoted from "underestimation guard" to load-bearing.
+2. **The per-architecture tensor-mapping table** (§3) — which concrete tensor realises each of the
+   five functional stages, per architecture — **in config, not code.**
 
-**Accept (ALL of these, not just the first):**
-- full battery cached for the **2-model core** overnight on one A6000 (48 GB); cache size within
+**Accept — M4b:**
+- Full battery cached for the **2-model core** overnight on one A6000 (48 GB); cache size within
   budget; pooling unit tests green; resume-after-kill verified.
-- **the per-architecture tensor-mapping table** for the five functional stages (§3) exists in config,
-  and the **new `lm_ans_L{k}` readout hook** is implemented and cached.
-- **the three leak controls of `reports/m3_reproduction.md` §2.4 are implemented and reported**:
-  dumb-features leak ceiling, fixed-grid strip probes, camera-pose jitter — with the ceiling reported
-  in the **incremental form Δ_repr|dumb** (6g), not only as a difference of two scores.
-- **🚦 GATE 1 — THE TRANSFERRED M3.2 BAR: the Wang & Gao pattern EMERGES on the new battery** —
+- The **tensor-mapping table** exists in config and the **`lm_ans_L{k}` readout hook** is implemented
+  and cached.
+- **The three leak controls of `reports/m3_reproduction.md` §2.4 implemented and reported**:
+  dumb-features leak ceiling, fixed-grid strip probes, camera-pose jitter — the ceiling in the
+  **incremental form Δ_repr|dumb** (6g), never as a bare difference of two scores.
+- **🚦 M4b's GATE — THE TRANSFERRED M3.2 BAR: the Wang & Gao pattern EMERGES on the new battery** —
   semantics ≫ metric, with a **difficulty gradient present**, measured *above the leak ceiling*.
-  If the decorrelated set still gives R² ≈ 0.99 everywhere after the leak controls, **the stimuli
-  are still broken and neither M4.5 nor M5 starts.** When the gradient appears, the instrument is
-  finally measuring models instead of itself.
-- **🚦 GATE 2 — THE IMAGE-IDENTIFIABILITY GATE (new, 6f). Exact renderer GT ≠ pixel-inferable GT.**
-  Before *any* "the encoder failed to carry X" claim: a **directly-supervised model on raw pixels**
-  (or oracle geometric image features) must recover each target variable from the image, plus a
-  **human spot-check** on a subset. **If the image does not contain the evidence, no site can** — and
-  a "low everywhere" profile would be an **instrument failure wearing a finding's clothes**, which is
-  precisely the null-result trap this project keeps falling into (CLAUDE.md rule 11).
+  If the decorrelated set still gives R² ≈ 0.99 everywhere after the leak controls, **the instrument
+  is still measuring itself: neither M4.5 nor M5 starts.** When the gradient appears, it is finally
+  measuring models. **⚠ Because M4a's gate has already passed, a failure HERE is unambiguous — it is
+  the extraction or the leak controls, NOT the images.** That disambiguation is the entire point of
+  the split.
 - **Pilot exit criterion (fixes the final analysis matrix):** ≥1 model shows metric decoding **above
-  the nuisance ceiling** at an upstream stage (**or** strong evidence the premise fails) **AND** the
-  identifiability gate passes **AND** the W&G gradient emerges.
-- ⚠ **While the generator is open, add the solo-object ID pass** (see M4.5 below). It is nearly free
-  now — one extra tiny render per object — and expensive to retrofit once the battery is rendered.
-  M4.5 does not *run* until M4's gate passes, but its cheap prerequisite belongs here.
+  the nuisance ceiling** at an upstream stage (**or** strong evidence the premise fails) **AND** M4a's
+  identifiability gate passed **AND** the W&G gradient emerged.
 
-### M4.5 — Occlusion & the amodal probe (= stage **S1.5**) — 🔒 LOCKED until M4's gate passes
-**Do not start this unprompted.** M4.5 unlocks *only* when M4 clears the transferred Wang & Gao bar
+### M4.5 — Occlusion & the amodal probe (= stage **S1.5**) — 🔒 LOCKED until **M4b's** gate passes
+*(Its cheap prerequisite — the solo-object ID pass — belongs to **M4a**, while the generator is open.)*
+**Do not start this unprompted.** M4.5 unlocks *only* when M4b clears the transferred Wang & Gao bar
 (difficulty gradient present, above the leak ceiling). If M4's battery still probes at R² ≈ 0.99
 everywhere, the instrument is measuring itself and **an occlusion result would be just as
 meaningless as a metric one** — fix the stimuli first. Milestones are **not renumbered**: M4.5 sits
@@ -622,7 +660,9 @@ depth / graph alone each *degrade*), SpatiaLQA (segmentation alone **67.4 → 50
 
 ## 6. Suggested vibe-coding session order
 M0 → M1.1 (spike, decides renderer) → M1.2–1.3 → M2 (parallelizable, boring) → M3.1 → M3.2 (gate) →
-**M4 (the real gate)** → then M4.5 and M5, in either order — **both are gated on M4 and neither is
-gated on the other.** M4.5 (occlusion / S1.5) is the cheaper of the two and its solo-ID prerequisite
-should already be in M4's generator. One milestone per session; start each session by pasting this
-doc + `PROJECT_MEMORY.md`; end each by updating both with decisions made.
+**M4a (gate: image-identifiability)** → **M4b (gate: the transferred W&G bar)** → then M4.5 and M5,
+in either order — **both are gated on M4b and neither is gated on the other.** M4.5 (occlusion /
+S1.5) is the cheaper of the two, and its solo-ID prerequisite should already be in **M4a's**
+generator. **One milestone per session** — and M4a/M4b are two sessions, not one: that is the point
+of the split. Start each session by pasting this doc + `PROJECT_MEMORY.md`; end each by updating both
+with decisions made.
