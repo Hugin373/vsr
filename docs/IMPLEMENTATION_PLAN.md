@@ -57,11 +57,12 @@ parquet, so the adapters extract them to disk on first load — both roughly *do
 
 | Dataset | Status | Adapter | Items loaded | Disk | Notes |
 |---|---|---|---|---|---|
-| What'sUp (`amitakamath/whatsup_vlms`) | ✅ MIT, Google Drive | `whatsup` | 820 | 313 M | Controlled A (412 real photos) + B (408 CLEVR renders). 4 caption options; the **first option is always correct** upstream (verified against the relation encoded in each image filename, 718/718 — not merely trusted). ⚠ Therefore the adapter **SHUFFLES the options** (seeded) and records the true `answer_index`: served in upstream order, an A-biased model scores 100% and our qualitative positive control passes for the wrong reason. ⚠ COCO/GQA-spatial subsets deferred to M3 (need COCO/GQA corpora) |
-| CV-Bench (`nyu-visionx/CV-Bench`) | ✅ Apache-2.0 | `cvbench` | 2,638 | 782 M | 2D (Count/Relation) + 3D (**Depth/Distance** — our primitive). Images embedded in parquet; target objects drawn as red/blue boxes |
+| What'sUp (`amitakamath/whatsup_vlms`) | ✅ MIT, Google Drive | `whatsup` | 820 | 313 M | Controlled A (412 real photos) + B (408 CLEVR renders). 4 caption options; the **first option is always correct** upstream (verified against the relation encoded in each image filename, 718/718 — not merely trusted). ⚠ Therefore the adapter **SHUFFLES the options** (seeded) and records the true `answer_index`: served in upstream order, an A-biased model scores 100% and our qualitative positive control passes for the wrong reason. **🎁 RELATION COUNTS (verified by full scan, 2026-07-15): A = `on` 103 / `under` 103 / `left_of` 103 / `right_of` 103. B = `left_of` 102 / `right_of` 102 / `in-front_of` 102 / `behind` 102 → B holds 204 FRONT/BEHIND items = our qualitative-DEPTH control** (see §2.5(f)). ⚠ COCO/GQA-spatial subsets deferred (need COCO/GQA corpora) |
+| CV-Bench (`nyu-visionx/CV-Bench`) | ✅ Apache-2.0 | `cvbench` | 2,638 (2D 1,438 · **3D 1,200**) | 782 M | 2D (Count 788/Relation 650; COCO 805 + ADE20K 633) + 3D (**Depth 600 / Distance 600** — our ordinal primitive). Images embedded in parquet; target objects drawn as red/blue boxes. ⚠ **SOURCE MIX, measured in our copy (full scan, 2026-07-15): `Omni3D_Hypersim` 400 · `Omni3D_SUNRGBD` 400 · `Omni3D_nuScenes` 400** — exactly 200 per (task × source) → **33.3% photorealistic SYNTHETIC.** Report per-source; do not call it "real-image validation" unqualified. ⚠ The third source is **nuScenes, not ARKitScenes** (that's SpatialRGPT's Omni3D slice — different dataset). ⚠ **Zero absolute-metric items**; binary → 50% chance → two-ordering protocol mandatory |
 | VSI-Bench (`nyu-visionx/VSI-Bench`) | ⛔ **SKIPPED** | — | — | 0 | ReVSI ships its own videos + corrected annotations, so the raw benchmark adds 5.7 GB for nothing |
 | **ReVSI** (`3dlg-hcvc/ReVSI`) | ✅ Apache-2.0 | `revsi` | 16f: 4,568 · **32f: 6,158** · 64f: 6,616 · all: 6,808 | 9.1 G | **Video.** Pre-sampled per frame budget; frames decoded **lazily** via PyAV. Numeric + MCQ answers. ⚠ The parquet's `num_frames` column is a budget **label**, not a count (it is the literal string `'all'` in `all_frame/`) — the adapter derives the real clip length from the video itself |
-| MindCube (`MLL-Lab/MindCube`) | ✅ MIT | `mindcube` | 1,050 (tinybench) · 21,154 (test) · 10,000 (train) | 1.3 G | **Multi-view** (4 images/item) — the dataset that forces the list-valued `images` interface. Options inline in the question. An unknown split now **raises** (it used to silently return tinybench stamped with the split you asked for) |
+| MindCube (`MLL-Lab/MindCube`) | ✅ MIT | `mindcube` | 1,050 (tinybench) · 21,154 (test) · 10,000 (train) | 1.3 G | **Multi-view** (4 images/item) — the dataset that forces the list-valued `images` interface. Options inline in the question. An unknown split now **raises**. 🔴 **REMOVED from the S1/M5 validation layer (2026-07-15, item-level inspection):** every item is multi-view perspective-taking under stated camera motion; **nothing reduces to a single-image primitive**, and its own eval excludes the `translation` setting. Re-scoped to a **cross-view integration contrast (S4-adjacent)**. Adapter stays; §2.5(a)'s split rule still governs any use |
+| **SpatialRGPT-Bench** (`a8cheng/SpatialRGPT-Bench`) | ⚠ **NOT YET DOWNLOADED**; license murky | — | *claimed* 1,406 (val only) | — | **ADD WITH CAVEATS** — see §2.5(g). Supplies the **absolute-metric** type CV-Bench lacks (~375 inter-object distance items), on **Omni3D sensor GT**. ⚠ **Every count is the advisor's inspection, NOT verified locally — re-verify against the files before use** (rule 4) |
 | CausalSpatial (`Mwxinnn/CausalSpatial`) | ✅ MIT | `causalspatial` | 1,541 | 4.8 G | ⚠ **Two schemas**: 4 sim subsets have options inline + letter answers + a `not_sure` column; `realworld` has an explicit options list + text answers. Adapter normalises both. ⚠⚠ **Neither the upstream `id` NOR the `not_sure` column can be trusted** — see §2.5(c) |
 | DepthCues (`danier97/depthcues`) | ✅ per-source terms (non-commercial research); code MIT | `depthcues` | **19,235** (test) | 6.7 G | ⚠ **NOT a VQA benchmark** — raw probe targets (image + mask pair + label). Questions are SYNTHESIZED by us; consumers use `meta.label`. ⚠ Perspective subset skipped (its hub zip is empty — images live at the original vanishing-point project) |
 | Kang synthetic grid + COCO-Spatial | ⚠ code-generated, not shipped | — | — | — | M3: run their data-engine recipe; COCO downloaded separately; **no license — reimplement, don't copy** |
@@ -139,7 +140,68 @@ probe must report a position-leak control** (regress out the pooled tokens' grid
 alongside the strip/all-token variant (already cached) and Wang & Gao's cross-scene
 residualization of the semantic subspace.
 
-## 3. Core data schemas (freeze these in M0)
+**(e) A DATASET ENTERS AN EXPERIMENT ONLY AFTER ITEM-LEVEL INSPECTION** (added 2026-07-15).
+Rows, templates, per-category counts, answer-format quirks — inspected against the actual files.
+**Paper descriptions AND our own adapter counts are hypotheses.** This is (c) generalized from
+*fields* to *datasets*, and it paid immediately: **What'sUp-B's 204 depth items** (a control we
+already owned) and **MindCube's total unsuitability** were *both invisible* from the descriptions we
+had been designing against.
+
+**(f) THE VALIDATION LAYER IS A CLOSED, PREDECLARED SET (fixed 2026-07-15).**
+The factorial battery is the **one primary identification instrument**; external data is **validation
+only**. The list below is **closed — not extensible mid-project**, which is what stops it becoming a
+fishing expedition. All single-image:
+
+| Role | Instrument | Basis / caveat |
+|---|---|---|
+| qualitative-depth control | **What'sUp subset B** — 204 front/behind (verified: `in-front_of` 102, `behind` 102) | ⚠ **proxy-confounded**: per Kang, front/behind may be answered by the **vertical proxy** (tabletop front ≈ lower). **Behavioral** control only — *and the proxy story is itself an S1 probe experiment* |
+| ordinal | **CV-Bench Depth (600) + Distance (600)** | 33.3% synthetic (Hypersim); report per-source. Zero absolute items. Two-ordering mandatory |
+| ordinal + absolute, human-verified GT | **ReVSI-1F** (derived — spec below) | the workhorse |
+| absolute, sensor GT | **SpatialRGPT-Bench distance slice** (~375 items) | the absolute type CV-Bench lacks — see (g) |
+| consequence-level | **CausalSpatial collision (826) + occlusion (189)** ONLY | compatibility (99) + realworld (116) too small for per-category stats; physics (311) loads on **physics priors** → both are **non-target controls**. ⚠ Their own admission: sim **floor-strip spacing encodes depth perspective** — the cue is artificially legible; caveat cross-dataset comparisons |
+
+**MindCube is NOT in it** (see §2 table). **Full-video ReVSI at 2–3 frame budgets is a *labeled
+extension analysis*, not the core.**
+
+**ReVSI question-type map** (13 types → primitives): 4 absolute-metric (distance m / size cm / room
+m²), 2 ordinal (rel-distance closest/farthest, 4-way), 4 egocentric-qualitative (perspective-taking),
+2 counting, 1 other (route). Numeric types scored by **Mean Relative Accuracy** (0.5–0.95 thresholds).
+⚠ **The type mix VARIES by frame config** (16f drops room-size + route-planning) — fix the config per
+analysis. ⚠ Every ReVSI item stacks **cross-frame memory on top of** the primitive → carry
+**video/cross-frame as a nuisance covariate.**
+
+**🆕 ReVSI-1F — derived single-frame instrument (decided 2026-07-15; code deliverable, NOT built yet).**
+*Why:* ReVSI is video, and **cross-frame demand varies BY CATEGORY**, confounding primitive-difficulty
+with memory-difficulty — and LLaVA-1.5 is not a video model at all.
+*Derivation* (source file **verified present**: `$DATA_ROOT/external/revsi/metadata/obj_visibility.json`):
+1. keep items where **all** `queried_object_ids` are co-visible in **≥1 frame**;
+2. select the frame maximizing the **minimum** visible-pixel count across queried objects
+   (tie-break: earliest frame; seeded; **the rule lives in config**);
+3. emit `revsi_1f/` = original item id + chosen `frame_idx` + per-object visibility stats + primitive tag.
+*Acceptance:* counts + contact sheet, **and ⚠ per-category SURVIVAL RATES reported** — the
+co-visibility filter **drops categories unevenly**, and that selection bias must be stated, not buried.
+Internal instrument (Apache-2.0 permits); if ever released, ship **the script + index, never frames**.
+
+**(g) SpatialRGPT-Bench usage rules (added 2026-07-15).** ⚠ **Not yet downloaded — re-verify every
+count locally before use.** GT is **Omni3D real 3D cuboid annotations** (SUNRGBD-dominant,
+ARKitScenes, nuScenes, KITTI, Hypersim) — **sensor/synthetic, not monocular-pseudo-GT**, so no shared
+failure modes with the models we evaluate; but QA generation is **templated with no human-verification
+pass** (GT tier: below ReVSI's human re-annotation, above auto-pseudo-GT).
+- **Core signal = the ~375 inter-object DISTANCE items** (direct/horizontal/vertical). **No ratio
+  type; no closer-to-camera type.**
+- ⚠ **Width/height items are PRIOR-CONTAMINATED** — blind GPT-4 (no image) scores **48–52% within
+  ±25%**. **Always report a blind-LLM baseline alongside**; treat as secondary.
+- Evaluate generic VLMs with **SoM-drawn marks** (their own baseline protocol), **never text
+  referral** (breaks on same-class regions). bboxes + RLE masks ship in the JSON.
+- **Replace their GPT-4 judge** with deterministic number-extraction + configurable relative-error
+  thresholds; report **±10% and AbsRel** alongside their lenient ±25%. The unit lottery (in/ft/cm/m)
+  makes exact match meaningless.
+- ⚠ **License murky** (GitHub Apache-2.0, HF card untagged, nuScenes/KITTI upstream non-commercial) →
+  **internal eval use only.**
+
+## 3. Core data schemas
+*(⚠ **The M0 "freeze" is SUPERSEDED as of 2026-07-15** — the site list below grew from four to five.
+Frozen meant "don't churn it casually", not "never correct it when the science says it's wrong".)*
 
 **Stimulus annotation (`annotations.jsonl`, one line per image):**
 ```json
@@ -153,7 +215,29 @@ residualization of the semantic subspace.
  "pair_relations": {"(0,1)": {"ordinal_depth": "0_closer", "dist_ratio": 1.83, "dist_m": 1.2}}}
 ```
 
-**Pooled activation cache (per model × stimulus set):** one `.npz`/safetensors per layer-site or a single zarr store; TWO variants per site — (a) mask-pooled per-object `[n_images, n_objects, hidden_dim]`, (b) all-token/strip-level pooled `[n_images, n_strips, hidden_dim]` (spatial signal is distributed across background tokens — Cui et al. v2; object-pooled-only caching would silently bias M5 toward "metric absent"). Sites: {`enc_out`, `proj_out`, `lm_vis_L{k}`, `lm_txt_L{k}`} (strip variant applies to visual-token sites). Plus `meta.parquet` (image id, object id, all geometry targets, factors). fp16. Target: ≤ 1 MB/image/model total.
+**⚠ THE FOUR SITES BECOME FIVE FUNCTIONAL STAGES (revised 2026-07-15).**
+Architectures are **not homologous** — projector vs resampler vs interleaving, and binding is
+*emergent over layers*, not a place. So sites are defined **functionally**, and each is **mapped per
+architecture to a concrete tensor**:
+
+| # | Functional stage | Concrete tensor today | Status |
+|---|---|---|---|
+| 1 | vision-encoder representation | `enc_out` | exists |
+| 2 | vision→language **interface** output | `proj_out` | exists |
+| 3 | **early multimodal LM** representation | `lm_vis_L{k}` | exists |
+| 4 | **object-conditioned language** representation | `lm_txt_L{k}` | exists |
+| 5 | **answer / readout** representation | `lm_ans_L{k}` | 🔴 **M4 MUST ADD — no hook exists** |
+
+**M4 deliverable: the per-architecture tensor-mapping table** (LLaVA-1.5 / Qwen2.5-VL / InternVL3),
+written into config, not code. A functional stage that maps to *different* tensors across
+architectures is exactly what makes the cross-model comparison meaningful — and silently mapping it
+to the *wrong* tensor is how the comparison becomes noise.
+
+**Pooled activation cache (per model × stimulus set):** one `.npz`/safetensors per layer-site or a single zarr store; TWO variants per site — (a) mask-pooled per-object `[n_images, n_objects, hidden_dim]`, (b) all-token/strip-level pooled `[n_images, n_strips, hidden_dim]` (spatial signal is distributed across background tokens — Cui et al. v2; object-pooled-only caching would silently bias M5 toward "metric absent"). Plus `meta.parquet` (image id, object id, all geometry targets, factors). fp16. Target: ≤ 1 MB/image/model total.
+**Three probe TARGETS per stage, not two** (6c): object-associated **visual** tokens · object-name
+**text** tokens · a **JOINT visual+text** token set (cross-token decoder). A bare stage-3→4 drop is
+vulnerable to *"different token populations, different probe conditions"* — the joint decoder is what
+closes that hole, so the cache must support it.
 
 **Probe result record:** `{model, site, layer, target (ordinal|ratio|absolute|qualitative|x|z), axis (depth|lateral), stimulus_set, seed, split, metric (spearman|R2|acc), value, n, control_value (shuffled-label)}` → one tidy parquet for all of Phase-2 plotting.
 
@@ -202,6 +286,20 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
 Read §2.5(d) and `reports/m3_reproduction.md` §2.4 first — v0 could not measure models, only
 itself.
 
+**⚠ M4 IS A PILOT THAT FIXES THE FINAL ANALYSIS MATRIX — not just a generator run.** Scope it to the
+**minimal publishable core** (6k): **2 architectures** (Qwen2.5-VL-7B + LLaVA-1.5-7B — both cached),
+**one metric variable** (egocentric depth), one qualitative positive control, five functional stages,
+leak-controlled linear+MLP probes, one behavioral test, one intervention. **Expansion to 4–6 models
+happens only after the site-wise pattern stabilizes on two.** (Qwen2.5-VL-3B stays cached for S2
+forward-compat but is outside the core matrix.)
+
+**THREE STIMULUS REGIMES, not two (6e):**
+1. **natural-congruent** — all cues agree. *Controls only.*
+2. **counterbalanced** — nuisance cues vary **independently**, scenes stay **PLAUSIBLE**.
+   **🚩 THE PRIMARY LOCALIZATION CLAIM LIVES HERE.** This is what preempts the OOD attack
+   *structurally* rather than by argument: the headline claim never rests on physically bizarre images.
+3. **conflict** — cues actively disagree. *Cue-integration analyses only* (fusion vs winner-take-all).
+
 1. **Generator v1 — the five REQUIRED decorrelations.** Conflict conditions
    (fixed-retinal-size, elevation-conflict), canonical-object set (import a few CC0 models:
    chair, mug, bottle) alongside primitives, question templates per taxonomy level (qualitative
@@ -230,15 +328,27 @@ itself.
    promoted from "underestimation guard" to load-bearing.
 
 **Accept (ALL of these, not just the first):**
-- full battery cached for 2 models overnight on one A6000 (48 GB); cache size within budget;
-  pooling unit tests green; resume-after-kill verified.
+- full battery cached for the **2-model core** overnight on one A6000 (48 GB); cache size within
+  budget; pooling unit tests green; resume-after-kill verified.
+- **the per-architecture tensor-mapping table** for the five functional stages (§3) exists in config,
+  and the **new `lm_ans_L{k}` readout hook** is implemented and cached.
 - **the three leak controls of `reports/m3_reproduction.md` §2.4 are implemented and reported**:
-  dumb-features leak ceiling, fixed-grid strip probes, camera-pose jitter.
-- **🚦 THE TRANSFERRED M3.2 BAR: the Wang & Gao pattern EMERGES on the new battery** —
+  dumb-features leak ceiling, fixed-grid strip probes, camera-pose jitter — with the ceiling reported
+  in the **incremental form Δ_repr|dumb** (6g), not only as a difference of two scores.
+- **🚦 GATE 1 — THE TRANSFERRED M3.2 BAR: the Wang & Gao pattern EMERGES on the new battery** —
   semantics ≫ metric, with a **difficulty gradient present**, measured *above the leak ceiling*.
   If the decorrelated set still gives R² ≈ 0.99 everywhere after the leak controls, **the stimuli
-  are still broken and M5 does not start.** When the gradient appears, the instrument is finally
-  measuring models instead of itself. **This is the real gate on Phase 2.**
+  are still broken and neither M4.5 nor M5 starts.** When the gradient appears, the instrument is
+  finally measuring models instead of itself.
+- **🚦 GATE 2 — THE IMAGE-IDENTIFIABILITY GATE (new, 6f). Exact renderer GT ≠ pixel-inferable GT.**
+  Before *any* "the encoder failed to carry X" claim: a **directly-supervised model on raw pixels**
+  (or oracle geometric image features) must recover each target variable from the image, plus a
+  **human spot-check** on a subset. **If the image does not contain the evidence, no site can** — and
+  a "low everywhere" profile would be an **instrument failure wearing a finding's clothes**, which is
+  precisely the null-result trap this project keeps falling into (CLAUDE.md rule 11).
+- **Pilot exit criterion (fixes the final analysis matrix):** ≥1 model shows metric decoding **above
+  the nuisance ceiling** at an upstream stage (**or** strong evidence the premise fails) **AND** the
+  identifiability gate passes **AND** the W&G gradient emerges.
 - ⚠ **While the generator is open, add the solo-object ID pass** (see M4.5 below). It is nearly free
   now — one extra tiny render per object — and expensive to retrofit once the battery is rendered.
   M4.5 does not *run* until M4's gate passes, but its cheap prerequisite belongs here.
@@ -250,14 +360,25 @@ everywhere, the instrument is measuring itself and **an occlusion result would b
 meaningless as a metric one** — fix the stimuli first. Milestones are **not renumbered**: M4.5 sits
 between M4 and M5 and is independent of M5 (both are gated on M4; either may run first).
 
-**Why occlusion, scientifically.** Occlusion is the third classical monocular depth cue and the only
-**categorical** one: it carries ordinal order (A in front of B) and **ZERO metric content**, whereas
-elevation and retinal size are graded. **If VLMs lean on occlusion as their dominant depth cue, this
-program's central asymmetry — qualitative survives, metric dies — follows in principle: their best
-cue cannot carry metric information.** That is a sub-hypothesis of the binding-bottleneck story, not
-a side quest, and it is testable inside the cue-decomposition design M4 already builds. (It is the
-landscape deck's Tension **T2** — geometry vs visibility-aware state — made mechanistic.) Add it to
-`research_proposal_spatial_binding.md` §1 as a sub-hypothesis.
+**Why occlusion, scientifically — H-occ.** Occlusion is **primarily an ORDINAL VISIBILITY cue**: it
+identifies front–behind ordering more directly than continuous magnitude. **Over-reliance on it
+*could* support qualitative depth while leaving metric depth poorly represented** — which is the
+mechanistic form of this program's central asymmetry, testable inside the cue-decomposition design M4
+already builds. (Landscape Tension **T2** — geometry vs visibility-aware state — made mechanistic.)
+
+> 🔴 **RETRACTED — do not restate (it stood in these docs for one day, 2026-07-14→15):**
+> *"occlusion is the only **categorical** cue, carries **ZERO metric content**, therefore their best
+> cue **cannot** carry metric information."* **False as stated.** T-junctions, containment and support
+> are **also** ordinal cues (not "the only"), and occlusion boundaries + known shapes + camera geometry
+> **do** constrain metric depth (not "zero metric content"). The dangerous part was the **deduction** —
+> it made the program's headline asymmetry appear to follow from a *definition*. It does not. It has to
+> be **measured**. Keep H-occ a hypothesis, stated in the weak form above.
+
+**The amodal question splits into THREE — H1.5a/b/c. Do not conflate them:**
+- **H1.5a — object persistence:** an entity-level representation survives partial visibility.
+- **H1.5b — amodal geometry:** the **hidden extent** is recoverable *beyond* what visible-fragment
+  features already give.
+- **H1.5c — amodal binding:** that information is available **at object-referential tokens**.
 
 **1. Design — physically rendered, congruent-only at this stage.**
 - New factor **`occlusion_condition ∈ {none, partial}`**. In `partial`, the nearer object partially
@@ -285,11 +406,21 @@ landscape deck's Tension **T2** — geometry vs visibility-aware state — made 
 - **(a) Cue-use.** At **matched depth gaps**, does ordinal accuracy / decodability *jump* when
   occlusion is present vs absent? Behavioral **and** probe versions; two-ordering MCQ protocol as
   usual. This is the direct test of "occlusion is their dominant depth cue".
-- **(b) The amodal probe.** For a partially occluded object, are its **position / depth / full
-  extent** decodable — **at which sites** — and does the occluded object still **BIND**? (This is
-  Kang's own open question: *do spatial IDs exist for objects behind occluders?*) **A measurement
-  detail that is itself a finding: pool over the *visible* mask vs over the *amodal* extent.** If
-  amodal pooling wins, the representation *completes* the object; if not, it doesn't.
+- **(b) The amodal probe — H1.5a/b/c.** For a partially occluded object, is its **position / depth /
+  full extent** decodable, **at which functional stage**, and does the occluded object still **BIND**?
+  (Kang's own open question: *do spatial IDs exist for objects behind occluders?*)
+
+  > 🔴 **CORRECTED 2026-07-15 — amodal-extent POOLING is NOT the test.** The first draft of this
+  > milestone called *"pool over the visible mask vs over the amodal extent"* a measurement detail
+  > that **is itself a finding**. It is not: **pooling under the *invisible* mask mostly collects
+  > OCCLUDER and BACKGROUND tokens**, so a null there measures the occluder, not the object. **Do not
+  > assume hidden geometry is spatially stored under the hidden mask** — that assumption smuggles in
+  > a strong (and unlikely) claim about *where* a representation lives.
+
+  **Test IMPLICIT representation — the menu, all four:** (i) **visible-fragment** pooled; (ii)
+  **occluder-region** tokens; (iii) the **object-name text token**; (iv) a **joint decoder conditioned
+  on object identity**. Amodal-extent pooling survives only as a **labeled naive baseline**, never as
+  the primary estimator.
 
 **5. Leak-ceiling extension (mandatory — CLAUDE.md rule 12).** For occluded items the dumb-features
 baseline must include the **visible**-mask geometry **AND `occlusion_ratio`**. An amodal-decodability
@@ -322,8 +453,9 @@ a search before it is asserted):
 - The `occlusion_condition` renders end-to-end from one config and **passes the exempt-adjusted
   validation suite** (congruence checked on amodal measurements; exemptions counted and logged;
   determinism re-verified by byte-compare, per the hard rule).
-- **Both analyses (a) and (b) run from the cache on CPU**, each reported **against the extended leak
-  ceiling** (visible-mask geometry + `occlusion_ratio`), with shuffled-label controls.
+- **The H1.5a / H1.5b / H1.5c analyses each run from the cache on CPU**, reported **separately** (they
+  are three claims, not one), each **against the extended leak ceiling** (visible-mask geometry +
+  `occlusion_ratio`, in the incremental **Δ_repr|dumb** form), with shuffled-label controls.
 - A positive control exists for the amodal claim: **show the measurement MOVES when it must**
   (CLAUDE.md rule 11 — a null here would be the most seductive kind of wrong result this project can
   produce). Zero-ablate the tokens you are pooling; if the metric does not move, the metric is dead.
@@ -340,12 +472,61 @@ findings this session, both of which passed every shuffled-label control:
   the model adds ~0.05).
 Both are the same failure: **a confound that survives every unit test and dies only under an
 adversarial baseline.** So the ceiling is standing policy, not a one-off control. For each
-(model, site, layer, target), also fit the probe on:
-`{mask geometry: centroid, area, bbox, retinal size, elevation} ∪ {shape, colour} ∪ {cue values}`
-and report **Δ = probe − dumb ceiling**. A site is only "carrying" a quantity if Δ > 0
-meaningfully. This is also the rigor section reviewers reward.
+(model, stage, layer, target), also fit the probe on:
+`{mask geometry: centroid, area, bbox, retinal size, elevation} ∪ {shape, colour} ∪ {cue values}`.
 
-Probe runner: for every (model, site, layer, target, axis) → ridge/logistic with 5 seeds × 5 splits, shuffled-label control, **dumb-features ceiling (above)**, selectivity contrast (qualitative vs metric), rank-correlation metrics; verbalized-answer collection on identical stimuli (+ few-shot calibrated variant + oracle-text condition); anchor experiment (scenes ± known-size reference object).
+**⚠ REPORT THREE NUMBERS PER CELL (refined 2026-07-15) — and the third is the load-bearing one:**
+1. best **dumb-feature** score;
+2. the **probe** score;
+3. **Δ_repr|dumb = score(dumb ∪ representation) − score(dumb)** — the **incremental gain** of the
+   representation *over and above* the dumb features. A bare `probe − dumb` difference does not
+   establish that the representation adds anything the dumb features didn't already have; the
+   incremental form does.
+
+**⚠ HELD-OUT SPLITS MUST TARGET THE CLAIMED GENERALIZATION — never only random image splits.**
+Held-out **object identities**, **camera poses**, **depth RANGES**, **cue combinations**. A random
+split over a factorial battery leaks every factor into training by construction.
+
+**OPERATIONAL DEFINITION OF BINDING (fix this BEFORE probing — it is not a wording preference):**
+*the prompt-conditioned transfer by which object-specific visual information becomes causally
+available at the language-token positions responsible for referring to and answering about that
+object.*
+
+**🚦 DECISION RULE — claim a binding bottleneck only when ALL FIVE hold:**
+1. metric is **recoverable** from object-associated **visual** tokens;
+2. it is **substantially less** recoverable from that object's **text** tokens, *under matched
+   evaluation*;
+3. **qualitative** information **DOES** transfer to those same text tokens (within-model positive
+   control — binding demonstrably works there, per Kang);
+4. **causal intervention** at the transfer layers **changes metric answers**;
+5. effects are **object-specific**, not a global answer bias.
+
+**OUTCOME MATRIX** (replaces "every outcome is a finding", which was unfalsifiable). ⚠ **It is only
+readable if per-stage positive controls have validated probe sensitivity first:**
+
+| visual stages | bound-text stages | behavior | reading |
+|---|---|---|---|
+| high | low | low | candidate binding bottleneck → **apply the five-condition rule above** |
+| high | high | low | downstream **access / readout** failure |
+| low | low | low | upstream absence **OR instrument failure** → the **identifiability gate** (M4) adjudicates |
+| low | high | high | **probe/site mismatch** — investigate before interpreting anything |
+| high | low + injection **restores** | — | **strong causal support** |
+| high | low + injection **fails** | — | binding loss **epiphenomenal**, or the intervention is inadequate |
+
+**PROBE-CAPACITY LADDER** — linear (primary, comparable to prior work) → low-rank linear → shallow
+MLP → controlled kernel → RSA/ranking. **Where signal "disappears" between stages, the nonlinear tier
+is what distinguishes ERASED from RECODED** — and that distinction is half the thesis. Interpretation:
+linear-high = directly accessible · nonlinear-only = **present but recoded** · neither (*with
+validated sensitivity*) = unavailable · high-globally-but-low-object-conditionally = **binding /
+assignment failure**.
+
+Probe runner: for every (model, **functional stage**, layer, target, axis) → the capacity ladder with 5 seeds × 5 splits, shuffled-label control, **dumb-features ceiling (above)**, selectivity contrast (qualitative vs metric), rank-correlation metrics; probing **three representation targets** (visual tokens / object-name text tokens / joint cross-token decoder); verbalized-answer collection on identical stimuli (+ few-shot calibrated variant + oracle-text condition).
+
+**ANCHOR EXPERIMENT — PROMOTED to a core mechanistic experiment** (it *is* the prompt-conditioned
+binding test, not a side manipulation): same image; prompts {no reference / refer to B / ask
+A-relative-to-B}; compare representation changes for **A, B, unrelated objects, and answer tokens**.
+Distinguishes absolute encoding / relational recoding / answer-only computation /
+binding-dependent relationalization.
 
 **⚠ THE POSITION LEAK THREATENS M5'S CENTRAL CONTRAST.** Mask-pooled *visual*-token probes are
 selected by the object's image position and therefore leak it; *bound-text-token* probes are not.
@@ -356,17 +537,52 @@ survives in visual tokens, dies at binding) from **Prediction 2** (metric was ne
 ceiling. See `reports/m3_reproduction.md` §2.4.
 **Dataset usage rules (§2.5) apply here:** call `assert_behavioral_safe(name)` in the
 verbalized-answer collector (DepthCues is PROBE-ONLY — probe `meta.label` only, never score
-its synthesized questions); and state the MindCube split + ReVSI frame budget **explicitly**
-in the experiment config, reporting ReVSI at **2–3 budgets** since its conclusions change with
-the budget.
+its synthesized questions). **The validation layer is the CLOSED predeclared set of §2.5(f)** —
+CV-Bench Depth/Distance + What'sUp-B + ReVSI-1F + SpatialRGPT-Bench distance slice + CausalSpatial
+collision/occlusion. **MindCube is OUT** (no single-image primitive). ReVSI's frame budget must be
+stated **explicitly** in the config; full-video ReVSI at 2–3 budgets is a **labeled extension
+analysis**, not the core. **Report the NOT-SURE RATE** wherever an abstain option exists
+(`meta.not_sure_letter`) — CausalSpatial's own scaling result is that NSR collapses 18.77% → 0.10%
+while accuracy stays flat, i.e. *larger models become decisively wrong*, which accuracy alone hides.
 **Adopted standards (from Dual Mechanisms v2, 2603.22278v2):** (a) probe BOTH mask-pooled object tokens AND all-visual-token / strip-level representations — their central negative control shows spatial signal is distributed across background tokens, so object-pooled-only probing underestimates what survives (M4's cache must store an all-token pooled variant per layer too); (b) two-ordering strict protocol for all verbalized MCQ answers (ask both option orders, correct only if both pass); (c) random-direction nulls for any steering/injection; (d) report fixed-α and per-example-α (Probe*) intervention variants. Outputs: tidy parquet (§3) + the Figure-1 plotting script (decodability profile across sites/layers vs verbalized accuracy).
 **Accept:** full grid runs from cached features on CPU in hours; every plotted number traceable to config+seed; positive control (qualitative) shows the Kang-consistent profile.
 
 ### M6 — Interventions (Phase-3, spec later)
-Placeholder: continuous metric-ID injection (graded steering, dose-response curves), binding-layer LoRA + metric auxiliary loss vs matched-budget SFT. **Do not design in detail until M5 results exist — the evidence chooses the intervention.**
+Continuous metric-ID injection (graded steering, dose-response curves), binding-layer LoRA + metric
+auxiliary loss vs matched-budget SFT. **Do not design in detail until M5 results exist — the evidence
+chooses the intervention.**
+
+**⚠ M6's intervention is SELECTED BY M5's PATTERN — do not pre-commit to binding-layer injection**
+(the plan's own bias, named): upstream-low → **encoder/projector** intervention · visual-high /
+text-low → **binding** · text-high / behavior-low → **readout**.
+
+**🔴 ANTI-"LOGIT-HACK" CONTROL BATTERY — all of it, or the result is answer steering, not repair:**
+- **layer** controls (hypothesized layers vs early/late);
+- **position** controls (object tokens vs unrelated tokens);
+- **content** controls (correct vs **sign-flipped** vs shuffled vs random-direction);
+- **dose-response**; generalization to **unseen values**; **paraphrase transfer**;
+- **free-response AND ordinal ranking**, not only MCQ;
+- **qualitative controls undegraded** (the intervention must not simply break the model);
+- **and THE MEDIATION PATTERN — the load-bearing one: injection → downstream metric decodability
+  RISES → behavior improves.**
+  ⚠ **An injection that moves ANSWERS without moving downstream DECODABILITY is answer steering, not
+  repair.** That distinction is the whole difference between "we repaired the representation" and "we
+  found a direction that pushes the logits", and only the mediation chain can tell them apart.
 
 ### M7 — The method audit (= stage **S2**; keep in mind, don't build yet)
-Comparative mechanistic audit of spatial-enhancement methods: run the M5 probing grid unchanged on public fine-tuned checkpoints vs their bases (7B: SpaceR, ViLaSR vs Qwen2.5-VL-7B-Instruct; 3B: SpatialLadder, SpaceQwen/SpaceOm, Spatial-MLLM vs Qwen2.5-VL-3B-Instruct) + inference-time scaffolds (scene-graph prompt, depth-map input, Set-of-Marks — implemented as prompt/input transforms in `eval/`). Per method, decompose: **representation improved / binding improved / prior installed at readout**. Design constraint on earlier milestones: nothing in `extract/` or `probes/` may assume the checkpoint is a base model.
+Comparative mechanistic audit of spatial-enhancement methods: run the M5 probing grid unchanged on public fine-tuned checkpoints vs their bases (7B: SpaceR, ViLaSR vs Qwen2.5-VL-7B-Instruct; 3B: SpatialLadder, SpaceQwen/SpaceOm, Spatial-MLLM vs Qwen2.5-VL-3B-Instruct) + inference-time scaffolds (scene-graph prompt, depth-map input, Set-of-Marks — implemented as prompt/input transforms in `eval/`). Design constraint on earlier milestones: nothing in `extract/` or `probes/` may assume the checkpoint is a base model.
+
+**⚠ THE THREE-WAY LABEL IS REPLACED BY A FIVE-DIMENSIONAL MECHANISM PROFILE (2026-07-15).** "Representation improved / binding improved / prior installed" forced each method into **one** box; the categories are **not mutually exclusive**, and the forcing would have manufactured false clarity. **Report the VECTOR:**
+- **ΔR_visual** — upstream representational gain
+- **ΔR_bound** — object-specific transfer gain
+- **ΔB** — readout gain, *conditional on matched internal decoding*
+- **ΔP** — prior reliance, under blind / black-image / geometry-conflict controls
+- **ΔC** — causal repair: mediation + specificity
+
+**🔴 CHECKPOINT COMPARABILITY CHECKLIST — run BEFORE any base-vs-finetune internal comparison:**
+**tokenizer · image resolution · prompt/conversation template · preprocessing · transformers revision.**
+This audit's entire signal *is* a difference between checkpoints, so a mismatch on any one of these
+produces a "mechanistic difference" that is a pure artifact. Check first, compare second.
 
 **🔑 The behavioral mystery this audit exists to explain (added 2026-07-15, from the landscape deck):
 ISOLATED STRUCTURED PERCEPTION *HURTS*.** Four independent papers report it — EmbodiedVSR (detector /
@@ -387,6 +603,16 @@ depth / graph alone each *degrade*), SpatiaLQA (segmentation alone **67.4 → 50
   informative while measuring nothing, we want that in the design, not in a reviewer's response.
   Precedent from M3 (the dead `" left"/" right"` readout) says a probe can be confidently wrong and
   entirely green.
+- **⚖ THE EVALUATION LAW HAS TWO CLAUSES — applying either to the wrong class of quantity is a bug**
+  (refined 2026-07-15; CLAUDE.md rule 7 updated to match):
+  - **DETERMINISTIC, CONSTRUCTIBLE quantities** (rendered geometry, cue constants, calibration
+    thresholds): **WORST CASE. Never means.** The extremes are measured *exactly*, and means were the
+    *proven* failure here (1.096 mean-derived vs 1.158 true worst case).
+  - **SAMPLED / STATISTICAL quantities** (probe scores, benchmark accuracies, per-category rates):
+    **no aggregate threshold without checking the weakest PRESPECIFIED stratum**, plus condition-wise
+    uncertainty (CIs, quantiles, failure-rate distribution). **One noisy item must not define a gate.**
+    A literal worst-case rule on noisy data gates on the unluckiest sample — that is noise-chasing,
+    not rigour.
 - `bpy` wheels are Python-version-pinned (3.11); set `requires-python` accordingly, or isolate stimuli env from extract env (uv workspaces handle this).
 - flash-attn under uv needs `no-build-isolation-package`; test in M0, not when a model demands it.
 - Qwen2-VL M-RoPE and InternVL tiling mean "visual token ↔ image location" mapping differs per model — the mask-pooling module must own this mapping per model family, with a test per family (render a probe dot, check the pooled token responds).
