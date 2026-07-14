@@ -375,9 +375,11 @@ measurement itself.** That directly threatens telling **Prediction 1** (metric s
 tokens, becomes inaccessible at binding) from **Prediction 2** (metric was never there). **This is the single most
 important thing M3 produced.**
 
-**THREE controls are mandatory for Phase 2, not one:**
+**FOUR controls are mandatory for Phase 2, not one** *(a fourth was added 2026-07-16 — see 4)*:
 1. **Dumb-features leak ceiling** — every claim at every site must EXCEED a probe on mask geometry
    (+ shape/colour/cue values). Below the ceiling it is in the mask, not the representation.
+   **Report it in the INCREMENTAL form `Δ_repr|dumb = score(dumb ∪ repr) − score(dumb)`**, not as a
+   bare difference of two scores.
 2. **Fixed-grid STRIP probes are PROMOTED to the primary leak-free estimator** — strips are not
    selected by object position, so they cannot leak via selection. (We adopted Cui et al.'s strip
    variant as an "underestimation guard"; it is now load-bearing.) ⚠ **`strip_pool()` exists in
@@ -386,7 +388,25 @@ important thing M3 produced.**
    scenes vary camera path, so camera-frame coords are not image positions. Our fixed camera makes
    x **identical** to image position (hence R²=0.997 measuring the pooling). Jitter kills the leak
    where it is created rather than correcting after the fact.
-(+ Wang & Gao's cross-scene residualization of the semantic subspace, as an orthogonal fourth.)
+4. **🆕 THE CONTRASTIVE-PAIR ESTIMATOR — adopted into M5 on 2026-07-16** (the one thing worth taking
+   from the Mirage Probes read). Probe on **stimulus PAIRS matched on mask geometry but differing in
+   TRUE DEPTH**, and decode depth from the *difference* between their activations.
+   **Why it is stronger than the ceiling:** the ceiling *subtracts* an estimate of the leak after the
+   fact; this estimator **makes the leak inexpressible by construction** — if the two items have the
+   same mask geometry, then **no function of mask geometry can separate them**, so a dumb-features
+   probe sits at chance *by design*, not by measurement. Any signal in the difference is the
+   representation. **This is now the third leak-immune estimator, alongside (2) strips and
+   (3) camera jitter.**
+   - **⚠⚠ IT HAS A STIMULUS-SIDE PREREQUISITE, AND IT LANDS ON M4a — NOT M5.** Matched-geometry /
+     different-depth pairs must be **GENERATED ON PURPOSE**: holding retinal size and centroid fixed
+     while depth changes requires physical size to compensate exactly (a bigger object further away),
+     which is precisely what independent per-object size jitter (`size_condition`, M4a note (c))
+     makes possible — *and elevation must be held too, which constrains camera pose*. **If M4a does
+     not construct these pairs, M5 can only match them post-hoc within a tolerance — and the residual
+     geometry difference inside that tolerance is exactly the thing the probe would exploit.** A
+     "leak-immune" estimator built on approximately-matched pairs is not leak-immune. **Add explicit
+     matched-pair construction to M4a's generator spec before it renders.**
+(+ Wang & Gao's cross-scene residualization of the semantic subspace, as an orthogonal fifth.)
 
 ### 🔑 STANDING METHODOLOGY: every probe ships a DUMB-FEATURES BASELINE (adopted 2026-07-14)
 A shuffled-label control catches a probe fitting *noise*; it cannot catch a probe reading a
@@ -394,8 +414,30 @@ trivially available **non-representational** feature. Two findings this session 
 shuffled-label control: the **55.1% shape-only** depth-role imbalance, and the **R²=0.942 mask-
 geometry** leak. Same failure class — *a confound that survives every unit test and dies only
 under an adversarial baseline*. So: for every (model, site, layer, target), also fit on
-`{mask geometry} ∪ {shape, colour} ∪ {cue values}` and report **Δ = probe − dumb ceiling**.
-Decodability only counts above the ceiling. Now in CLAUDE.md as verification rule 12.
+`{mask geometry} ∪ {shape, colour} ∪ {cue values}` and report the **incremental gain
+`Δ_repr|dumb = score(dumb ∪ repr) − score(dumb)`** (refined 2026-07-15 — the *incremental* form is
+the load-bearing one, not `probe − dumb`). Decodability only counts above the ceiling. Now in
+CLAUDE.md as verification rule 12.
+
+### 📓 M5 NOTES — how the leak result gets PRESENTED (added 2026-07-16, from the Mirage Probes read)
+- **Estimator stack for every leak-sensitive claim:** mask-pooled probe (leaky, reported for
+  comparison) · **strip probe** (leak-free by construction) · **contrastive-pair estimator**
+  (leak-*inexpressible* by construction — see control 4 above) · all three against the
+  **`Δ_repr|dumb`** ceiling. Three independent estimators agreeing is the result; one is an anecdote.
+- **📌 MANDATORY CITATIONS when we present the leak / the ceiling: Hewitt & Liang 2019 (control
+  tasks) and Belinkov 2022 (probing survey).** Our dumb-features ceiling is a *descendant* of control
+  tasks, not a new invention, and it must be framed that way. **Mirage Probes omits Hewitt & Liang —
+  we must not.** Omitting it reads as either ignorance of the canon or a land-grab on a 2019 idea,
+  and the reviewer who knows H&L will pick the first.
+- **Where the novelty actually is (state it precisely, do not inflate):** control tasks ask *"could
+  the probe have learned this from a random labelling?"*; **our contribution is the SELECTION leak —
+  *the pooled vector is chosen BY the object's image position, so the selection IS the answer*** —
+  plus the incremental-gain form of the ceiling. That is a genuine extension, and it is narrower and
+  more defensible than "we invented probe controls."
+- **Rule-11 exemplar, with a citation:** Mirage Probes reports an **encoder/projector null with no
+  positive control** — a published instance of exactly the failure CLAUDE.md rule 11 exists to
+  prevent. **Cite it as the motivating example** for our per-site positive controls. It is also a
+  warning: that null is the precise shape of the wrong result this project is most likely to produce.
 
 ### Bugs in OUR OWN M3 code, all caught by writing the invariant BEFORE trusting the number
 - Scene generator systematically tied each object to a cell subset (TV=0.45) → the spatial-ID
@@ -552,13 +594,46 @@ against the ROLE it could predict, not just its own marginal.**
 - **Field velocity is extreme**: the literature analysis was materially revised twice in one day by newly-found papers (Kang et al., then Wang & Gao / Ill-Posed by Design — the latter two found only after Kaho pushed to search newer work). **Rule: every specific design claim gets a verification search before being asserted or written.** Biweekly citation watch on 2601.12626, 2605.07148, 2606.24335, 2411.17385 (offered as scheduled task; not yet set up).
 - Superseded ideas (don't re-propose): qualitative-direction steering, ordering-probe amplification (Kang/Dual Mechanisms territory); behavioral-only cue decomposition for size (Ill-Posed); new static benchmarks; "present but unverbalized" as stated.
 - Must-reads before design freeze: Attention in Space (2603.20662), Why Far Looks Up (2605.30161), full Ill-Posed §6.6 + limitations; Echo-Memory (2606.09803) before any memory work.
-- **🔴 MUST-READ BEFORE ANY M5 PROBE CLAIM — "Mirage Probes" (arXiv 2606.13870, Jun 2026), "How Vision Models Fake Visual Understanding".** A probing-*validity* critique: it bears on **every probe claim this program makes**, S1 included, not just the occlusion work. Read it *before* the M5 numbers exist, not after a reviewer cites it at us. **PRIORITY.**
+- **✅ "Mirage Probes" (2606.13870) — DEEP-READ 2026-07-16. VERDICT: TITLE COLLISION ONLY. It was
+  flagged as the top pre-M5 threat; it is not one.** *(Status changed from 🔴 PRIORITY-UNREAD.)*
+  - **What it actually does:** probes for **"mirage behavior"** — a model answering **without using
+    the image** — on **semantic VQA**. **No spatial targets. No selection leakage. No contradiction
+    with any of our controls.** The name promised a probing-validity critique aimed at exactly our
+    method; the content is a different failure mode on a different task family.
+  - **→ The consequences that matter: our position-leak claim and our incremental-gain ceiling
+    (`Δ_repr|dumb`) remain OPEN — and OURS.** The thing we most feared was already-scooped is not.
+  - **Do not let the title do the work.** This is the second time a *title* nearly redirected the
+    design ("spatial variable binding" / Dual Mechanisms was the first — also a collision, also
+    resolved only by reading). **Deep-read before re-scoping around a paper; an abstract is a
+    hypothesis** (rule 4, applied to literature).
+  - **⚠ ONE THING TO STEAL, AND IT IS GOOD (adopted into M5 — see the leak-control list above):
+    the CONTRASTIVE-PAIR ESTIMATOR.**
+  - **⚠ ONE THING TO NOT COPY: their encoder/projector null has NO POSITIVE CONTROL.** They report a
+    site carrying nothing without ever showing the measurement *can* register a positive there. That
+    is **CLAUDE.md rule 11** with a citation attached — **use it as the motivating example** when we
+    justify our own positive controls. (It is also a quiet warning: this is a *published* null of the
+    exact shape we are most at risk of producing.)
+- **📌 CITE THESE ALONGSIDE THE LEAK, ALWAYS — Mirage Probes omits Hewitt & Liang; WE MUST NOT.**
+  **Hewitt & Liang 2019 (control tasks)** and **Belinkov 2022 (probing survey)** are the canonical
+  prior art for "a probe's score is meaningless without a control for what the probe could learn
+  anyway". Our dumb-features ceiling and position-leak analysis are *in that lineage* — presenting
+  them without the citation would look like either ignorance or a land-grab, and a reviewer who knows
+  H&L will assume the former.
 - **Verification-reads before the M4.5 (S1.5 / occlusion) design freeze** — per the standing rule that every specific design claim gets a search before it is asserted:
-  - **Mirage Probes (2606.13870)** — as above; the amodal probe is a probe claim like any other.
+  - ~~Mirage Probes (2606.13870)~~ — **DONE 2026-07-16, see above. Not a threat; not a constraint.**
   - **arXiv 2508.04567** — masked-object linear probes (>95%). Check whether their "masked" ≈ our occlusion; if it is, our amodal claim needs to differentiate hard.
   - **arXiv 2603.28333** (MLLM-guided amodal completion), **O-Bench** (occlusion benchmark — steal its inverted-depth and answer-frequency controls), **CAPTURe** (amodal counting; oracle decompositions), **SpatialMosaic** (occlusion-ratio data pipeline — engineering reference for computing `occlusion_ratio`).
   - **Search to re-run at freeze time:** "amodal representation probing VLM occluded object depth". Checked 2026-07-15: **geometric probing of physically occluded objects appears OPEN** — the adjacent work is classification probes on masked objects, and amodal *segmentation*. Re-verify; do not assert the gap from this note alone.
-- **Watch list additions (2026-07-15):** **Structural Graph Probing** (population-level neuron-correlation topology; its open question *"would spatial IDs appear as hubs?"* is adjacent to S1) — verification-read, low priority. **R3D (2607.02921)** — added to watch alongside the SpatialRGPT-Bench decision. Plus O-Bench / CAPTURe / SpatialMosaic as S1.5–S4 references, and the landscape deck's 19-paper corpus merged into literature tracking.
+- **Watch list (updated 2026-07-16):**
+  - **Mirage Probes (2606.13870) — ✅ READ, CLEARED.** Title collision only; cite, don't fear. Moves
+    off the must-read list and onto the citation list (above).
+  - **Hewitt & Liang 2019 (control tasks) + Belinkov 2022 (probing survey) — MANDATORY CITATIONS**
+    for every leak/ceiling claim we make. Not "watch": *cite*.
+  - **Structural Graph Probing** (population-level neuron-correlation topology; its open question
+    *"would spatial IDs appear as hubs?"* is adjacent to S1) — verification-read, low priority.
+  - **R3D (2607.02921)** — watch, alongside the SpatialRGPT-Bench decision.
+  - **O-Bench / CAPTURe / SpatialMosaic** — S1.5–S4 references. Plus the landscape deck's 19-paper
+    corpus merged into literature tracking.
 - Kang reproduction is load-bearing (code: github.com/Raphoo/linear-mech-vlms).
 - **Dual Mechanisms v2 (2603.22278v2, Jun 2026, deep-read 2026-07-09):** retitled to "spatial VARIABLE BINDING" — terminology collision risk; define our claim explicitly as the *vision→text-token binding step* (Kang-style), cite them as the ordinal counterpart. Our territory intact (no metric, no site decomposition, no text-token sites, no probe-vs-verbalization in v2). Adopted their standards into IMPLEMENTATION_PLAN M5: strip-level + object-pooled probing (their negative control shows background tokens carry signal), two-ordering MCQ protocol, random-direction nulls, Probe* reporting. Their code/data: spatial.baulab.info.
 

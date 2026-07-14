@@ -343,6 +343,24 @@ forward-compat but is outside the core matrix.)
 2. ⚠ **While the generator is open, add the SOLO-OBJECT ID PASS** (M4.5's prerequisite). It is nearly
    free now — one extra tiny render per object — and expensive to retrofit once 5–10k images are
    rendered. M4.5 does not *run* until M4b's gate passes; its cheap prerequisite belongs **here**.
+3. 🆕 **CONSTRUCT MATCHED-GEOMETRY / DIFFERENT-DEPTH PAIRS** (added 2026-07-16 — the stimulus
+   prerequisite of M5's **contrastive-pair estimator**). Pairs of stimuli with **the same mask
+   geometry** (centroid, retinal size, bbox, elevation) but **different true depth**. Decoding depth
+   from the *difference* of their activations makes the position leak **inexpressible by
+   construction**: if two items share mask geometry, **no function of mask geometry can separate
+   them**, so the dumb-features probe is at chance *by design* rather than by measurement.
+   - **How:** holding retinal size fixed while depth changes requires **physical size to compensate
+     exactly** (a bigger object, further away) — which is what independent per-object size jitter
+     (note (c)) makes possible; elevation must be held too, which constrains the camera pose within a
+     pair.
+   - **⚠ THIS MUST BE GENERATED ON PURPOSE — IT CANNOT BE FIXED IN M5.** If M4a does not construct the
+     pairs, M5 can only match them **post-hoc within a tolerance**, and **the residual geometry
+     difference inside that tolerance is precisely what the probe would exploit.** A "leak-immune"
+     estimator built on approximately-matched pairs **is not leak-immune** — it is the same leak with
+     a smaller constant and a more confident name.
+   - Record the pairing in the annotations (`contrastive_pair_id`), and **report the achieved
+     geometry-match residual** (max |Δcentroid|, |Δretinal_px|, |Δelevation|) — margins, not
+     pass/fail (rule 6).
 
 **Accept — M4a:**
 - The battery renders end-to-end from one config across all three regimes; **determinism re-verified
@@ -474,8 +492,11 @@ completes the hidden part" is indistinguishable from "the visible fragment's sha
 
 **Verification-reads BEFORE the M4.5 design freeze** (standing rule: every specific design claim gets
 a search before it is asserted):
-- **🔴 Mirage Probes (arXiv 2606.13870, Jun 2026), "How Vision Models Fake Visual Understanding"** —
-  a probing-*validity* critique. Bears on **every probe claim in this program, S1 included.** PRIORITY.
+- ~~**Mirage Probes (2606.13870)**~~ — **✅ DONE 2026-07-16: TITLE COLLISION ONLY, not a constraint.**
+  It probes "mirage behavior" (answering *without the image*) on **semantic VQA** — no spatial
+  targets, no selection leakage, no contradiction with our controls. Our position-leak claim and
+  incremental-gain ceiling remain open and ours. See PROJECT_MEMORY. *(One thing adopted from it —
+  the contrastive-pair estimator, now an M5 estimator with an M4a stimulus prerequisite.)*
 - **arXiv 2508.04567** — masked-object linear probes (>95%). Check whether their "masked" ≈ our occlusion.
 - **arXiv 2603.28333** (MLLM-guided amodal completion); **O-Bench** (occlusion benchmark — adopt its
   inverted-depth / answer-frequency controls); **CAPTURe** (amodal counting; oracle decompositions);
@@ -520,6 +541,21 @@ adversarial baseline.** So the ceiling is standing policy, not a one-off control
    representation *over and above* the dumb features. A bare `probe − dumb` difference does not
    establish that the representation adds anything the dumb features didn't already have; the
    incremental form does.
+
+**🆕 THE CONTRASTIVE-PAIR ESTIMATOR — the third leak-immune estimator (adopted 2026-07-16).**
+Probe **pairs matched on mask geometry but differing in true depth**, decoding depth from the
+*difference* of their activations. Where the ceiling **subtracts** the leak after the fact, this
+**makes it inexpressible**: same mask geometry ⇒ no function of mask geometry can separate the pair
+⇒ the dumb-features probe is at chance **by construction**. Report it alongside the mask-pooled
+(leaky) and strip (leak-free) estimators — **three independent estimators agreeing is the result;
+one is an anecdote.** ⚠ **Its stimuli are an M4a deliverable** — post-hoc tolerance matching does not
+give a leak-immune estimator, it gives the same leak with a smaller constant.
+
+**📌 CITE Hewitt & Liang 2019 (control tasks) + Belinkov 2022 (probing survey) whenever the leak or
+the ceiling is presented.** The dumb-features ceiling is a **descendant of control tasks**, not a new
+invention; framing it that way is what makes the actual novelty legible — **the SELECTION leak: the
+pooled vector is chosen BY the object's image position, so the selection IS the answer** — plus the
+incremental-gain form. *(Mirage Probes omits Hewitt & Liang. We must not.)*
 
 **⚠ HELD-OUT SPLITS MUST TARGET THE CLAIMED GENERALIZATION — never only random image splits.**
 Held-out **object identities**, **camera poses**, **depth RANGES**, **cue combinations**. A random
@@ -634,13 +670,23 @@ depth / graph alone each *degrade*), SpatiaLQA (segmentation alone **67.4 → 50
   decomposition lands on the exact comparison their behavioral result is about.
 
 ## 5. Known gotchas
-- **🔴 READ "Mirage Probes" (arXiv 2606.13870, Jun 2026) BEFORE making any M5 probe claim.** *"How
-  Vision Models Fake Visual Understanding"* — a probing-**validity** critique that bears on every
-  probe number this project will report (M5's core result, M4.5's amodal probe, M7's audit). This is
-  a **pre-M5 must-read**, not a citation to add at write-up: if it identifies a way probes can look
-  informative while measuring nothing, we want that in the design, not in a reviewer's response.
-  Precedent from M3 (the dead `" left"/" right"` readout) says a probe can be confidently wrong and
-  entirely green.
+- **✅ "Mirage Probes" (2606.13870) — READ 2026-07-16. It was the top pre-M5 threat; it is not one.**
+  **Title collision only:** it probes *"mirage behavior"* (answering **without the image**) on
+  **semantic VQA** — no spatial targets, no selection leakage, nothing that contradicts our controls.
+  **Our position-leak claim and the incremental-gain ceiling remain open and ours.**
+  - **Adopted from it:** the **contrastive-pair estimator** (M5; ⚠ its matched-pair *stimuli* are an
+    **M4a** deliverable — see M4a).
+  - **⚠ CITE Hewitt & Liang 2019 (control tasks) + Belinkov 2022 (probing survey) whenever we present
+    the leak or the ceiling. Mirage Probes omits Hewitt & Liang; WE MUST NOT** — our ceiling is a
+    descendant of control tasks, and saying so is what makes the *selection*-leak contribution
+    legible as the actual novelty.
+  - **Their encoder/projector null has NO positive control** — a *published* instance of exactly the
+    failure CLAUDE.md rule 11 exists to prevent. **Cite it as the motivating example** for our
+    per-site positive controls, and note it is the precise shape of the wrong result we are most
+    likely to produce (cf. M3's dead `" left"/" right"` readout: confidently wrong, entirely green).
+  - **Lesson, generalized: deep-read before re-scoping around a paper — an abstract is a hypothesis**
+    (rule 4, applied to literature). This is the *second* title collision to nearly redirect the
+    design, after "spatial variable binding" / Dual Mechanisms.
 - **⚖ THE EVALUATION LAW HAS TWO CLAUSES — applying either to the wrong class of quantity is a bug**
   (refined 2026-07-15; CLAUDE.md rule 7 updated to match):
   - **DETERMINISTIC, CONSTRUCTIBLE quantities** (rendered geometry, cue constants, calibration
