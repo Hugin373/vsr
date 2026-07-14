@@ -1,6 +1,13 @@
 # Implementation Plan — Spatial Binding Bottleneck (for AI-assisted coding)
 
-*Written 2026-07-09. Companion docs: `research_proposal_spatial_binding.md` (science), `VSR_niches_critical_deep_read.md` (literature), `PROJECT_MEMORY.md` (context). This document is the coding spec: hand milestones to a coding agent one at a time, in order. Acceptance criteria are the definition of done — do not move on until they pass.*
+*Written 2026-07-09; stage reframing + M4.5 added 2026-07-15. Companion docs: `research_proposal_spatial_binding.md` (science), `VSR_niches_critical_deep_read.md` (literature), `vsr_landscape_v8.pptx` (19-paper landscape analysis), `PROJECT_MEMORY.md` (context). This document is the coding spec: hand milestones to a coding agent one at a time, in order. Acceptance criteria are the definition of done — do not move on until they pass.*
+
+**Milestones vs stages.** The milestones below (M0…M7) are the *build order*. The **science** is
+organized as dependency-gated **stages** — S1 (visible metric) → S1.5 (occlusion & the amodal probe)
+→ S2 (method audit) → S3 (generation) → S4 (the unseen) — described in `PROJECT_MEMORY.md`. **There
+are no "Paper 1 / Paper 2 / PhD" labels any more**: publications are snapshots of whichever stages
+have defensible results at a deadline. Mapping: M1–M5 build S1 · **M4.5 = S1.5** · M6 = S1's
+interventions · M7 = S2.
 
 ---
 
@@ -216,7 +223,7 @@ itself.
      the M1 calibration and the 1.18 depth-ratio floor — re-derive from WORST CASE
      (`scripts/derive_cue_constants.py`).
 2. `extract/`: generic HF-VLM wrapper (LLaVA-1.5/1.6, Qwen2-VL, Qwen2.5-VL-7B, **Qwen2.5-VL-3B**, InternVL, Gemma-3) with named hook sites {enc_out, proj_out, lm_vis_L*, lm_txt_L*}; mask-pooling (coverage-weighted, per Wang & Gao's method — reimplemented) and object-word token extraction (needs tokenizer-aware span finding); writes §3 caches; per-batch checkpointing + `--resume`.
-   **Paper-2 forward-compatibility:** include both Qwen2.5-VL-7B and -3B Instruct in the model list — they are the shared bases of the planned method-audit checkpoints (Paper 2: SpaceR + ViLaSR on 7B; SpatialLadder + SpaceQwen/SpaceOm + Spatial-MLLM on 3B), so every Paper-1 measurement on them doubles as the audit baseline. The wrapper must accept arbitrary HF checkpoint paths of the same architecture (base vs fine-tune swap = config change only).
+   **S2 forward-compatibility:** include both Qwen2.5-VL-7B and -3B Instruct in the model list — they are the shared bases of the method-audit checkpoints (S2/M7: SpaceR + ViLaSR on 7B; SpatialLadder + SpaceQwen/SpaceOm + Spatial-MLLM on 3B), so every S1 measurement on them doubles as the audit baseline. The wrapper must accept arbitrary HF checkpoint paths of the same architecture (base vs fine-tune swap = config change only).
    **⚠ The cache MUST contain the strip/all-token variant, not only the mask-pooled one.**
    `extract/pooling.py` has `strip_pool()`, but M3.2 cached mask-pooled features only. Fixed-grid
    strips are not selected by object position, so they are the **primary leak-free estimator** —
@@ -232,6 +239,94 @@ itself.
   If the decorrelated set still gives R² ≈ 0.99 everywhere after the leak controls, **the stimuli
   are still broken and M5 does not start.** When the gradient appears, the instrument is finally
   measuring models instead of itself. **This is the real gate on Phase 2.**
+- ⚠ **While the generator is open, add the solo-object ID pass** (see M4.5 below). It is nearly free
+  now — one extra tiny render per object — and expensive to retrofit once the battery is rendered.
+  M4.5 does not *run* until M4's gate passes, but its cheap prerequisite belongs here.
+
+### M4.5 — Occlusion & the amodal probe (= stage **S1.5**) — 🔒 LOCKED until M4's gate passes
+**Do not start this unprompted.** M4.5 unlocks *only* when M4 clears the transferred Wang & Gao bar
+(difficulty gradient present, above the leak ceiling). If M4's battery still probes at R² ≈ 0.99
+everywhere, the instrument is measuring itself and **an occlusion result would be just as
+meaningless as a metric one** — fix the stimuli first. Milestones are **not renumbered**: M4.5 sits
+between M4 and M5 and is independent of M5 (both are gated on M4; either may run first).
+
+**Why occlusion, scientifically.** Occlusion is the third classical monocular depth cue and the only
+**categorical** one: it carries ordinal order (A in front of B) and **ZERO metric content**, whereas
+elevation and retinal size are graded. **If VLMs lean on occlusion as their dominant depth cue, this
+program's central asymmetry — qualitative survives, metric dies — follows in principle: their best
+cue cannot carry metric information.** That is a sub-hypothesis of the binding-bottleneck story, not
+a side quest, and it is testable inside the cue-decomposition design M4 already builds. (It is the
+landscape deck's Tension **T2** — geometry vs visibility-aware state — made mechanistic.) Add it to
+`research_proposal_spatial_binding.md` §1 as a sub-hypothesis.
+
+**1. Design — physically rendered, congruent-only at this stage.**
+- New factor **`occlusion_condition ∈ {none, partial}`**. In `partial`, the nearer object partially
+  overlaps the farther one — **both fully physical, no compositing** (this preserves the
+  exact-geometry guarantee that makes our ground truth trustworthy).
+- Record per object **`occlusion_ratio` = 1 − visible_area / amodal_area**.
+
+**2. Schema additions (per object).** `mask_amodal`, `occlusion_ratio`, `retinal_size_px_amodal`.
+- **The amodal mask is nearly free.** The composite ID pass already yields the *visible* mask;
+  rendering **each object alone** in a solo ID pass yields the **amodal** mask directly. (Same ID-pass
+  discipline as M1: black-emission ground, lights at 0, `max_bounces = 0` — the bounce bug is *not*
+  to be relearned.)
+
+**3. Validation exemptions — state them, never let them fire silently.**
+- Occluded variants are **EXEMPT from the retinal/area congruence checks**: the *visible* height of
+  an occluded object is **not the calibrated quantity**. Check congruence on the **AMODAL**
+  measurements instead. Encode this as an explicit, *counted and logged* exemption in
+  `scripts/validate_stimuli.py` — a bare `continue` here is exactly the CLAUDE.md rule-3 failure.
+- The occlusion factor is a new degree of freedom → **the M4 note (e) recalibration rule applies.**
+- **Invariant to assert (not a smoke test):** `mask_amodal ⊇ mask_visible` pixelwise for every
+  object, and `occlusion_ratio ∈ [0, 1)` for every object — with `> 0` for every object flagged
+  occluded and `== 0` for every object in the `none` condition. Report **margins**, not pass/fail.
+
+**4. The two questions (both cheap once M4's battery and cache exist).**
+- **(a) Cue-use.** At **matched depth gaps**, does ordinal accuracy / decodability *jump* when
+  occlusion is present vs absent? Behavioral **and** probe versions; two-ordering MCQ protocol as
+  usual. This is the direct test of "occlusion is their dominant depth cue".
+- **(b) The amodal probe.** For a partially occluded object, are its **position / depth / full
+  extent** decodable — **at which sites** — and does the occluded object still **BIND**? (This is
+  Kang's own open question: *do spatial IDs exist for objects behind occluders?*) **A measurement
+  detail that is itself a finding: pool over the *visible* mask vs over the *amodal* extent.** If
+  amodal pooling wins, the representation *completes* the object; if not, it doesn't.
+
+**5. Leak-ceiling extension (mandatory — CLAUDE.md rule 12).** For occluded items the dumb-features
+baseline must include the **visible**-mask geometry **AND `occlusion_ratio`**. An amodal-decodability
+claim must beat a probe that only ever sees the *visible fragment's* geometry — otherwise "the model
+completes the hidden part" is indistinguishable from "the visible fragment's shape gave it away".
+
+**6. Explicitly DEFERRED to S4 — do not build:**
+- **Occlusion cue-CONFLICT (inverted depth).** Physically impossible to render; it needs O-Bench-style
+  layered composites, which **break the exact-geometry guarantee** and make ground truth
+  cue-relative. Legitimate later; out of scope now.
+- **Occlusion chains** (A hides B hides C) and **full visibility graphs** (who-occludes-whom edges) —
+  S4's centerpiece candidate, gated on this milestone's amodal result.
+
+**Verification-reads BEFORE the M4.5 design freeze** (standing rule: every specific design claim gets
+a search before it is asserted):
+- **🔴 Mirage Probes (arXiv 2606.13870, Jun 2026), "How Vision Models Fake Visual Understanding"** —
+  a probing-*validity* critique. Bears on **every probe claim in this program, S1 included.** PRIORITY.
+- **arXiv 2508.04567** — masked-object linear probes (>95%). Check whether their "masked" ≈ our occlusion.
+- **arXiv 2603.28333** (MLLM-guided amodal completion); **O-Bench** (occlusion benchmark — adopt its
+  inverted-depth / answer-frequency controls); **CAPTURe** (amodal counting; oracle decompositions);
+  **SpatialMosaic** (occlusion-ratio data pipeline — engineering reference for computing `occlusion_ratio`).
+- **Re-run at freeze time:** search *"amodal representation probing VLM occluded object depth"*.
+  Checked 2026-07-15: geometric probing of *physically occluded* objects appears **OPEN** (adjacent
+  work is classification probes on masked objects, and amodal *segmentation*). **Re-verify — do not
+  assert the gap from this note.**
+
+**Accept (ALL of these):**
+- **Solo-ID amodal masks validated:** `mask_amodal ⊇ mask_visible` for every object (full scan, not a
+  sample), `occlusion_ratio ∈ [0, 1)` for every object, correct by condition, margins reported.
+- The `occlusion_condition` renders end-to-end from one config and **passes the exempt-adjusted
+  validation suite** (congruence checked on amodal measurements; exemptions counted and logged;
+  determinism re-verified by byte-compare, per the hard rule).
+- **Both analyses (a) and (b) run from the cache on CPU**, each reported **against the extended leak
+  ceiling** (visible-mask geometry + `occlusion_ratio`), with shuffled-label controls.
+- A positive control exists for the amodal claim: **show the measurement MOVES when it must**
+  (CLAUDE.md rule 11 — a null here would be the most seductive kind of wrong result this project can
+  produce). Zero-ablate the tokens you are pooling; if the metric does not move, the metric is dead.
 
 ### M5 — Probing & the core result (Phase-2 science)
 
@@ -270,10 +365,28 @@ the budget.
 ### M6 — Interventions (Phase-3, spec later)
 Placeholder: continuous metric-ID injection (graded steering, dose-response curves), binding-layer LoRA + metric auxiliary loss vs matched-budget SFT. **Do not design in detail until M5 results exist — the evidence chooses the intervention.**
 
-### M7 — Paper 2 audit (post-deadline; keep in mind, don't build yet)
-Comparative mechanistic audit of spatial-enhancement methods: run the M5 probing grid unchanged on public fine-tuned checkpoints vs their bases (7B: SpaceR, ViLaSR vs Qwen2.5-VL-7B-Instruct; 3B: SpatialLadder, SpaceQwen/SpaceOm, Spatial-MLLM vs Qwen2.5-VL-3B-Instruct) + inference-time scaffolds (scene-graph prompt, depth-map input, Set-of-Marks — implemented as prompt/input transforms in `eval/`). Per method, decompose: representation / binding / prior. Design constraint on earlier milestones: nothing in `extract/` or `probes/` may assume the checkpoint is a base model.
+### M7 — The method audit (= stage **S2**; keep in mind, don't build yet)
+Comparative mechanistic audit of spatial-enhancement methods: run the M5 probing grid unchanged on public fine-tuned checkpoints vs their bases (7B: SpaceR, ViLaSR vs Qwen2.5-VL-7B-Instruct; 3B: SpatialLadder, SpaceQwen/SpaceOm, Spatial-MLLM vs Qwen2.5-VL-3B-Instruct) + inference-time scaffolds (scene-graph prompt, depth-map input, Set-of-Marks — implemented as prompt/input transforms in `eval/`). Per method, decompose: **representation improved / binding improved / prior installed at readout**. Design constraint on earlier milestones: nothing in `extract/` or `probes/` may assume the checkpoint is a base model.
+
+**🔑 The behavioral mystery this audit exists to explain (added 2026-07-15, from the landscape deck):
+ISOLATED STRUCTURED PERCEPTION *HURTS*.** Four independent papers report it — EmbodiedVSR (detector /
+depth / graph alone each *degrade*), SpatiaLQA (segmentation alone **67.4 → 50.3**; depth alone
+→ **64.1**), NuScenes-SpatialQA, ISGR. Handing a VLM a *correct* structured spatial input makes it
+*worse*, and nobody has a mechanism for it. Scaffold probing is the instrument that can settle it:
+**does isolated structured input never reach the binding sites, or does it actively interfere there?**
+- Cite all four in the audit's motivation.
+- **Add "isolated vs integrated scaffold" as an audit condition axis**: scene-graph-alone vs
+  depth-alone vs **integrated** — mirroring their behavioral contrast, so our mechanistic
+  decomposition lands on the exact comparison their behavioral result is about.
 
 ## 5. Known gotchas
+- **🔴 READ "Mirage Probes" (arXiv 2606.13870, Jun 2026) BEFORE making any M5 probe claim.** *"How
+  Vision Models Fake Visual Understanding"* — a probing-**validity** critique that bears on every
+  probe number this project will report (M5's core result, M4.5's amodal probe, M7's audit). This is
+  a **pre-M5 must-read**, not a citation to add at write-up: if it identifies a way probes can look
+  informative while measuring nothing, we want that in the design, not in a reviewer's response.
+  Precedent from M3 (the dead `" left"/" right"` readout) says a probe can be confidently wrong and
+  entirely green.
 - `bpy` wheels are Python-version-pinned (3.11); set `requires-python` accordingly, or isolate stimuli env from extract env (uv workspaces handle this).
 - flash-attn under uv needs `no-build-isolation-package`; test in M0, not when a model demands it.
 - Qwen2-VL M-RoPE and InternVL tiling mean "visual token ↔ image location" mapping differs per model — the mask-pooling module must own this mapping per model family, with a test per family (render a probe dot, check the pooled token responds).
@@ -282,4 +395,8 @@ Comparative mechanistic audit of spatial-enhancement methods: run the M5 probing
 - Monthly re-check: Metric VQA release; SynSpat3D dataset appearance; new papers citing the four anchors (biweekly).
 
 ## 6. Suggested vibe-coding session order
-M0 → M1.1 (spike, decides renderer) → M1.2–1.3 → M2 (parallelizable, boring) → M3.1 → M3.2 (gate) → M4 → M5. One milestone per session; start each session by pasting this doc + `PROJECT_MEMORY.md`; end each by updating both with decisions made.
+M0 → M1.1 (spike, decides renderer) → M1.2–1.3 → M2 (parallelizable, boring) → M3.1 → M3.2 (gate) →
+**M4 (the real gate)** → then M4.5 and M5, in either order — **both are gated on M4 and neither is
+gated on the other.** M4.5 (occlusion / S1.5) is the cheaper of the two and its solo-ID prerequisite
+should already be in M4's generator. One milestone per session; start each session by pasting this
+doc + `PROJECT_MEMORY.md`; end each by updating both with decisions made.
