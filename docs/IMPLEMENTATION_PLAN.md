@@ -112,6 +112,16 @@ be a lie. Both were silent, and both would have corrupted a reported number:
 A cross-check is nearly always available for free** (option text vs the abstain letter; clip
 length vs the declared frame count; filename vs the answer key).
 
+**⚠ AND THE RULE GENERALIZES BEYOND DATASETS: A PAPER'S METHODS SECTION IS A HYPOTHESIS TOO — VERIFY
+IT AGAINST THE CODE** (added 2026-07-16). Wang & Gao's §4 says their Dirichlet loss pools at
+**mask-pooled visual tokens**; **their code actually pools at object-NAME TEXT tokens** (heuristically
+located). We only found it by reading the repo. *(Read-only — the repo has no license; never copy from
+it.)* Consequences: (a) any method we reimplement from a paper gets checked against its code before we
+claim to have reproduced it — M3's Kang reproduction was reimplemented from the paper, and this is the
+class of discrepancy that would have silently changed it; (b) **their +6–7pp therefore came from an
+intervention at a TEXT-TOKEN site**, which is weak adjacent support for our binding-site hypothesis —
+*their* result, *our* interpretation; cite it carefully and do not overweight it.
+
 **(d) ⚠⚠ THE v0 CONGRUENT SET CANNOT CARRY A METRIC-DECODABILITY CLAIM (found at M3.2, 2026-07-14).**
 Probing mask-pooled object tokens on `stimuli/v0_congruent` gives **x R² = 0.997 and z R² = 0.990
 at EVERY LM layer** of Qwen2.5-VL-7B and InternVL3-8B (shape and colour = 1.000; all
@@ -361,6 +371,18 @@ forward-compat but is outside the core matrix.)
    - Record the pairing in the annotations (`contrastive_pair_id`), and **report the achieved
      geometry-match residual** (max |Δcentroid|, |Δretinal_px|, |Δelevation|) — margins, not
      pass/fail (rule 6).
+   - **Prior art: Why Far Looks Up's minimal contrastive pairs. Cite them** — the pair design is
+     adapted, not invented; ours is the application to the *selection* leak.
+4. 🆕 **ADOPT FROM "Why Far Looks Up" (2605.30161, deep-read 2026-07-16):**
+   - **⚠ THE ENTANGLEMENT IS AXIS-SPECIFIC: it is `VERTICAL–DISTANCE entanglement (VD-EI)`, and the
+     HORIZONTAL axis is CLEAN.** Use their term. **Design consequence: the elevation-conflict factor
+     is a VERTICAL-axis manipulation and should not be mirrored onto the horizontal axis "for
+     symmetry"** — there is no horizontal entanglement to break, and a symmetric design would spend
+     stimulus budget decorrelating a confound that does not exist.
+   - **Vertical/depth-decoupled CORRIDOR stimuli** — a concrete, published generator recipe for
+     breaking VD-EI. Prefer it over inventing our own geometry.
+   - **The consistent / counter split** as a reporting axis (items where the vertical cue agrees vs
+     disagrees with true depth).
 
 **Accept — M4a:**
 - The battery renders end-to-end from one config across all three regimes; **determinism re-verified
@@ -543,6 +565,8 @@ adversarial baseline.** So the ceiling is standing policy, not a one-off control
    incremental form does.
 
 **🆕 THE CONTRASTIVE-PAIR ESTIMATOR — the third leak-immune estimator (adopted 2026-07-16).**
+**Prior art: Why Far Looks Up's MINIMAL CONTRASTIVE PAIRS — cite them.** (The design is not ours from
+nothing, any more than the ceiling is: ours is the *application to the selection leak*.)
 Probe **pairs matched on mask geometry but differing in true depth**, decoding depth from the
 *difference* of their activations. Where the ceiling **subtracts** the leak after the fact, this
 **makes it inexpressible**: same mask geometry ⇒ no function of mask geometry can separate the pair
@@ -629,6 +653,13 @@ chooses the intervention.**
 **⚠ M6's intervention is SELECTED BY M5's PATTERN — do not pre-commit to binding-layer injection**
 (the plan's own bias, named): upstream-low → **encoder/projector** intervention · visual-high /
 text-low → **binding** · text-high / behavior-low → **readout**.
+
+**📎 THE BASELINE M6 MUST BEAT (from Attention in Space, 2603.20662):** spatial heads are **sparse
+(<1%)**, **ablating them collapses performance**, and **generic ITI-style steering buys only
+~1–2pp**. That last number is the **foil**: a targeted metric-ID injection that lands in the same
+1–2pp band has not demonstrated anything a *generic, untargeted* steering direction wouldn't have.
+⚠ Verify these numbers against the PDF before quoting — their labels are LLM-generated and their
+eval is circular.
 
 **🔴 ANTI-"LOGIT-HACK" CONTROL BATTERY — all of it, or the result is answer steering, not repair:**
 - **layer** controls (hypothesized layers vs early/late);

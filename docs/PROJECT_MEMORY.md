@@ -375,6 +375,35 @@ measurement itself.** That directly threatens telling **Prediction 1** (metric s
 tokens, becomes inaccessible at binding) from **Prediction 2** (metric was never there). **This is the single most
 important thing M3 produced.**
 
+### ✅ PROVENANCE OF THE LEAK CLAIM — IT IS OURS (established 2026-07-16, and now checked properly)
+**Wang & Gao 2605.07148 appendices F–I.4 read VERBATIM (via the selector-proxy route) + their code
+inspected read-only.** *(Read-only: the repo has NO license — never copy from it.)*
+- **VERDICT: the selection/position leak is NEITHER MENTIONED NOR CONTROLLED anywhere in W&G.** Their
+  **only** shortcut control is **size-based** (√mask-pixels features — **no `(u,v)` anywhere**), and
+  the limitations section is **scope-only**, not a methodological caveat. **So the leak claim is ours,
+  and it is not a correction of them — it is a *completion of their confound taxonomy*:**
+  - *they* control: **cue shortcut** (apparent size) + **semantic residualization**;
+  - *we* add: **SELECTION** — the pooled vector is chosen **BY** the object's image position, so the
+    selection **is** the answer.
+  **Present it that way.** It is the strongest and least attackable framing: additive, not corrective,
+  and it slots into a taxonomy the field already accepts.
+- **🎁 BONUS 1 — A PAPER↔CODE DISCREPANCY, and it cuts our way.** Their **Dirichlet loss actually
+  pools at object-NAME TEXT tokens** (heuristically located), **not** at mask-pooled *visual* tokens
+  as their §4 claims. Two consequences:
+  - **(a) METHODS SECTIONS ARE HYPOTHESES TOO — verify them against the code.** This is rule 4 ("an
+    upstream field is a hypothesis") generalized from *dataset fields* to *paper methods*. Both of
+    this project's near-misses now come from believing a document instead of an artefact.
+  - **(b) Their reported +6–7pp therefore comes from an intervention at a TEXT-TOKEN SITE** — which is
+    **weak adjacent support for our binding-site hypothesis**, arriving from a paper that did not know
+    it was providing it. Cite carefully (it is *their* result, *our* interpretation), and do not
+    overweight it.
+- **🎁 BONUS 2 — quotable positioning:** their **§I.1 explicitly cedes ABSOLUTE METRIC DISTANCE as
+  uninvestigated.** That is the gap our absolute-metric slice (SpatialRGPT-Bench distances, ReVSI-1F)
+  fills, stated in their own words.
+- **⚠ Their own honesty flag, worth honouring rather than exploiting:** they mark **|Δ| < 2pp at n = 4
+  seeds as exploratory.** Any effect of ours in that band gets the same label. If we quote their small
+  deltas as support, we must quote the caveat with them.
+
 **FOUR controls are mandatory for Phase 2, not one** *(a fourth was added 2026-07-16 — see 4)*:
 1. **Dumb-features leak ceiling** — every claim at every site must EXCEED a probe on mask geometry
    (+ shape/colour/cue values). Below the ceiling it is in the mask, not the representation.
@@ -388,9 +417,11 @@ important thing M3 produced.**
    scenes vary camera path, so camera-frame coords are not image positions. Our fixed camera makes
    x **identical** to image position (hence R²=0.997 measuring the pooling). Jitter kills the leak
    where it is created rather than correcting after the fact.
-4. **🆕 THE CONTRASTIVE-PAIR ESTIMATOR — adopted into M5 on 2026-07-16** (the one thing worth taking
-   from the Mirage Probes read). Probe on **stimulus PAIRS matched on mask geometry but differing in
-   TRUE DEPTH**, and decode depth from the *difference* between their activations.
+4. **🆕 THE CONTRASTIVE-PAIR ESTIMATOR — adopted into M5 on 2026-07-16** (surfaced by the Mirage
+   Probes read; **its prior art is Why Far Looks Up's MINIMAL CONTRASTIVE PAIRS — cite them, the
+   design is not ours from nothing**, exactly as the ceiling descends from Hewitt & Liang). Probe on
+   **stimulus PAIRS matched on mask geometry but differing in TRUE DEPTH**, and decode depth from the
+   *difference* between their activations.
    **Why it is stronger than the ceiling:** the ceiling *subtracts* an estimate of the leak after the
    fact; this estimator **makes the leak inexpressible by construction** — if the two items have the
    same mask geometry, then **no function of mask geometry can separate them**, so a dumb-features
@@ -593,7 +624,41 @@ against the ROLE it could predict, not just its own marginal.**
 - **Never trust a rendered metric without an invariant check.** The colour-keyed mask silently bled into bounce-lit floor for the entire first version of the generator (see the ID-pass bug above); it was caught only by asking "is a sphere as tall as it is wide?" Validate the metric itself, not just that the pipeline ran.
 - **Field velocity is extreme**: the literature analysis was materially revised twice in one day by newly-found papers (Kang et al., then Wang & Gao / Ill-Posed by Design — the latter two found only after Kaho pushed to search newer work). **Rule: every specific design claim gets a verification search before being asserted or written.** Biweekly citation watch on 2601.12626, 2605.07148, 2606.24335, 2411.17385 (offered as scheduled task; not yet set up).
 - Superseded ideas (don't re-propose): qualitative-direction steering, ordering-probe amplification (Kang/Dual Mechanisms territory); behavioral-only cue decomposition for size (Ill-Posed); new static benchmarks; "present but unverbalized" as stated.
-- Must-reads before design freeze: Attention in Space (2603.20662), Why Far Looks Up (2605.30161), full Ill-Posed §6.6 + limitations; Echo-Memory (2606.09803) before any memory work.
+### ✅ THE MUST-READ LIST IS NOW EMPTY (closed 2026-07-16). Everything left is stage-gated or writing-time.
+Both remaining pre-design-freeze papers were deep-read on 2026-07-16. **Neither blocks M4a; both
+change what we write.**
+
+- **Why Far Looks Up (2605.30161) — deep-read. ⚠ IT FORCES A WORDING CORRECTION EVERYWHERE.**
+  - **The phenomenon is `VERTICAL–DISTANCE entanglement (VD-EI)`, and it is AXIS-SPECIFIC — the
+    HORIZONTAL axis is clean.** Our docs said "depth-vertical entanglement" as if it were a general
+    depth↔position confound. It is not. **Use their term and state the axis-specificity**; a reviewer
+    who knows this paper will read the loose phrasing as not having read it.
+  - **🔑 THEIR TEXT-DELTA PROBE IS IMMUNE TO OUR POSITION LEAK** — the visual components **cancel** in
+    the delta. **Never list them among the leak-affected work.** (This matters for how we draw the
+    field: the leak does not indict everyone who probes, and claiming it would be both wrong and
+    cheap.)
+  - **ADOPT:** **minimal contrastive pairs — and CITE THEM AS PRIOR ART for our contrastive-pair
+    estimator** (it is *not* ours from nothing; it descends from their design, as the ceiling descends
+    from Hewitt & Liang); the **consistent / counter split**; and **vertical/depth-decoupled corridor
+    stimuli** (a concrete generator recipe for M4a).
+  - **They leave open — and we take:** metric *regression* (they classify), **site-wise
+    decomposition**, and **camera variation**.
+- **Attention in Space (2603.20662) — deep-read. It is HEAD-OUTPUT PROBING, not routing.**
+  - **→ The "shipped vs transformed" fork remains OURS.** We had listed this paper as the thing that
+    would settle whether metric is *never shipped* to the LM or *destroyed in transit*. It does not
+    settle it — it probes head outputs. **The M5 outcome-matrix row that needs that distinction is
+    still ours to resolve.**
+  - **Adopt as known (do not re-derive):** spatial heads are **sparse (<1%)**; **ablating them
+    collapses performance**; **generic ITI-style steering yields only ~1–2pp** — which makes it a
+    useful **FOIL for metric-ID injection**: if our targeted injection is to mean anything, it must
+    beat a generic steering baseline that is already known to be nearly inert.
+  - **⚠ Caveats before quoting:** their labels are **LLM-generated** and their eval is **circular**.
+    **Verify every number against the PDF before it enters a doc** — do not quote from this note.
+
+**What remains, and what gates it:** **2508.04567** → S1.5 (masked-object probes; M4.5 freeze) ·
+**Echo-Memory (2606.09803)** → S4-B (memory work) · **Hewitt & Liang 2019 + Belinkov 2022** →
+writing-time citations, not blockers · full **Ill-Posed §6.6 + limitations** → re-read of a paper we
+already cite.
 - **✅ "Mirage Probes" (2606.13870) — DEEP-READ 2026-07-16. VERDICT: TITLE COLLISION ONLY. It was
   flagged as the top pre-M5 threat; it is not one.** *(Status changed from 🔴 PRIORITY-UNREAD.)*
   - **What it actually does:** probes for **"mirage behavior"** — a model answering **without using
