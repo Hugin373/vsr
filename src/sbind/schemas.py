@@ -68,6 +68,13 @@ class ObjectAnnotation:
     # count of mask pixels — a shape-robust apparent-size measure. retinal_size_px is the
     # mask's pixel HEIGHT, which depends on silhouette shape; area is the alternative.
     mask_area_px: int = 0
+    # M4a/M4.5: solo-object ID pass measurements. In M4a there is no occlusion
+    # condition, so visible and amodal masks should be identical up to rasterization.
+    mask_amodal: str | None = None
+    bbox_px_amodal: list[float] | None = None
+    retinal_size_px_amodal: float = 0.0
+    mask_area_px_amodal: int = 0
+    occlusion_ratio: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -87,6 +94,11 @@ class ObjectAnnotation:
             mask=d.get("mask"),
             nearest_surface_m=d.get("nearest_surface_m", 0.0),
             mask_area_px=d.get("mask_area_px", 0),
+            mask_amodal=d.get("mask_amodal"),
+            bbox_px_amodal=d.get("bbox_px_amodal"),
+            retinal_size_px_amodal=d.get("retinal_size_px_amodal", 0.0),
+            mask_area_px_amodal=d.get("mask_area_px_amodal", 0),
+            occlusion_ratio=d.get("occlusion_ratio", 0.0),
         )
 
 
@@ -127,6 +139,7 @@ class StimulusAnnotation:
     objects: list[ObjectAnnotation]
     factors: dict[str, Any] = field(default_factory=dict)
     pair_relations: dict[str, PairRelation] = field(default_factory=dict)
+    questions: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -136,6 +149,7 @@ class StimulusAnnotation:
             "objects": [o.to_dict() for o in self.objects],
             "factors": self.factors,
             "pair_relations": {k: v.to_dict() for k, v in self.pair_relations.items()},
+            "questions": self.questions,
         }
 
     @classmethod
@@ -149,6 +163,7 @@ class StimulusAnnotation:
             pair_relations={
                 k: PairRelation.from_dict(v) for k, v in d.get("pair_relations", {}).items()
             },
+            questions=list(d.get("questions", [])),
         )
 
 

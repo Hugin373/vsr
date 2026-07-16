@@ -221,3 +221,30 @@ Niche B (understanding↔generation) remains genuinely unclaimed and is unaffect
 **Reproduction targets for W1–2:** Kang et al.'s pipeline ([code](https://github.com/Raphoo/linear-mech-vlms)) and Wang & Gao's probe setup — both must be reproduced before building on them.
 
 *Caveats: agents read full texts where available; SpatialReward's §5.3–5.4, Wang & Gao's formal appendices (F–H, I.1), and some C-paper appendices were truncated in fetched HTML; Ill-Posed by Design (2606.24335) was read at section level only. Verify quoted numbers against the PDFs before citing. Field velocity is high — this document was materially revised twice in one day by newly-found papers. Re-run a scoping search (papers citing 2601.12626, 2605.07148, 2606.24335, and 2411.17385) every 2 weeks until submission, and verify every specific design claim with a search before it enters the proposal.*
+
+
+---
+
+## Addendum — full literature sweep, 2026-07-16 (all five anchors + topic sweep)
+
+**Method:** complete citer enumeration for every anchor (Semantic Scholar API + web verification
+of actual reference lists) PLUS an anchor-independent topic sweep of May–July 2026 arXiv — the
+latter found the most important paper, which cites none of our anchors.
+
+| Paper | What it is | Verdict vs our claims |
+|---|---|---|
+| **2605.20448** Do VLMs Understand 3D Scenes or Just Catalogue Objects? (Deccan AI, May 19) | 17-site activation-patching trace (ViT→merger→LM L0–27), categorical occlusion | 🔴🔴 closest competitor; localizes failure AT the projector — contradicts our H1 AND Anchored; no metric var / probes / binding sites. We adjudicate. |
+| **2606.06714** Anchored, Not Graded | probe trace of continuous SLANT, encoder→projector→LM-input, factorial synthetic | 🔴 publishes our front half; decodable at LM-input, output anchors; LM-internal = declared future work |
+| 2607.03358 Pathways of Visual Information Flow (Copenhagen) | direct vs text-mediated routing, patching, categorical | claims untouched; adopt restoration score; warnings: synthetic↔natural routing flip, prompt-format sensitivity |
+| 2606.31257 Decodable Is Not Grounded (UNSW/NUS) | vision-ablation arbiter; decodability ≠ grounding | claims survive; ADOPT arbiter (blank + mismatched reruns) as mandatory M5 control; boundary: near-field depth is grounded-correct — never claim "depth unused" |
+| 2605.12586 SpatialBabel (Unity) | behavioral; code-emission vs QA dissociation (r=0.12) | LOW; citable behavioral motivation |
+| 2607.01503 O3-D | cue-controlled behavioral depth benchmark (models ≤ chance) | stimulus-philosophy sibling; cite |
+| 2604.13321 Why MLLMs Struggle w/ Orientations | encoder-only probing of continuous orientation | "present but diffuse, downstream unknown" — convergent motivation |
+| 2606.01914 Spatial Lexical Bias (Kyoto/NII) | mechanistic pipeline for relation-WORD bias | methodological sibling; cite; WATCH |
+
+**Consequences:** (1) claim reworded — *first leak-controlled probe trace of a controlled
+continuous metric depth variable across the full chain incl. object-word binding sites*;
+(2) framing upgraded from gap to **adjudication** of the published projector-vs-post-projector
+disagreement (site-2 vs site-4 pre-registered primary); (3) two named scoop risks with declared
+follow-ups (Anchored's group, Deccan AI) → WACV R2 Aug 28 target; (4) protocol: monthly topic
+sweeps added — citation graphs missed the nearest competitor for two months.

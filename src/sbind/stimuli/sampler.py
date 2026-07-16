@@ -1,18 +1,18 @@
 """Seeded factorial sampler: stimulus-set config -> balanced list of SceneSpec.
 
 Determinism rule: the entire set is a pure function of (config, seed). ``balanced_on``
-factors get near-equal marginal counts (e.g. the pairwise "which object is closer"
-label is forced 50/50 so probes can't exploit a class imbalance); other factors are
-sampled uniformly at random.
+factors get near-equal marginal counts; other factors are sampled uniformly at random.
 
-v0 (this milestone): congruent conditions only — two equal-physical-size objects rest
-on the ground plane, so vertical position and retinal size both co-vary naturally with
-depth. Conflict conditions (fixed-retinal-size, elevation-conflict) arrive in M4.
+M4a extends the original v0 congruent sampler with continuous lateral positions,
+per-image camera jitter, independent per-object size jitter, nuisance variation and
+optional distractors, while keeping the v0 config backward-compatible.
 """
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import yaml
@@ -22,11 +22,7 @@ from .scene_spec import CameraSpec, ObjectSpec, SceneSpec
 
 
 def balanced_levels(n: int, levels: list, rng: np.random.Generator) -> list:
-    """A length-n list where each level appears ~n/len(levels) times, shuffled.
-
-    Deterministic given ``rng``. The remainder (when n is not divisible) is spread over
-    a random subset of levels, so counts differ by at most one.
-    """
+    """A length-n list where each level appears ~n/len(levels) times, shuffled."""
     if not levels:
         raise ValueError("levels must be non-empty")
     L = len(levels)
@@ -46,12 +42,7 @@ def factorial_assignments(
     rng: np.random.Generator,
     balanced_on: list[str] | None = None,
 ) -> list[dict]:
-    """Return n factor-level assignments. ``balanced_on`` factors are marginally balanced.
-
-    Each assignment is a dict mapping factor name -> chosen level. Non-balanced factors
-    are sampled i.i.d. uniformly. Column order of RNG draws is fixed (sorted factor
-    names) so the output is reproducible.
-    """
+    """Return n factor-level assignments. ``balanced_on`` factors are marginally balanced."""
     balanced_on = set(balanced_on or [])
     columns: dict[str, list] = {}
     for name in sorted(factors):
@@ -66,18 +57,11 @@ def factorial_assignments(
 
 def _rest_height(category: str, size_m: float) -> float:
     """Z of the object centre so it rests on the ground plane (z=0)."""
-    # cube edge = sphere diameter = cylinder height = size_m; all sit with centre at
-    # half their vertical extent above the ground.
-    return size_m / 2.0
+    return geometry.rest_height(category, size_m)
 
 
 def _resolve_sizes(obj_cfg: dict, categories: list[str]) -> dict[str, float]:
-    """Per-category size_m: inline map, else the calibration file, else a flat base size.
-
-    The calibrated sizes make every primitive subtend the same retinal pixel-height at a
-    given depth (see scripts/calibrate_sizes.py) — without them a far cube can out-measure
-    a near sphere and invert the size cue.
-    """
+    """Per-category size_m: inline map, else calibration file, else flat base size."""
     sizes = dict(obj_cfg.get("size_m_by_category") or {})
     if not sizes and obj_cfg.get("size_calibration_file"):
         path = Path(obj_cfg["size_calibration_file"])
@@ -97,11 +81,232 @@ def _resolve_sizes(obj_cfg: dict, categories: list[str]) -> dict[str, float]:
     return {c: float(sizes[c]) for c in categories}
 
 
-def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
-    """Turn a stimulus-set config dict into a deterministic list of SceneSpec.
+def _range_or_value(cfg: dict[str, Any], key: str, default: float) -> float:
+    value = cfg.get(key, default)
+    if isinstance(value, (list, tuple)):
+        if len(value) != 2:
+            raise ValueError(f"{key} range must be [lo, hi], got {value!r}")
+        return float(value[0]), float(value[1])  # type: ignore[return-value]
+    return float(value)
 
-    See configs/stimuli_v0_congruent.yaml for the expected shape.
-    """
+
+def _uniform_range(rng: np.random.Generator, value, default: tuple[float, float]) -> float:
+    if value is None:
+        lo, hi = default
+    elif isinstance(value, (list, tuple)):
+        lo, hi = float(value[0]), float(value[1])
+    else:
+        return float(value)
+    return float(rng.uniform(lo, hi))
+
+
+def _jitter_camera(
+    cam_cfg: dict, render_cfg: dict, rng: np.random.Generator
+) -> tuple[CameraSpec, dict]:
+    """Apply per-image height/pitch/yaw jitter around the config camera."""
+    base_pos = np.asarray(cam_cfg["pos_world"], dtype=float)
+    base_target = np.asarray(cam_cfg["target_world"], dtype=float)
+    jitter = cam_cfg.get("jitter", {}) or {}
+    dh = _uniform_range(rng, jitter.get("height_m"), (0.0, 0.0))
+    dp = math.radians(_uniform_range(rng, jitter.get("pitch_deg"), (0.0, 0.0)))
+    dyaw = math.radians(_uniform_range(rng, jitter.get("yaw_deg"), (0.0, 0.0)))
+
+    direction = base_target - base_pos
+    dist = float(np.linalg.norm(direction))
+    horiz = float(np.hypot(direction[0], direction[1]))
+    yaw = math.atan2(direction[0], direction[1]) + dyaw
+    pitch = math.atan2(direction[2], horiz) + dp
+
+    pos = base_pos.copy()
+    pos[2] += dh
+    new_dir = np.array(
+        [
+            math.sin(yaw) * math.cos(pitch),
+            math.cos(yaw) * math.cos(pitch),
+            math.sin(pitch),
+        ]
+    )
+    target = pos + dist * new_dir
+    cam = CameraSpec(
+        pos_world=pos.tolist(),
+        target_world=target.tolist(),
+        f_mm=float(cam_cfg["f_mm"]),
+        sensor_width_mm=float(cam_cfg["sensor_width_mm"]),
+        res_x=int(render_cfg["res_x"]),
+        res_y=int(render_cfg["res_y"]),
+    )
+    rec = {
+        "camera_height_delta_m": dh,
+        "camera_pitch_delta_deg": math.degrees(dp),
+        "camera_yaw_delta_deg": math.degrees(dyaw),
+    }
+    return cam, rec
+
+
+def _sample_lateral(fcfg: dict, swap: int, rng: np.random.Generator) -> tuple[float, float, dict]:
+    """Return near_x, far_x with balanced side and optional continuous magnitudes."""
+    sign = -1.0 if swap == 0 else 1.0
+    if "lateral_range" in fcfg:
+        lo, hi = map(float, fcfg["lateral_range"])
+        near_mag = float(rng.uniform(lo, hi))
+        far_mag = float(rng.uniform(lo, hi))
+        near_x = sign * near_mag
+        far_x = -sign * far_mag
+        return near_x, far_x, {"near_lateral_abs": near_mag, "far_lateral_abs": far_mag}
+    lateral = float(fcfg["lateral_offset"])
+    return (
+        sign * lateral,
+        -sign * lateral,
+        {"near_lateral_abs": lateral, "far_lateral_abs": lateral},
+    )
+
+
+def _projected_box(
+    camera: CameraSpec, obj: ObjectSpec, margin_px: float = 0.0
+) -> tuple[float, float, float, float] | None:
+    """Approximate projected bbox from the object's conservative axis-aligned bounds."""
+    K, R, t, _ = geometry.camera_frame(
+        camera.pos_world,
+        camera.target_world,
+        camera.f_mm,
+        camera.sensor_width_mm,
+        camera.res_x,
+        camera.res_y,
+    )
+    hx, hy, hz = geometry.category_half_sizes(obj.category, obj.size_m)
+    cx, cy, cz = obj.pos_world
+    corners = np.array(
+        [
+            [cx + sx * hx, cy + sy * hy, cz + sz * hz]
+            for sx in (-1.0, 1.0)
+            for sy in (-1.0, 1.0)
+            for sz in (-1.0, 1.0)
+        ],
+        dtype=float,
+    )
+    proj = geometry.project(K, R, t, corners)
+    if np.any(proj[:, 2] <= 0):
+        return None
+    return (
+        float(np.min(proj[:, 0]) - margin_px),
+        float(np.min(proj[:, 1]) - margin_px),
+        float(np.max(proj[:, 0]) + margin_px),
+        float(np.max(proj[:, 1]) + margin_px),
+    )
+
+
+def _boxes_overlap(
+    a: tuple[float, float, float, float], b: tuple[float, float, float, float]
+) -> bool:
+    return not (a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1])
+
+
+def _box_in_frame(
+    box: tuple[float, float, float, float],
+    width: int,
+    height: int,
+    margin_px: float,
+) -> bool:
+    return (
+        box[0] >= margin_px
+        and box[1] >= margin_px
+        and box[2] <= width - margin_px
+        and box[3] <= height - margin_px
+    )
+
+
+def _size_multipliers(
+    cond: dict, fcfg: dict, rng: np.random.Generator
+) -> tuple[float, float, dict]:
+    """Return near/far physical-size multipliers according to size_condition."""
+    size_condition = cond.get("size_condition", "congruent")
+    if size_condition in {"independent_jitter", "counterbalanced"}:
+        value = fcfg.get("size_multiplier_range") or fcfg.get("size_multipliers", [0.85, 1.15])
+        near = _uniform_range(rng, value, (0.85, 1.15))
+        far = _uniform_range(rng, value, (0.85, 1.15))
+        return near, far, {"size_multiplier_near": near, "size_multiplier_far": far}
+    if size_condition in {"far_larger", "conflict_far_larger"}:
+        near = _uniform_range(rng, fcfg.get("near_size_multiplier_range"), (0.80, 0.95))
+        far = _uniform_range(rng, fcfg.get("far_size_multiplier_range"), (1.15, 1.35))
+        return near, far, {"size_multiplier_near": near, "size_multiplier_far": far}
+    mults = list(fcfg.get("size_multipliers", [1.0]))
+    m = float(mults[int(rng.integers(0, len(mults)))])
+    return m, m, {"size_multiplier": m, "size_multiplier_near": m, "size_multiplier_far": m}
+
+
+def _sample_scene_appearance(
+    scene_cfg: dict, rng: np.random.Generator
+) -> tuple[list[float], float, list[float]]:
+    colors = scene_cfg.get("ground_colors") or [scene_cfg.get("ground_color", [0.5, 0.5, 0.5])]
+    ground_color = list(colors[int(rng.integers(0, len(colors)))])
+    sun_energy = _uniform_range(
+        rng,
+        scene_cfg.get("sun_energy_range"),
+        (float(scene_cfg.get("sun_energy", 4.0)), float(scene_cfg.get("sun_energy", 4.0))),
+    )
+    direction = np.asarray(scene_cfg.get("sun_direction", [5.0, -5.0, 8.0]), dtype=float)
+    jitter = float(scene_cfg.get("sun_direction_jitter", 0.0))
+    if jitter > 0:
+        direction = direction + rng.normal(0.0, jitter, size=3)
+        direction[2] = max(direction[2], 1.0)
+    return ground_color, float(sun_energy), direction.tolist()
+
+
+def _make_distractors(
+    cfg: dict,
+    size_by_cat: dict[str, float],
+    color_items: list,
+    rng: np.random.Generator,
+    camera: CameraSpec,
+    target_objects: list[ObjectSpec],
+) -> list[ObjectSpec]:
+    dcfg = cfg.get("distractors", {}) or {}
+    levels = list(dcfg.get("count_levels", [0]))
+    n = int(levels[int(rng.integers(0, len(levels)))])
+    if n <= 0:
+        return []
+    cats = list(dcfg.get("categories") or list(size_by_cat))
+    x_range = dcfg.get("x_range", [-1.65, 1.65])
+    y_range = dcfg.get("y_range", [2.8, 4.8])
+    mult_range = dcfg.get("size_multiplier_range", [0.55, 0.85])
+    out: list[ObjectSpec] = []
+    K, R, t, _ = geometry.camera_frame(
+        camera.pos_world,
+        camera.target_world,
+        camera.f_mm,
+        camera.sensor_width_mm,
+        camera.res_x,
+        camera.res_y,
+    )
+    occupied = [geometry.project(K, R, t, o.pos_world)[:2] for o in target_objects]
+    # Spread distractors toward the sides/back and reject approximate projected overlaps.
+    # Exact mask validation still decides correctness after rendering; this only prevents
+    # the common accidental-occlusion cases before we burn render time.
+    for k in range(n):
+        chosen = None
+        for _attempt in range(160):
+            cat = cats[int(rng.integers(0, len(cats)))]
+            cname, crgb = color_items[int(rng.integers(0, len(color_items)))]
+            side = -1.0 if k % 2 == 0 else 1.0
+            x = side * float(rng.uniform(abs(float(x_range[0])), abs(float(x_range[1]))))
+            y = float(rng.uniform(float(y_range[0]), float(y_range[1])))
+            size = size_by_cat[cat] * _uniform_range(rng, mult_range, (0.55, 0.85))
+            z = _rest_height(cat, size)
+            u, v, d = geometry.project(K, R, t, [x, y, z])
+            if d <= 0 or not (35 <= u <= camera.res_x - 35 and 35 <= v <= camera.res_y - 35):
+                continue
+            if occupied and min(float(np.hypot(u - q[0], v - q[1])) for q in occupied) < 95:
+                continue
+            chosen = ObjectSpec(f"distractor_{cname}_{cat}", cat, list(crgb), size, [x, y, z])
+            occupied.append(np.array([u, v]))
+            break
+        if chosen is not None:
+            out.append(chosen)
+    return out
+
+
+def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
+    """Turn a stimulus-set config dict into a deterministic list of SceneSpec."""
     rng = np.random.default_rng(seed)
     n = int(config["n_images"])
     set_name = config["output"]["set_name"]
@@ -112,61 +317,12 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
     scene_cfg = config.get("scene", {})
     cond = config.get("condition", {})
     fcfg = config["factors"]
+    constraints = config.get("constraints", {})
 
     categories = list(obj_cfg["categories"])
     size_by_cat = _resolve_sizes(obj_cfg, categories)
-    # Physical-size variation is SHARED by both objects of a pair in the congruent
-    # condition: independent per-object jitter would let physical size invert the retinal
-    # cue, which is the M4 `size_condition` conflict manipulation, not a congruent one.
-    size_multipliers = list(fcfg.get("size_multipliers", [1.0]))
-    color_items = list(obj_cfg["colors"].items())  # [(name, rgb), ...]
-    lateral = float(fcfg["lateral_offset"])
-    # continuous depth: bin centres are jittered so depth is not a handful of discrete
-    # values (a discrete target would make ratio/absolute regression probes artificially
-    # easy and would alias with the bin factor).
-    jitter = float(fcfg.get("depth_jitter", 0.0))
-    min_gap = float(fcfg.get("min_gap", 0.25))
+    color_items = list(obj_cfg["colors"].items())
 
-    # Ordinal-unambiguity constraint (see the loop below). Needs the camera's optical
-    # axis, since half-extents are measured along the direction depth is measured in.
-    constraints = config.get("constraints", {})
-    unambiguous = bool(constraints.get("unambiguous_ordinal", True))
-    ordinal_margin = float(constraints.get("ordinal_margin_m", 0.15))
-    # Minimum far/near CENTRE-depth ratio. Every measured cue must be congruent by
-    # construction, and each cue has its own structural threshold (see the config):
-    # height ~1.012, area ~1.096. 1.12 clears both with margin.
-    min_depth_ratio = float(constraints.get("min_depth_ratio", 1.0))
-    ratio_floor_jitter = float(constraints.get("min_depth_ratio_jitter", 0.0))
-    _, R_cv, t_cv, _ = geometry.camera_frame(
-        cam_cfg["pos_world"],
-        cam_cfg["target_world"],
-        float(cam_cfg["f_mm"]),
-        float(cam_cfg["sensor_width_mm"]),
-        int(render_cfg["res_x"]),
-        int(render_cfg["res_y"]),
-    )
-    axis = geometry.optical_axis(R_cv)
-    t2 = float(t_cv[2])
-
-    def _depth(x: float, y: float, z: float) -> float:
-        return float(axis[0]) * x + float(axis[1]) * y + float(axis[2]) * z + t2
-
-    # Factor levels sampled per image.
-    #
-    # ⚠ SEMANTICS MUST NOT PREDICT DEPTH ROLE. Category is sampled as an ORDERED
-    # (near_category, far_category) pair, and that pair is BALANCED — not as two independent
-    # draws. Drawing cat_a/cat_b independently left which shape lands in the near role to the
-    # seed's luck: the v0 set came out sphere-near 148 / far 182 and cube-near 168 / far 147,
-    # so the best shape-only constant strategy ("the cube is closer") scored 55.1% on mixed
-    # pairs — a language-only model gets that for free, and a depth probe can read depth off
-    # object IDENTITY. In a set whose entire purpose is to decorrelate semantics from geometry
-    # that is a construction bug, and it is exactly the confound Wang & Gao residualize out.
-    # Balancing the ordered pair makes "X is nearer than Y" and "Y is nearer than X" equally
-    # frequent for every {X, Y}, so no shape-only strategy can beat chance BY CONSTRUCTION.
-    #
-    # Colour gets the same treatment: it measured clean (p=0.63) but only by luck, and this
-    # project's principle is "congruent by construction, for every measured cue" — a cue that
-    # happens to be balanced this seed is not a guarantee.
     cat_pairs = [(a, b) for a in categories for b in categories]
     color_pairs = [(a, b) for a in range(len(color_items)) for b in range(len(color_items))]
     factors = {
@@ -174,126 +330,152 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         "depth_gap_bin": list(range(len(fcfg["depth_gaps"]))),
         "closer_object": [0, 1],
         "lateral_swap": [0, 1],
-        "cat_pair": list(range(len(cat_pairs))),  # (near_cat, far_cat) — balanced
-        "color_pair": list(range(len(color_pairs))),  # (near_col, far_col) — balanced
-        "size_multiplier": size_multipliers,  # ONE per image, shared by both objects
+        "cat_pair": list(range(len(cat_pairs))),
+        "color_pair": list(range(len(color_pairs))),
     }
-    assignments = factorial_assignments(
-        factors,
-        n,
-        rng,
-        balanced_on=["closer_object", "near_depth_bin", "cat_pair", "color_pair"],
+    balanced_on = list(
+        config.get(
+            "balanced_on",
+            ["closer_object", "near_depth_bin", "cat_pair", "color_pair", "lateral_swap"],
+        )
     )
+    assignments = factorial_assignments(factors, n, rng, balanced_on=balanced_on)
+
+    jitter = float(fcfg.get("depth_jitter", 0.0))
+    min_gap = float(fcfg.get("min_gap", 0.25))
+    unambiguous = bool(constraints.get("unambiguous_ordinal", True))
+    ordinal_margin = float(constraints.get("ordinal_margin_m", 0.15))
+    min_depth_ratio = float(constraints.get("min_depth_ratio", 1.0))
+    ratio_floor_jitter = float(constraints.get("min_depth_ratio_jitter", 0.0))
 
     specs: list[SceneSpec] = []
     for i, a in enumerate(assignments):
-        near_y = float(fcfg["near_depth_bins"][a["near_depth_bin"]]) + rng.uniform(-jitter, jitter)
+        camera, camera_record = _jitter_camera(cam_cfg, render_cfg, rng)
+        _, R_cv, t_cv, _ = geometry.camera_frame(
+            camera.pos_world,
+            camera.target_world,
+            camera.f_mm,
+            camera.sensor_width_mm,
+            camera.res_x,
+            camera.res_y,
+        )
+        axis = geometry.optical_axis(R_cv)
+        t2 = float(t_cv[2])
+
+        axis_bound = axis.copy()
+        t2_bound = t2
+
+        def _depth(
+            x: float,
+            y: float,
+            z: float,
+            *,
+            axis: np.ndarray = axis_bound,
+            t2: float = t2_bound,
+        ) -> float:
+            return float(axis[0]) * x + float(axis[1]) * y + float(axis[2]) * z + t2
+
+        near_y_base = float(fcfg["near_depth_bins"][a["near_depth_bin"]]) + rng.uniform(
+            -jitter, jitter
+        )
         gap = float(fcfg["depth_gaps"][a["depth_gap_bin"]]) + rng.uniform(-jitter, jitter)
-        gap = max(gap, min_gap)  # keep the pair strictly ordered in depth
-        far_y = near_y + gap
+        gap = max(gap, min_gap)
 
-        # lateral placement: near object on one side, far on the other (swap by factor)
-        near_x = -lateral if a["lateral_swap"] == 0 else lateral
-        far_x = -near_x
-
-        # which slot (obj0/obj1) is the nearer object
         closer = a["closer_object"]
         farther = 1 - closer
-
-        # Category and colour are drawn as ORDERED (near, far) pairs and assigned BY DEPTH
-        # ROLE, not by slot — that is what keeps semantics from predicting depth (see above).
         near_cat, far_cat = cat_pairs[a["cat_pair"]]
         near_col, far_col = color_pairs[a["color_pair"]]
-
-        # the two objects must be distinguishable: never identical in BOTH category and
-        # colour (an identical pair makes "which object is closer?" unanswerable).
         if near_cat == far_cat and near_col == far_col:
             alternatives = [c for c in range(len(color_items)) if c != near_col]
             far_col = int(rng.choice(alternatives))
 
         cats = {closer: near_cat, farther: far_cat}
         cols = {closer: color_items[near_col], farther: color_items[far_col]}
+        near_mult, far_mult, size_record = _size_multipliers(cond, fcfg, rng)
+        mult_by_role = {closer: near_mult, farther: far_mult}
+        obj_size = {slot: size_by_cat[cats[slot]] * mult_by_role[slot] for slot in (0, 1)}
 
-        # One multiplier for the whole pair (see size_multipliers note above). Calibrated
-        # per-category sizes mean both objects still subtend equal retinal extent at equal
-        # depth, so within a pair retinal size is ordered by depth alone.
-        mult = float(a["size_multiplier"])
-        obj_size = {slot: size_by_cat[cats[slot]] * mult for slot in (0, 1)}
+        target_margin_px = float(constraints.get("target_bbox_margin_px", 0.0))
+        target_frame_margin_px = float(constraints.get("target_frame_margin_px", 0.0))
+        max_attempts = int(constraints.get("target_placement_attempts", 120))
+        objects: list[ObjectSpec] = []
+        placement_attempt = -1
+        for attempt in range(max_attempts):
+            near_y = near_y_base
+            far_y = near_y + gap
+            near_x, far_x, lateral_record = _sample_lateral(fcfg, a["lateral_swap"], rng)
 
-        # Push the far object back until BOTH structural constraints hold. Work in true
-        # optical-axis depth (not world-y): the objects rest at different heights now,
-        # because the calibrated size_m differs per category.
-        z_near = _rest_height(cats[closer], obj_size[closer])
-        z_far = _rest_height(cats[1 - closer], obj_size[1 - closer])
-        d_near = _depth(near_x, near_y, z_near)
-        required_d_far = _depth(far_x, far_y, z_far)
+            z_near = _rest_height(cats[closer], obj_size[closer])
+            z_far = _rest_height(cats[farther], obj_size[farther])
+            d_near = _depth(near_x, near_y, z_near)
+            required_d_far = _depth(far_x, far_y, z_far)
 
-        # (a) Unambiguous ordinal: centre-depth order and nearest-surface order must
-        #     agree. Half-extents along the viewing axis differ by shape, so a far cube
-        #     could otherwise present a nearer surface than a near sphere.
-        if unambiguous:
-            h_near = geometry.half_extent_along(cats[closer], obj_size[closer], axis)
-            h_far = geometry.half_extent_along(cats[1 - closer], obj_size[1 - closer], axis)
-            required_d_far = max(required_d_far, d_near + abs(h_near - h_far) + ordinal_margin)
+            if unambiguous:
+                h_near = geometry.half_extent_along(cats[closer], obj_size[closer], axis)
+                h_far = geometry.half_extent_along(cats[farther], obj_size[farther], axis)
+                required_d_far = max(required_d_far, d_near + abs(h_near - h_far) + ordinal_margin)
+            if min_depth_ratio > 1.0:
+                floor = min_depth_ratio * (1.0 + rng.uniform(0.0, ratio_floor_jitter))
+                required_d_far = max(required_d_far, floor * d_near)
+            if abs(axis[1]) > 1e-9:
+                far_y = (
+                    required_d_far - t2 - float(axis[0]) * far_x - float(axis[2]) * z_far
+                ) / float(axis[1])
 
-        # (b) Minimum depth ratio: makes every apparent-size cue congruent BY
-        #     CONSTRUCTION rather than by luck of the seed (see config cue_constants).
-        #     The floor is JITTERED per image: clamping every under-floor pair to exactly
-        #     min_depth_ratio would pile ~28% of the set onto one value, putting a point
-        #     mass in the `ratio` regression target and creating ties that blunt Spearman.
-        if min_depth_ratio > 1.0:
-            floor = min_depth_ratio * (1.0 + rng.uniform(0.0, ratio_floor_jitter))
-            required_d_far = max(required_d_far, floor * d_near)
-
-        if abs(axis[1]) > 1e-9:
-            far_y = (
-                required_d_far - t2 - float(axis[0]) * far_x - float(axis[2]) * z_far
-            ) / float(axis[1])
-
-        depth_y = {closer: near_y, 1 - closer: far_y}
-        xpos = {closer: near_x, 1 - closer: far_x}
-
-        objects = []
-        for slot in (0, 1):
-            cat = cats[slot]
-            cname, crgb = cols[slot]
-            s = obj_size[slot]
-            z = _rest_height(cat, s)
-            objects.append(
-                ObjectSpec(
-                    name=f"{cname}_{cat}",
-                    category=cat,
-                    color=list(crgb),
-                    size_m=s,
-                    pos_world=[xpos[slot], depth_y[slot], z],
+            depth_y = {closer: near_y, farther: far_y}
+            xpos = {closer: near_x, farther: far_x}
+            candidate: list[ObjectSpec] = []
+            for slot in (0, 1):
+                cat = cats[slot]
+                cname, crgb = cols[slot]
+                s = obj_size[slot]
+                z = _rest_height(cat, s)
+                candidate.append(
+                    ObjectSpec(f"{cname}_{cat}", cat, list(crgb), s, [xpos[slot], depth_y[slot], z])
                 )
+            box0 = _projected_box(camera, candidate[0], margin_px=target_margin_px)
+            box1 = _projected_box(camera, candidate[1], margin_px=target_margin_px)
+            if (
+                box0 is not None
+                and box1 is not None
+                and _box_in_frame(box0, camera.res_x, camera.res_y, target_frame_margin_px)
+                and _box_in_frame(box1, camera.res_x, camera.res_y, target_frame_margin_px)
+                and not _boxes_overlap(box0, box1)
+            ):
+                objects = candidate
+                placement_attempt = attempt
+                break
+        if not objects:
+            raise RuntimeError(
+                f"could not place non-overlapping target pair after {max_attempts} attempts "
+                f"for {set_name}_{i:05d}; loosen lateral_range or size_multiplier_range"
             )
+        distractors = _make_distractors(config, size_by_cat, color_items, rng, camera, objects)
+        objects.extend(distractors)
 
-        camera = CameraSpec(
-            pos_world=list(cam_cfg["pos_world"]),
-            target_world=list(cam_cfg["target_world"]),
-            f_mm=float(cam_cfg["f_mm"]),
-            sensor_width_mm=float(cam_cfg["sensor_width_mm"]),
-            res_x=int(render_cfg["res_x"]),
-            res_y=int(render_cfg["res_y"]),
-        )
-
+        ground_color, sun_energy, sun_direction = _sample_scene_appearance(scene_cfg, rng)
         factors_record = {
+            "regime": cond.get("regime", cond.get("name", "natural_congruent")),
             "near_depth_bin": a["near_depth_bin"],
             "depth_gap_bin": a["depth_gap_bin"],
             "closer_object": closer,
+            "target_object_indices": [0, 1],
             "lateral_swap": a["lateral_swap"],
-            # the ORDERED semantic pairs, recorded so a probe/analysis can verify that
-            # semantics do not predict depth role (see the balancing note above)
             "near_category": cats[closer],
             "far_category": cats[farther],
             "near_color": cols[closer][0],
             "far_color": cols[farther][0],
             "near_y": near_y,
             "far_y": far_y,
-            "size_multiplier": mult,  # shared by both objects (congruent condition)
+            "near_x": near_x,
+            "far_x": far_x,
+            "target_placement_attempt": placement_attempt,
             "size_condition": cond.get("size_condition", "congruent"),
             "elevation_condition": cond.get("elevation_condition", "congruent"),
+            "distractor_count": len(distractors),
+            **lateral_record,
+            **size_record,
+            **camera_record,
         }
 
         specs.append(
@@ -301,9 +483,9 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
                 id=f"{set_name}_{i:05d}",
                 camera=camera,
                 objects=objects,
-                ground_color=list(scene_cfg.get("ground_color", [0.5, 0.5, 0.5])),
-                sun_energy=float(scene_cfg.get("sun_energy", 4.0)),
-                sun_direction=list(scene_cfg.get("sun_direction", [5.0, -5.0, 8.0])),
+                ground_color=ground_color,
+                sun_energy=sun_energy,
+                sun_direction=sun_direction,
                 factors=factors_record,
             )
         )

@@ -1,0 +1,89 @@
+{
+  "decorrelation_pearson": {
+    "centroid_u__centroid_v": -0.6669687502439625,
+    "depth_m__centroid_u": 0.42095434628114936,
+    "depth_m__centroid_v": -0.792887627627503,
+    "depth_m__elevation_px": -0.8048844717381262,
+    "depth_m__mask_area_px": -0.6959818500403696,
+    "depth_m__retinal_size_px": -0.719063550099352,
+    "depth_m__size_m": -0.038388449259805175,
+    "depth_m__x_cam": 0.4200789965556431,
+    "elevation_px__centroid_u": -0.8424026864737614,
+    "elevation_px__centroid_v": 0.9341940341657916,
+    "elevation_px__mask_area_px": 0.9820126766620405,
+    "elevation_px__retinal_size_px": 0.9859488433042711,
+    "elevation_px__size_m": 0.42109789881166626,
+    "mask_area_px__centroid_u": -0.898993555466345,
+    "mask_area_px__centroid_v": 0.9239674979120895,
+    "mask_area_px__size_m": 0.4519119850990363,
+    "retinal_size_px__centroid_u": -0.9074816395977607,
+    "retinal_size_px__centroid_v": 0.9007872937513292,
+    "retinal_size_px__mask_area_px": 0.994978363486519,
+    "retinal_size_px__size_m": 0.4950552988350351,
+    "size_m__centroid_u": -0.7620942808175264,
+    "size_m__centroid_v": 0.0971055318976734,
+    "x_cam__centroid_u": 0.9894112127896029,
+    "x_cam__centroid_v": -0.5982810469198709,
+    "x_cam__elevation_px": -0.8153532725776202,
+    "x_cam__mask_area_px": -0.8565532229902342,
+    "x_cam__retinal_size_px": -0.8759859210443974,
+    "x_cam__size_m": -0.8342288944509322
+  },
+  "distractor_count_distribution": {
+    "0": 3
+  },
+  "gate": {
+    "ordinal_depth/heldout_cue_combo/acc": "FAIL",
+    "ordinal_depth/heldout_depth_gap/acc": "FAIL",
+    "ordinal_depth/heldout_object_pair/acc": "FAIL",
+    "ratio_depth/heldout_cue_combo/r2": "FAIL",
+    "ratio_depth/heldout_depth_gap/r2": "FAIL",
+    "ratio_depth/heldout_object_pair/r2": "FAIL",
+    "role/heldout_camera_pose/acc": "PASS",
+    "role/heldout_depth_range/acc": "PASS",
+    "role/heldout_object_identity/acc": "FAIL",
+    "x_lateral/heldout_camera_pose/r2": "PASS",
+    "x_lateral/heldout_depth_range/r2": "PASS",
+    "x_lateral/heldout_object_identity/r2": "PASS",
+    "z_depth/heldout_camera_pose/r2": "FAIL",
+    "z_depth/heldout_depth_range/r2": "FAIL",
+    "z_depth/heldout_object_identity/r2": "FAIL"
+  },
+  "gate_thresholds": {
+    "min_acc": 0.7,
+    "min_r2": 0.2
+  },
+  "n_images": 3,
+  "n_target_objects": 6,
+  "oracle_feature_scores": {
+    "ordinal_depth/heldout_cue_combo/acc": 0.3333333333333333,
+    "ordinal_depth/heldout_depth_gap/acc": 0.3333333333333333,
+    "ordinal_depth/heldout_object_pair/acc": 0.3333333333333333,
+    "ratio_depth/heldout_cue_combo/r2": -3.5994575064757965,
+    "ratio_depth/heldout_depth_gap/r2": -3.5994575064757965,
+    "ratio_depth/heldout_object_pair/r2": -3.5994575064757965,
+    "role/heldout_camera_pose/acc": 1.0,
+    "role/heldout_depth_range/acc": 0.8333333333333334,
+    "role/heldout_object_identity/acc": 0.6666666666666666,
+    "x_lateral/heldout_camera_pose/r2": 0.7710950244246607,
+    "x_lateral/heldout_depth_range/r2": 0.7494982161408577,
+    "x_lateral/heldout_object_identity/r2": 0.8015530777503036,
+    "z_depth/heldout_camera_pose/r2": -0.3696249985023745,
+    "z_depth/heldout_depth_range/r2": -0.5710025550046265,
+    "z_depth/heldout_object_identity/r2": -1.1507889248560095
+  },
+  "regime_counts": {
+    "counterbalanced": 3
+  },
+  "set": "/data3/hugin/vsr/stimuli/m4a_v1_counterbalanced",
+  "target_category_role_counts": {
+    "far": {
+      "cube": 2,
+      "mug": 1
+    },
+    "near": {
+      "cylinder": 2,
+      "sphere": 1
+    }
+  }
+}

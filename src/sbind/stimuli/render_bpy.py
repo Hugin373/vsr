@@ -80,6 +80,101 @@ def _add_ground(color):
     return plane
 
 
+def _cube_part(name, loc, dims):
+    """Add an axis-aligned cube part with real dimensions."""
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=loc)
+    ob = bpy.context.active_object
+    ob.name = name
+    ob.dimensions = dims
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    return ob
+
+
+def _join_parts(parts, name):
+    bpy.ops.object.select_all(action="DESELECT")
+    for ob in parts:
+        ob.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]
+    bpy.ops.object.join()
+    ob = bpy.context.active_object
+    ob.name = name
+    return ob
+
+
+def _add_procedural_canonical(obj_spec, idx: int):
+    """Procedural canonical-size stand-ins for M4a size-prior categories.
+
+    The project ultimately wants CC0 mesh assets, but no asset bundle is present in this
+    repo. These simple joined meshes give the generator non-primitive silhouettes and
+    canonical object labels without introducing an unverified download path.
+    """
+    cat = obj_spec.category
+    s = obj_spec.size_m
+    x, y, z = tuple(obj_spec.pos_world)
+    name = f"obj{idx}_{obj_spec.name}"
+    if cat == "chair":
+        parts = []
+        # Bounding height is s, centre is z. Bottom at z-s/2, top at z+s/2.
+        bottom = z - 0.5 * s
+        parts.append(
+            _cube_part(f"{name}_seat", (x, y, bottom + 0.44 * s), (0.72 * s, 0.62 * s, 0.12 * s))
+        )
+        parts.append(
+            _cube_part(
+                f"{name}_back", (x, y + 0.25 * s, bottom + 0.72 * s), (0.72 * s, 0.10 * s, 0.56 * s)
+            )
+        )
+        for sx in (-0.28, 0.28):
+            for sy in (-0.22, 0.22):
+                parts.append(
+                    _cube_part(
+                        f"{name}_leg",
+                        (x + sx * s, y + sy * s, bottom + 0.20 * s),
+                        (0.08 * s, 0.08 * s, 0.40 * s),
+                    )
+                )
+        return _join_parts(parts, name)
+    if cat == "mug":
+        parts = []
+        bpy.ops.mesh.primitive_cylinder_add(
+            vertices=48, radius=0.28 * s, depth=0.72 * s, location=(x, y, z - 0.03 * s)
+        )
+        body = bpy.context.active_object
+        body.name = f"{name}_body"
+        bpy.ops.object.shade_smooth()
+        parts.append(body)
+        # A torus handle, rotated into a vertical plane. It is deliberately simple; masks
+        # are measured from pixels, not trusted from these dimensions.
+        bpy.ops.mesh.primitive_torus_add(
+            major_radius=0.22 * s,
+            minor_radius=0.04 * s,
+            location=(x + 0.30 * s, y, z - 0.02 * s),
+            rotation=(1.5708, 0.0, 0.0),
+        )
+        handle = bpy.context.active_object
+        handle.name = f"{name}_handle"
+        parts.append(handle)
+        return _join_parts(parts, name)
+    if cat == "bottle":
+        parts = []
+        bpy.ops.mesh.primitive_cylinder_add(
+            vertices=48, radius=0.18 * s, depth=0.62 * s, location=(x, y, z - 0.12 * s)
+        )
+        body = bpy.context.active_object
+        body.name = f"{name}_body"
+        bpy.ops.object.shade_smooth()
+        parts.append(body)
+        bpy.ops.mesh.primitive_cylinder_add(
+            vertices=40, radius=0.08 * s, depth=0.34 * s, location=(x, y, z + 0.32 * s)
+        )
+        neck = bpy.context.active_object
+        neck.name = f"{name}_neck"
+        bpy.ops.object.shade_smooth()
+        parts.append(neck)
+        return _join_parts(parts, name)
+    raise ValueError(f"unknown canonical category: {cat!r}")
+
+
 def _add_object(obj_spec, idx: int):
     cat = obj_spec.category
     s = obj_spec.size_m
@@ -90,9 +185,12 @@ def _add_object(obj_spec, idx: int):
         bpy.ops.mesh.primitive_uv_sphere_add(radius=s / 2.0, location=loc)
     elif cat == "cylinder":
         bpy.ops.mesh.primitive_cylinder_add(radius=s / 2.0, depth=s, location=loc)
+    elif cat in ("chair", "mug", "bottle"):
+        ob = _add_procedural_canonical(obj_spec, idx)
     else:
         raise ValueError(f"unknown category: {cat!r}")
-    ob = bpy.context.active_object
+    if cat not in ("chair", "mug", "bottle"):
+        ob = bpy.context.active_object
     ob.name = f"obj{idx}_{obj_spec.name}"
     # smooth spheres/cylinders a touch for a cleaner beauty render
     if cat in ("sphere", "cylinder"):
@@ -282,6 +380,38 @@ def _render_id_pass(scene, objects, ground, lights, tmp_path) -> list[np.ndarray
     return masks
 
 
+def _render_solo_id_masks(spec: SceneSpec, out_dir: Path, render_cfg: dict) -> list[np.ndarray]:
+    """Render each object alone to get its amodal mask.
+
+    M4a scenes contain no occlusion condition, so visible and amodal masks should match.
+    Still doing the solo pass now is the cheap prerequisite M4.5 needs, and it validates
+    that later occlusion ratios will be measured from pixels rather than inferred.
+    """
+    masks: list[np.ndarray] = []
+    for i, _ in enumerate(spec.objects):
+        solo = SceneSpec(
+            id=f"{spec.id}_solo{i}",
+            camera=spec.camera,
+            objects=[spec.objects[i]],
+            ground_color=spec.ground_color,
+            sun_energy=spec.sun_energy,
+            sun_direction=spec.sun_direction,
+            factors=spec.factors,
+        )
+        scene = _reset_scene()
+        ground = _add_ground(solo.ground_color)
+        objects = [_add_object(o, 0) for o in solo.objects]
+        _add_camera(scene, solo)
+        sun = _add_sun(scene, solo)
+        _configure_beauty(scene, render_cfg)
+        tmp_id = out_dir / f".{spec.id}_solo{i}_id.png"
+        one = _render_id_pass(scene, objects, ground, [sun], tmp_id)[0]
+        if tmp_id.exists():
+            os.remove(tmp_id)
+        masks.append(one)
+    return masks
+
+
 def _mask_geometry(mask: np.ndarray):
     """Return (bbox_px [x0,y0,x1,y1], height_px) from a boolean mask, or None if empty."""
     ys, xs = np.nonzero(mask)
@@ -313,6 +443,7 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
     masks = _render_id_pass(scene, objects, ground, [sun], tmp_id)
     if tmp_id.exists():
         os.remove(tmp_id)
+    amodal_masks = _render_solo_id_masks(spec, out_dir, render_cfg)
 
     axis = geometry.optical_axis(R)  # world direction along which depth_m is measured
 
@@ -344,6 +475,22 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
             mask_img = Image.fromarray((masks[i] * 255).astype(np.uint8))
             mask_img.save(mask_dir / f"{spec.id}_obj{i}.png")
 
+        amg = _mask_geometry(amodal_masks[i])
+        amodal_area_px = int(amodal_masks[i].sum())
+        if amg is None:
+            bbox_amodal = [0.0, 0.0, 0.0, 0.0]
+            retinal_amodal = 0.0
+            mask_amodal_rel = None
+        else:
+            bbox_amodal, retinal_amodal = amg
+            mask_amodal_rel = f"masks/{spec.id}_obj{i}_amodal.png"
+            Image.fromarray((amodal_masks[i] * 255).astype(np.uint8)).save(
+                mask_dir / f"{spec.id}_obj{i}_amodal.png"
+            )
+        occlusion_ratio = 0.0
+        if amodal_area_px > 0:
+            occlusion_ratio = max(0.0, 1.0 - area_px / amodal_area_px)
+
         obj_anns.append(
             ObjectAnnotation(
                 name=o.name,
@@ -358,11 +505,17 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
                 mask=mask_rel,
                 nearest_surface_m=nearest_surface_m,
                 mask_area_px=area_px,
+                mask_amodal=mask_amodal_rel,
+                bbox_px_amodal=bbox_amodal,
+                retinal_size_px_amodal=retinal_amodal,
+                mask_area_px_amodal=amodal_area_px,
+                occlusion_ratio=occlusion_ratio,
             )
         )
 
     camera = Camera(K=K.tolist(), R=R.tolist(), t=t.tolist(), height_m=spec.camera.height_m)
     pair_relations = _pair_relations(obj_anns)
+    questions = _questions(obj_anns, pair_relations)
 
     return StimulusAnnotation(
         id=spec.id,
@@ -371,7 +524,46 @@ def render_scene(spec: SceneSpec, out_dir, render_cfg: dict) -> StimulusAnnotati
         objects=obj_anns,
         factors=dict(spec.factors),
         pair_relations=pair_relations,
+        questions=questions,
     )
+
+
+def _questions(objs: list[ObjectAnnotation], rels: dict[str, PairRelation]) -> list[dict]:
+    """Record balanced, deterministic task templates for the first target pair.
+
+    The generator keeps the first two objects as the target pair; later distractors are
+    annotated but are not the pair used for the M4a gate.
+    """
+    if len(objs) < 2 or "(0,1)" not in rels:
+        return []
+    rel = rels["(0,1)"]
+    near = 0 if rel.ordinal_depth_surface == "0_closer" else 1
+    left = 0 if objs[0].pos_cam[0] < objs[1].pos_cam[0] else 1
+    return [
+        {
+            "type": "qualitative_lateral",
+            "question": f"Is the {objs[0].name} to the left or right of the {objs[1].name}?",
+            "options": ["left", "right"],
+            "answer": "left" if left == 0 else "right",
+        },
+        {
+            "type": "ordinal_depth",
+            "question": "Which target object is closer to the camera?",
+            "options": [objs[0].name, objs[1].name],
+            "answer_index": near,
+            "answer": objs[near].name,
+        },
+        {
+            "type": "ratio_depth",
+            "question": "What is the far/near camera-depth ratio for the target pair?",
+            "answer": rel.dist_ratio,
+        },
+        {
+            "type": "absolute_depth",
+            "question": "What are the target objects camera-depths in metres?",
+            "answer": [objs[0].depth_m, objs[1].depth_m],
+        },
+    ]
 
 
 def _pair_relations(objs: list[ObjectAnnotation]) -> dict[str, PairRelation]:

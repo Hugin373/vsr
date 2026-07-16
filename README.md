@@ -1,9 +1,9 @@
 # vsr — spatial binding bottleneck
 
-Mechanistic study of where metric spatial information is lost in VLMs (the
-vision→text-token binding bottleneck). Master's thesis project.
+Mechanistic study of where metric spatial information becomes unavailable or unusable in VLMs (the
+vision-to-text-token binding bottleneck). Master's thesis project.
 
-See `CLAUDE.md` for the hard rules and environment, and `docs/IMPLEMENTATION_PLAN.md`
+See `AGENTS.md` for the hard rules and environment, and `docs/IMPLEMENTATION_PLAN.md`
 for milestones M0–M7.
 
 ## Setup
@@ -42,4 +42,4 @@ scripts/         thin CLI entrypoints (uv run scripts/...)
 tests/
 ```
 
-Data lives outside git under `$DATA_ROOT` / `$HF_HOME` (see `CLAUDE.md` → Environment).
+Data lives outside git under `$DATA_ROOT` / `$HF_HOME` (see `AGENTS.md` → Environment).

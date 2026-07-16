@@ -1,0 +1,18 @@
+_generated_by: scripts/calibrate_sizes.py
+_reference_depth_m: 4.4948
+_target_px: 90.0
+_measured_px_at_ref:
+  cube: 90.0
+  sphere: 90.0
+  cylinder: 90.0
+  chair: 90.0
+  mug: 90.0
+  bottle: 90.0
+_spread_px: 0.0
+size_m_by_category:
+  cube: 0.666
+  sphere: 0.809
+  cylinder: 0.666
+  chair: 0.7353
+  mug: 0.9913
+  bottle: 0.8378

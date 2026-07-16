@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-CATEGORIES = ("cube", "sphere", "cylinder")
+CATEGORIES = ("cube", "sphere", "cylinder", "chair", "mug", "bottle")
 
 
 @dataclass

@@ -37,14 +37,21 @@ from sbind.utils.logging import get_logger
 log = get_logger("sbind.calibrate")
 
 
-def _measure_retinal(cam: CameraSpec, category: str, size_m: float, x: float,
-                     depth_target: float, render_cfg: dict, tmp: Path) -> float:
+def _measure_retinal(
+    cam: CameraSpec,
+    category: str,
+    size_m: float,
+    x: float,
+    depth_target: float,
+    render_cfg: dict,
+    tmp: Path,
+) -> float:
     """Render one primitive at ``depth_target`` and return its mask pixel-height."""
     K, R, t, _ = geometry.camera_frame(
         cam.pos_world, cam.target_world, cam.f_mm, cam.sensor_width_mm, cam.res_x, cam.res_y
     )
     axis = geometry.optical_axis(R)
-    z = size_m / 2.0  # rests on the ground
+    z = geometry.rest_height(category, size_m)
     # solve depth(x, y, z) = depth_target for y
     y = (depth_target - float(t[2]) - float(axis[0]) * x - float(axis[2]) * z) / float(axis[1])
     spec = SceneSpec(
@@ -59,8 +66,12 @@ def _measure_retinal(cam: CameraSpec, category: str, size_m: float, x: float,
 def main() -> int:
     ap = argparse.ArgumentParser(description="Calibrate per-category size_m.")
     ap.add_argument("--config", required=True)
-    ap.add_argument("--target-px", type=float, default=90.0,
-                    help="target retinal pixel-height at the reference depth")
+    ap.add_argument(
+        "--target-px",
+        type=float,
+        default=90.0,
+        help="target retinal pixel-height at the reference depth",
+    )
     ap.add_argument("--iters", type=int, default=3)
     ap.add_argument("--out", default="configs/size_calibration.yaml")
     args = ap.parse_args()
@@ -86,24 +97,31 @@ def main() -> int:
     d_lo = float(axis[1]) * y_lo + float(t[2])
     d_hi = float(axis[1]) * y_hi + float(t[2])
     d_ref = 0.5 * (d_lo + d_hi)
-    lateral = float(fcfg["lateral_offset"])
+    if "lateral_offset" in fcfg:
+        lateral_positions = [-float(fcfg["lateral_offset"]), float(fcfg["lateral_offset"])]
+    elif "lateral_range" in fcfg:
+        lo, hi = map(float, fcfg["lateral_range"])
+        lateral_positions = [-hi, -lo, lo, hi]
+    else:
+        lateral_positions = [0.0]
     log.info("reference depth = %.2f m (span %.2f-%.2f)", d_ref, d_lo, d_hi)
 
     # low-sample render is fine: the ID pass (which the mask comes from) is always 1-spp
     cal_render = {**render_cfg, "samples": 4, "denoise": False}
     categories = list(cfg["objects"]["categories"])
-    base = float(cfg["objects"].get("base_size_m", 0.6))
+    existing_sizes = dict(cfg["objects"].get("size_m_by_category") or {})
+    base = float(cfg["objects"].get("base_size_m", cfg["objects"].get("size_m", 0.6)))
 
-    sizes = {c: base for c in categories}
+    sizes = {c: float(existing_sizes.get(c, base)) for c in categories}
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td)
         for it in range(args.iters):
             report = []
             for c in categories:
-                # average over both lateral placements the sampler actually uses
+                # average over lateral placements the sampler actually uses
                 heights = [
                     _measure_retinal(cam, c, sizes[c], x, d_ref, cal_render, tmp)
-                    for x in (-lateral, +lateral)
+                    for x in lateral_positions
                 ]
                 h = float(np.mean(heights))
                 # retinal height is ~linear in size_m -> rescale straight onto the target
@@ -116,13 +134,16 @@ def main() -> int:
         for c in categories:
             heights = [
                 _measure_retinal(cam, c, sizes[c], x, d_ref, cal_render, tmp)
-                for x in (-lateral, +lateral)
+                for x in lateral_positions
             ]
             final[c] = float(np.mean(heights))
 
     spread = max(final.values()) - min(final.values())
-    log.info("final retinal heights at d_ref: %s (spread %.2f px)",
-             {c: round(v, 1) for c, v in final.items()}, spread)
+    log.info(
+        "final retinal heights at d_ref: %s (spread %.2f px)",
+        {c: round(v, 1) for c, v in final.items()},
+        spread,
+    )
 
     out = {
         "_generated_by": "scripts/calibrate_sizes.py",

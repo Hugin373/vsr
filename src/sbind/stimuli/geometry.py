@@ -111,6 +111,31 @@ def optical_axis(R) -> np.ndarray:
     return np.asarray(R, dtype=float)[2]
 
 
+def category_half_sizes(category: str, size_m: float) -> np.ndarray:
+    """Approximate axis-aligned half-size box for rendered categories.
+
+    Primitive shapes keep their exact support functions below. Procedural canonical
+    objects use conservative bounding boxes; these are used for rest height and
+    nearest-surface guards, while exact visible/amodal measurements still come from
+    rendered masks.
+    """
+    h = size_m / 2.0
+    if category in ("cube", "sphere", "cylinder"):
+        return np.array([h, h, h], dtype=float)
+    if category == "chair":
+        return np.array([0.40 * size_m, 0.36 * size_m, 0.50 * size_m], dtype=float)
+    if category == "mug":
+        return np.array([0.45 * size_m, 0.34 * size_m, 0.50 * size_m], dtype=float)
+    if category == "bottle":
+        return np.array([0.22 * size_m, 0.22 * size_m, 0.50 * size_m], dtype=float)
+    raise ValueError(f"unknown category: {category!r}")
+
+
+def rest_height(category: str, size_m: float) -> float:
+    """World-z centre height for an object resting on z=0."""
+    return float(category_half_sizes(category, size_m)[2])
+
+
 def half_extent_along(category: str, size_m: float, axis) -> float:
     """Half-extent of a primitive along a world direction (its support function).
 
@@ -129,6 +154,10 @@ def half_extent_along(category: str, size_m: float, axis) -> float:
     if category == "cylinder":
         # radius in the XY plane, half-height along Z
         return float(h * np.hypot(a[0], a[1]) + h * a[2])
+    if category in ("chair", "mug", "bottle"):
+        # Conservative support function of the procedural object's bounding box.
+        hx, hy, hz = category_half_sizes(category, size_m)
+        return float(hx * a[0] + hy * a[1] + hz * a[2])
     raise ValueError(f"unknown category: {category!r}")
 
 

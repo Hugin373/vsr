@@ -27,8 +27,9 @@ truncated or overwritten image):
                 equal the stored annotation (catches a stale or mismatched mask)
   clipping      no mask may touch the image border (a clipped object corrupts retinal_size_px
                 and mask_area_px — i.e. the very quantities the congruence checks read)
-  occlusion     no two masks in an image may overlap (an occluded far object likewise
-                corrupts its own apparent-size measurements)
+  occlusion     the two target masks may not overlap, and target visible masks must
+                match amodal masks. Distractor occlusion is reported but is allowed:
+                distractors are nuisance clutter, not the measured target pair.
   semantics     category/colour must NOT predict the near/far depth role, and the best
                 shape-only constant strategy must not beat chance (a probe could otherwise
                 read depth off object IDENTITY)
@@ -41,6 +42,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import math
 import sys
 from collections import Counter
 from pathlib import Path
@@ -57,6 +59,7 @@ def main() -> int:
     ap.add_argument("--set", required=True, help="path to the stimulus set dir")
     ap.add_argument("--retinal-lo", type=float, default=60.0)
     ap.add_argument("--retinal-hi", type=float, default=120.0)
+    ap.add_argument("--max-shape-prior-acc", type=float, default=0.53)
     args = ap.parse_args()
 
     set_dir = Path(args.set)
@@ -155,16 +158,54 @@ def main() -> int:
                 fails["mask_height_mismatch"] += 1
             if abs(int(m.sum()) - o["mask_area_px"]) > 0:
                 fails["mask_area_mismatch"] += 1
+
+            # M4a/M4.5 prerequisite: every object has a SOLO-ID amodal mask. Target
+            # visible masks must match amodal masks in M4a; distractors may be partly
+            # hidden because they are nuisance clutter rather than measured objects.
+            amodal_rel = o.get("mask_amodal")
+            if not amodal_rel:
+                fails["amodal_missing"] += 1
+            else:
+                apath = set_dir / amodal_rel
+                if not apath.exists():
+                    fails["files_missing"] += 1
+                else:
+                    am = np.array(Image.open(apath).convert("L")) > 127
+                    if not am.any():
+                        fails["amodal_empty"] += 1
+                    else:
+                        ays, axs = np.nonzero(am)
+                        abx0, abx1 = int(axs.min()), int(axs.max())
+                        aby0, aby1 = int(ays.min()), int(ays.max())
+                        stored_abox = o.get("bbox_px_amodal") or []
+                        if [abx0, aby0, abx1 + 1, aby1 + 1] != [int(round(c)) for c in stored_abox]:
+                            fails["amodal_bbox_mismatch"] += 1
+                        if abs((aby1 - aby0 + 1) - o.get("retinal_size_px_amodal", 0.0)) > 1e-6:
+                            fails["amodal_height_mismatch"] += 1
+                        if abs(int(am.sum()) - o.get("mask_area_px_amodal", 0)) > 0:
+                            fails["amodal_area_mismatch"] += 1
+                        if (m & ~am).any():
+                            fails["amodal_not_superset"] += 1
+                        expected_occ = max(0.0, 1.0 - int(m.sum()) / max(int(am.sum()), 1))
+                        if abs(expected_occ - o.get("occlusion_ratio", 0.0)) > 1e-9:
+                            fails["occlusion_ratio_mismatch"] += 1
+                        if o.get("occlusion_ratio", 0.0) > 1e-6:
+                            if len(mask_bools) <= 2:
+                                fails["target_occlusion_ratio_nonzero"] += 1
+                            else:
+                                fails["distractor_occlusion_ratio_nonzero"] += 1
             # a clipped object's apparent size is a lie — and apparent size is what we measure
             if by0 == 0 or bx0 == 0 or by1 == m.shape[0] - 1 or bx1 == m.shape[1] - 1:
                 fails["mask_clipped"] += 1
 
-        # occlusion: an occluded far object's retinal_size/area are corrupted too
-        if len(mask_bools) == 2 and (mask_bools[0] & mask_bools[1]).any():
+        # target occlusion corrupts the apparent-size quantities we measure.
+        if len(mask_bools) >= 2 and (mask_bools[0] & mask_bools[1]).any():
             fails["mask_overlap"] += 1
 
-        if len(objs) != 2:
+        if len(objs) < 2:
             continue
+        # The first two objects are the target pair; later objects are distractors.
+        objs = objs[:2]
         d0, d1 = objs[0]["depth_m"], objs[1]["depth_m"]
         s0, s1 = objs[0]["nearest_surface_m"], objs[1]["nearest_surface_m"]
         rel = ann["pair_relations"]["(0,1)"]
@@ -192,16 +233,21 @@ def main() -> int:
         if objs[0]["category"] == objs[1]["category"] and objs[0]["name"] == objs[1]["name"]:
             fails["identical_pair"] += 1
 
-        # CUE CONGRUENCE: in a congruent set the nearer object MUST look bigger by EVERY
-        # measured apparent-size cue. Height is made structural by the per-category size
-        # calibration; area is made structural by the sampler's min_depth_ratio (the
-        # calibration equalises height, not area). Any violation of either is a
-        # construction bug, not an edge case.
+        # CUE CONGRUENCE: only a natural-congruent set claims the nearer target must
+        # look bigger by every apparent-size cue. Counterbalanced/conflict regimes are
+        # supposed to decorrelate or invert these cues, so validating them with the v0
+        # congruence rule would be a false alarm. Artifact checks above still apply.
         near_c = 0 if d0 < d1 else 1
         far_c = 1 - near_c
-        if objs[near_c]["retinal_size_px"] <= objs[far_c]["retinal_size_px"]:
+        regime = ann.get("factors", {}).get("regime", "natural_congruent")
+        size_condition = ann.get("factors", {}).get("size_condition", "congruent")
+        check_size_congruence = regime == "natural_congruent" and size_condition == "congruent"
+        if (
+            check_size_congruence
+            and objs[near_c]["retinal_size_px"] <= objs[far_c]["retinal_size_px"]
+        ):
             fails["retinal_congruence"] += 1
-        if objs[near_c]["mask_area_px"] <= objs[far_c]["mask_area_px"]:
+        if check_size_congruence and objs[near_c]["mask_area_px"] <= objs[far_c]["mask_area_px"]:
             fails["area_congruence"] += 1
 
         # MARGINS (rule 6): 0 violations proves nothing about the next seed. Record how close
@@ -262,6 +308,14 @@ def main() -> int:
         "mask_area_mismatch",
         "mask_clipped",
         "files_missing",
+        "amodal_missing",
+        "amodal_empty",
+        "amodal_bbox_mismatch",
+        "amodal_height_mismatch",
+        "amodal_area_mismatch",
+        "amodal_not_superset",
+        "occlusion_ratio_mismatch",
+        "target_occlusion_ratio_nonzero",
     }
     for key in (
         "geometry",
@@ -284,37 +338,73 @@ def main() -> int:
         "mask_area_mismatch",
         "mask_clipped",
         "mask_overlap",
+        "amodal_missing",
+        "amodal_empty",
+        "amodal_bbox_mismatch",
+        "amodal_height_mismatch",
+        "amodal_area_mismatch",
+        "amodal_not_superset",
+        "occlusion_ratio_mismatch",
+        "target_occlusion_ratio_nonzero",
     ):
         status = "OK " if fails[key] == 0 else "FAIL"
         denom = n_objects if key in per_object else n
         print(f"  [{status}] {key:22s} {fails[key]}/{denom}")
     if cat_base:
-        print(f"  calibrated base size_m: {({c: round(v, 4) for c, v in cat_base.items()})}")
+        print(f"  calibrated base size_m: { ({c: round(v, 4) for c, v in cat_base.items()}) }")
 
     # --- MARGINS: how close did each structural property come to breaking? ---
     print("--- margins (rule 6: measure the margin, not the pass/fail) ---")
-    print(f"  worst near/far retinal-height ratio : {margins['retinal_congruence']:.4f}  (>1)")
-    print(f"  worst near/far mask-area ratio      : {margins['area_congruence']:.4f}  (>1)")
+    regimes = {ann.get("factors", {}).get("regime", "natural_congruent") for ann in anns}
+    size_note = "(>1 required only for natural_congruent/congruent)"
+    if regimes == {"natural_congruent"}:
+        size_note = "(>1)"
+    print(
+        f"  worst near/far retinal-height ratio : "
+        f"{margins['retinal_congruence']:.4f}  {size_note}"
+    )
+    print(
+        f"  worst near/far mask-area ratio      : "
+        f"{margins['area_congruence']:.4f}  {size_note}"
+    )
     print(f"  min far/near depth ratio            : {margins['depth_ratio']:.4f}")
     print(f"  min bbox-bottom gap (px)            : {margins['bbox_bottom']:.1f}  (>0)")
 
     # --- SEMANTIC PRIOR: category/colour must not predict the depth role ---
     print("--- semantic prior (must be ~chance: a probe could read depth off identity) ---")
     cats = sorted({c for _, c in role_cat})
-    print(f"  near-role category: {({c: role_cat[('near', c)] for c in cats})}")
-    print(f"  far-role  category: {({c: role_cat[('far', c)] for c in cats})}")
+    print(f"  near-role category: { ({c: role_cat[('near', c)] for c in cats}) }")
+    print(f"  far-role  category: { ({c: role_cat[('far', c)] for c in cats}) }")
     best = 0
     for pair in {p for p, _ in shape_wins}:
         best += max(shape_wins.get((pair, c), 0) for c in pair)
     if n_mixed:
         acc = 100 * best / n_mixed
-        # a shape-only strategy above ~53% is an exploitable prior, not noise
-        ok = acc < 53.0
-        fails["semantic_prior"] = 0 if ok else 1
-        print(
-            f"  [{'OK ' if ok else 'FAIL'}] best shape-only constant strategy: "
-            f"{best}/{n_mixed} = {acc:.1f}%  (chance 50%)"
-        )
+        # Sampled/statistical quantity: gate on uncertainty, not the noisiest draw.
+        # Wilson 95% CI for the strategy's success rate; fail only if the lower bound
+        # clears the tolerated prior by itself. Tiny smoke renders are still reported.
+        p = best / n_mixed
+        z = 1.96
+        denom = 1.0 + z * z / n_mixed
+        centre = (p + z * z / (2 * n_mixed)) / denom
+        half = z * math.sqrt((p * (1.0 - p) / n_mixed) + (z * z / (4 * n_mixed * n_mixed))) / denom
+        lo = max(0.0, centre - half)
+        hi = min(1.0, centre + half)
+        if n_mixed < 30:
+            print(
+                f"  [INFO] best shape-only constant strategy: "
+                f"{best}/{n_mixed} = {acc:.1f}%  "
+                f"(95% CI [{100 * lo:.1f},{100 * hi:.1f}], too few mixed pairs to gate)"
+            )
+        else:
+            ok = lo <= args.max_shape_prior_acc
+            fails["semantic_prior"] = 0 if ok else 1
+            print(
+                f"  [{'OK ' if ok else 'FAIL'}] best shape-only constant strategy: "
+                f"{best}/{n_mixed} = {acc:.1f}%  "
+                f"(95% CI [{100 * lo:.1f},{100 * hi:.1f}], "
+                f"fail if lower > {100 * args.max_shape_prior_acc:.1f}%)"
+            )
 
     print("--- distributions ---")
     print(
@@ -329,8 +419,15 @@ def main() -> int:
     print(f"  depth continuity: {len(near_depths)}/{n} unique near depths")
     print(f"  answer balance (centre):  {dict(closer_key)}")
     print(f"  answer balance (surface): {dict(surface_key)}")
+    if fails["distractor_occlusion_ratio_nonzero"]:
+        print(
+            "  distractor occlusion: "
+            f"{fails['distractor_occlusion_ratio_nonzero']}/{n_objects} objects "
+            "(reported, not a hard failure)"
+        )
 
-    total_fail = sum(fails.values())
+    informational = {"distractor_occlusion_ratio_nonzero"}
+    total_fail = sum(v for k, v in fails.items() if k not in informational)
     print(f"\n{'ALL CHECKS GREEN' if total_fail == 0 else f'{total_fail} VIOLATIONS'}")
     return 0 if total_fail == 0 else 1
 

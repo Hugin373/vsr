@@ -1,7 +1,7 @@
 [project]
 name = "vsr"
 version = "0.1.0"
-description = "Mechanistic study of where metric spatial information is lost in VLMs (the vision->text-token binding bottleneck)."
+description = "Mechanistic study of where metric spatial information becomes unavailable or unusable in VLMs (the vision-to-text-token binding bottleneck)."
 readme = "README.md"
 # bpy wheels are pinned to CPython 3.11 (see IMPLEMENTATION_PLAN gotchas). Keep the
 # floor at 3.11 so the stimuli renderer stays installable; upper bound leaves room

@@ -55,6 +55,21 @@ Fifth anchor — **Dual Mechanisms of Spatial Variable Binding** ([2603.22278](h
 
 The representational question is primary; **robotics/embodied motivation stays explicitly secondary.**
 
+**Adjudication update (2026-07-16) — the gap is now a published disagreement.** Two very recent
+stage-localization studies contradict each other: **2605.20448** (activation patching across
+ViT→merger→LM on categorical occlusion tasks) finds spatial recovery **collapses at the
+merger/projector**, while **Anchored, Not Graded (2606.06714)** (probes on factorial slant
+stimuli) finds geometry **cleanly decodable at LM-input** with failure at the
+"representation-to-output interface" — and declares LM-internal tracing future work. Neither
+uses a controlled metric variable, leak-controlled probes, or object-word binding sites.
+**Claim, final wording:** *we present the first leak-controlled probe trace of a controlled,
+continuous metric depth variable across the full functional chain — including LM-internal visual
+tokens and object-word binding sites — adjudicating the projector-vs-post-projector disagreement
+(pre-registered site-2 vs site-4 primary contrast).* Supporting neighbors, cited: 2606.31257
+(decodability ≠ grounding; we adopt its vision-ablation arbiter), 2607.03358 (direct vs
+text-mediated routing; synthetic↔natural flip caveat), SpatialBabel 2605.12586 and O3-D
+2607.01503 (behavioral dissociations motivating internal analysis).
+
 ## 2. S1 Design
 
 ### 2.1 Measurement taxonomy
@@ -149,7 +164,14 @@ The factorial battery is the **one primary identification instrument**. External
 - **[Attention in Space, 2603.20662](https://arxiv.org/pdf/2603.20662) — read. It is head-OUTPUT probing, not routing** — so **the "never shipped" vs "destroyed in transit" fork remains ours to resolve** (it is the ambiguous row of the outcome matrix, §2.3). Adopted as known: spatial heads are **sparse (<1%)**, **ablating them collapses performance**, and **generic ITI-style steering yields only ~1–2pp** — which makes it the **foil** our metric-ID injection must beat. ⚠ Their labels are LLM-generated and their eval is circular: **verify any number against the PDF before quoting it.**
 - Remaining reads are **stage-gated** (2508.04567 → S1.5; Echo-Memory 2606.09803 → S4-B) or **writing-time** (Hewitt & Liang 2019; Belinkov 2022), plus a re-read of Ill-Posed by Design §6.6 + limitations.
 
-## 3. Timeline (18 weeks to Nov 15)
+## 3. Timeline
+
+**⚠ Superseded 2026-07-16 — venue pivot (professor-approved): primary target = WACV 2027 R2
+(deadline Aug 28) with the MINIMAL CORE (2 models, ordinal depth, five-stage curve, leak
+methodology, reproduction); YANS poster Aug 16–18 (feedback lands 10 days before the deadline);
+CVPR Nov 15 = fallback/extension with the full battery.** The table below describes the original
+full-battery CVPR path and now applies to the fallback branch.
+
 
 | Weeks | Work |
 |---|---|
@@ -210,7 +232,7 @@ The umbrella — **"representation of the unseen"** — spans capability levels 
 
 ## 6. Asks (advisor meeting)
 
-1. Confirmation of the November CVPR target and priority cluster access W3–11.
+1. ~~November CVPR target~~ → **WACV R2 (Aug 28) + YANS approved 2026-07-16**; priority cluster access through August is the standing ask.
 2. Model coverage sign-off (§2.7 — the 2-model minimal core, with expansion gated on pattern stability) — affects GPU allocation.
 3. Whether to pursue the human baseline (~20 participants, cue-integration comparison) — ethics application must go in ~W1 if yes.
 4. One external reader commitment for W15–17.
