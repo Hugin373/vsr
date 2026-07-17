@@ -147,6 +147,66 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     different-depth pairs · content-location permutation · pooling ± positional components). Leak
     stays a **CANDIDATE** contribution. ⚠ **A1's fixed-mask/different-depth control IS the contrastive
     pairs — already M4a blocker 1**, so that blocker now carries M5 weight too.
+- **🔧 PREVIOUS-MILESTONE REPAIR (2026-07-17, before resuming M4a work): the discussion updates
+  had INVALIDATED CLAIMS IN CLOSED MILESTONES. Fixed M3 (wording) and M2 (taxonomy).**
+  - **M3 — DR3-r2 #10 violated in three artifacts.** *"The mirror-swap patching profile reproduces
+    **EXACTLY**"* → **"exact" is banned without a PREREGISTERED SIMILARITY METRIC**, and we have
+    none: we matched a qualitative stage/layer pattern by eye. Now *"key qualitative signatures
+    reproduce"*. And *"above-chance influence **matches or beats theirs**"* → **banned: cross-study
+    effect comparisons are DESCRIPTIVE ONLY** (noise construction, doses, selection and baseline
+    beliefs all differ; the figures are not commensurable). Fixed in PROJECT_MEMORY, plan, and
+    `reports/m3_reproduction.md`; retractions left visible.
+    - **🔑 THE SHARPEST INSTANCE YET OF "A BAN IS NOT SELF-ENFORCING": THIS FILE STATED THE BAN AT
+      LINE ~228 (DR3 addendum r2) AND VIOLATED IT AT ~808 AND ~818 — in the same document, on the
+      same day.** Writing a rule into a doc does not apply it to the doc.
+  - **🔴 UNRESOLVED NUMBER, now flagged in all three places — settle before ANY write-up.**
+    `reports/m3_reproduction.md` derived Kang's above-chance influence as 64.4 − 29.5 = **+34.9 pts**.
+    `docs/CITATION_LEDGER.md` — verified against the arXiv full text — records **+43.6%**. **Both
+    cannot describe the same statistic.** Either the ledger mis-transcribed, **or "above-chance
+    influence" is NOT steer−noise, in which case our report CONSTRUCTED a statistic and attributed
+    it to the authors** — the more serious error, and exactly what rule 4 exists to catch. DR3-r2
+    #10 makes it non-load-bearing for the CLAIM; it is still load-bearing for the REPORT.
+  - **M2 — 🔴 "physics" IS THE PAPER'S *TRAJECTORY* CATEGORY (verified from the items, 2026-07-17).**
+    CausalSpatial's paper taxonomy is **Collision / Occlusion / Compatibility / TRAJECTORY**;
+    `physics` and `realworld` are **repo folder names appearing nowhere in the paper**. Every
+    `physics` item is trajectory prediction (*"based on the soccer ball's trajectory, will it go
+    into the goal?"*). Our docs had written it off as *"loads on physics priors → non-target
+    control"* — **a scientific judgment made against a directory name**, and it is **S4-C
+    (hypothetical spatial state)** material instead. Re-scoped; arXiv **2601.13304** added (never in
+    our docs); adapter docstring now warns that `SUBSETS` are folder names, not categories.
+    **⚠ Third time this dataset's surface has misled us** (after the "unique" `id` and the
+    `not_sure` lie). §2.5(c): a FIELD is a hypothesis. §2.5(e): a DATASET is. **Now: a DIRECTORY
+    LISTING IS NOT A TAXONOMY.**
+  - **Method note — how these were found:** by auditing the M4a brief's §5 Definition of Done and
+    the ban list **against the artifacts**, not against the reports' own summaries. `m4a_battery.md`
+    listed 5 blockers because it enumerated *what the session did*; the brief requires **three more**
+    nobody had listed (below). **A report's own blocker list is a hypothesis too.**
+- **⚠ M4a BLOCKER LIST IS 11, NOT 8 — three found 2026-07-17 by auditing §5 Definition of Done:**
+  - **9. Worst-case cue constants were NEVER re-derived.** v0 carried its derivation *in config*
+    (`required_ratio_by_pairing`, worst case `near_cylinder_far_cube: 1.158`, +2% → `min_depth_ratio:
+    1.18`). M4a's floors — **1.85** (natural-congruent) and **1.05** (counterbalanced/conflict) — are
+    **bare numbers with no derivation**, no `cue_constants` block in any M4a config, and **no measured
+    fill factors for chair/mug/bottle**. §2.2(e) requires re-deriving from worst case;
+    `calibrate_sizes.py` was re-run, `derive_cue_constants.py` was not. Violates §6 ("no number
+    without provenance") and evaluation-law clause 1. **Hypothesis to MEASURE (not argue, rule 13):
+    the arbitrary 1.85 floor may be CAUSING natural-congruent's ratio-gate failure** (R² = −0.252) by
+    squeezing the ratio range — the report writes that off as *"narrow and shortcut-heavy"*, i.e. as
+    inherent, when it may be an artifact of an underived constant.
+  - **10. The v1 LEAK CEILING was never run** (§2.7 + §5). `scripts/leak_ceiling.py` exists; no v1
+    report; `m4a_battery.md` never mentions it. **This is M4a's most important measurement** — the
+    direct v0→v1 answer to M3.2's position leak (did camera jitter collapse mask-geometry
+    decodability from x R² = 0.942?). It runs on the EXISTING 140-image pilot, on CPU, in minutes,
+    and it is a **go/no-go on the generator design**: if mask geometry still predicts depth near
+    ceiling in counterbalanced, the decorrelation failed and textures / contrastive pairs / a
+    1,020-image render are all premature. **Run it FIRST.**
+  - **11. The decorrelation matrix** (§5: pairwise correlations among depth, elevation, retinal size,
+    physical size, image position — *"by measurement not assertion"*) is not in the report; only two
+    `r` values are.
+  - ✅ **Checked and CORRECT — do not "fix":** the per-regime floors are *designed*, not sloppy —
+    natural-congruent uses **1.85**, only counterbalanced/conflict use 1.05 — and
+    `validate_stimuli.py:236-244` is **regime-aware**, exempting counterbalanced/conflict from
+    size-congruence with a documented reason (rule 3 done right, not a silent skip). The open issue
+    is the floors' **provenance**, not their regime logic.
 - **📎 Decks + ledger now IN THE REPO** (`docs/CITATION_LEDGER.md`, `lab_presentation_part{A,B}.pptx`):
   the ledger is **verified against arXiv full texts** and closes the one-page's last gap — a
   **verified** concrete failure example now exists without new experiments. Strongest lead:
@@ -709,10 +769,25 @@ unsuitability were **both invisible** from the dataset descriptions we had been 
   reduces to a single-image primitive**, and its own eval excludes the `translation` setting.
   Re-scoped to a **cross-view integration contrast (S4-adjacent)**. **The adapter stays — nothing is
   wasted, and §2.5(a)'s split-is-a-parameter rule remains in force for any future MindCube use.**
-- **CausalSpatial: use the collision (n=826) and occlusion (n=189) slices ONLY** for
-  primitive-predicts-failure analyses. Compatibility (n=99, size-ratio) and realworld (n=116) are too
-  small for per-category stats; physics (311) loads on **physics priors**, not spatial primitives —
-  keep both as **non-target controls**. ⚠ Record their own admission: **sim scenes' "floor strip
+- **CausalSpatial (arXiv **2601.13304** — ID added 2026-07-17; it was never in our docs): use the
+  collision (n=826) and occlusion (n=189) slices ONLY** for primitive-predicts-failure analyses.
+  Compatibility (n=99, size-ratio) and realworld (n=116) are too small for per-category stats.
+  > 🔴 **CORRECTED 2026-07-17 — "physics" IS THE PAPER'S *TRAJECTORY* CATEGORY. Retraction visible.**
+  > This read: *"physics (311) loads on **physics priors**, not spatial primitives — keep as a
+  > **non-target control**."* **That judgment was made against a DIRECTORY NAME.** The ledger records
+  > the paper's taxonomy as **Collision / Occlusion / Compatibility / TRAJECTORY**; `physics` and
+  > `realworld` are **repo folder names that do not appear in the paper**. Verified by reading the
+  > items (not inferred from the mapping): *"Based on the soccer ball's **trajectory** shown in the
+  > image, will the ball go into the goal?"*, *"If the billiard ball moves in the direction of the
+  > red arrow, will any ball go into the pocket and score?"* — **predicted future position from a
+  > current spatial configuration.** That is **S4-C (hypothetical spatial state)** territory — the
+  > very thing S4-C names CausalSpatial-level simulation for — **not** a prior-loaded throwaway.
+  > **Consequence:** it stays OUT of the S1 consequence-level row (S1 is visible-metric), but it is
+  > **re-scoped from "non-target control" to an S4-C candidate instrument**. ⚠ **THIRD TIME this
+  > dataset's surface has misled us** — after the "unique" `id` (192 rows shared one string) and the
+  > `not_sure` column (constant 'C', gold on 11 rows). §2.5(c) said *an upstream FIELD is a
+  > hypothesis*; §2.5(e) generalized it to *datasets*. **This generalizes it again: a DIRECTORY
+  > LISTING is not a taxonomy.** ⚠ Record their own admission: **sim scenes' "floor strip
   spacing encodes depth perspective"** — the depth cue is *artificially legible*, so caveat any
   cross-dataset comparison.
 - **🆕 NEW DERIVED DATASET — ReVSI-1F (decided 2026-07-15).** ReVSI is video, and **cross-frame demand
@@ -805,17 +880,34 @@ Nothing was tuned to make either pass.
 ### M3.1 — the project's core premise SURVIVES
 Reimplemented from the paper (their repo has no license). 640 two-object 4×4-grid scenes, COCO
 cutouts (deviation: they used Objaverse), on LLaVA-1.5-7B + Qwen2.5-VL-7B.
-- **The mirror-swap patching profile reproduces EXACTLY on both models: image patches early →
-  object-word tokens middle → text late.** This is Kang's central localization claim and it comes
-  out crisply (LLaVA object-word peaks at 0.31–0.34 on L12–14; Qwen at L16).
+- **The mirror-swap patching profile's KEY QUALITATIVE SIGNATURES reproduce on both models: image
+  patches early → object-word tokens middle → text late.** This is Kang's central localization
+  claim and the stage/layer pattern comes out crisply (LLaVA object-word peaks at 0.31–0.34 on
+  L12–14; Qwen at L16). ⚠ **Wording corrected 2026-07-17 (DR3-r2 #10): this said "reproduces
+  EXACTLY".** "Exact" is banned without a **preregistered similarity metric**, and we have none —
+  we matched a *qualitative* stage/layer pattern by eye, not a quantified profile distance.
 - **rank-3 R² = 0.87 (LLaVA) / 0.84 (Qwen)** vs the paper's ≥0.85. Spatial IDs really are a
   low-rank position code.
 - **Steering is dramatically selective: 31.3% belief-swap vs 0.0% norm-matched noise** (Qwen, at
   the paper's α=5); dose-response is monotone and saturating (10→23→31→43% as α goes 1→10) while
   **noise never moves at any dose**.
-- **What does NOT reproduce: the absolute swap rate** (19–31%, not their 64.4%). But our noise
-  floor is ~0%, not their 29.5% — so the paper's own summary statistic, **above-chance influence**,
-  matches or beats theirs (+31.3 pts at α=5, **+43.3 pts** at peak, vs their +34.9).
+- **What does NOT reproduce: the absolute swap rate** (19–31%, not their ≈64.5% median). Our noise
+  floor is ~0%, not their 29.5%. **Report both; claim superiority of neither** — ours: +31.3 pts at
+  α=5, +43.3 pts at peak; theirs: ≈64.5% vs 29.5% noise.
+  > 🔴 **CORRECTED 2026-07-17 (DR3-r2 #10) — retraction visible.** This said the above-chance
+  > influence **"matches or beats theirs"**. **Banned: cross-study effect comparisons are
+  > DESCRIPTIVE ONLY** — noise construction, doses, selection and baseline belief distributions all
+  > differ, so the two numbers are not commensurable and neither is "bigger". ⚠ **And the ban was
+  > ALREADY RECORDED IN THIS FILE (see the DR3 addendum r2 above) while these lines still violated
+  > it** — a ban is not self-enforcing.
+  > ⚠ **UNRESOLVED NUMBER — do not use either figure in a write-up until settled.**
+  > `reports/m3_reproduction.md` computes Kang's above-chance as 64.4 − 29.5 = **+34.9 pts**, but
+  > `docs/CITATION_LEDGER.md` (verified against the arXiv full text, 2026-07-16) records their
+  > above-chance as **+43.6%**. Both cannot describe the same statistic. Either the ledger
+  > mis-transcribed, or **Kang's "above-chance influence" is NOT steer−noise** and our report
+  > constructed a statistic and attributed it to them. **Resolve against the paper before any
+  > write-up** (rule 4: an upstream field — including one we ourselves transcribed — is a
+  > hypothesis). DR3-r2 #10 makes it non-load-bearing for the CLAIM, not for the REPORT.
   **⚠ The obvious explanation is WRONG and we measured it.** "Our models are more certain, so
   noise can't flip them" does NOT survive: noise flips **0.0% in EVERY confidence bin** (0/23 at
   conf 0.90–0.99; 0/7 at 0.70–0.90), and spatial-ID flip rate is **uncorrelated with confidence**

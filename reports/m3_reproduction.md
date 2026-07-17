@@ -132,10 +132,22 @@ textbook dose-response for a real, graded causal mechanism.
 
 **How to read the magnitude failure honestly.** Both halves of the paper's headline pair are
 off, *in the same direction*: our models flip less under the spatial-ID direction **and** far
-less under noise. The paper's own summary statistic is the **above-chance influence**
-(64.4 − 29.5 = **+34.9 pts**). Ours is **+31.3 pts** for Qwen at the paper's own α, and
-**+43.3 pts** at the dose-response peak — i.e. the *causal effect size matches or exceeds the
-paper's* even though the raw swap rate does not.
+less under noise. Ours is **+31.3 pts** for Qwen at the paper's own α, and **+43.3 pts** at the
+dose-response peak. Kang report ≈64.5% median vs 29.5% noise.
+
+> 🔴 **CORRECTED 2026-07-17 (DR3-r2 #10). The retraction stays visible.**
+> This concluded: *"the causal effect size **matches or exceeds the paper's**."* **Retired.**
+> **Cross-study effect comparisons are DESCRIPTIVE ONLY** — noise construction, dose schedules,
+> example selection and baseline belief distributions all differ between the two setups, so the
+> two above-chance figures are **not commensurable** and neither is "bigger". Report both; claim
+> superiority of neither.
+> ⚠ **AND THE ATTRIBUTED NUMBER IS UNRESOLVED.** The text above derived Kang's above-chance as
+> 64.4 − 29.5 = **+34.9 pts**. `docs/CITATION_LEDGER.md` — verified against the arXiv full text
+> (2026-07-16) — records their above-chance as **+43.6%**. These cannot both describe the same
+> statistic. Either the ledger mis-transcribed, **or "above-chance influence" is not steer−noise
+> and this report constructed a statistic and attributed it to the authors.** The latter would be
+> the more serious error, and it is exactly what rule 4 exists to catch. **Resolve against the
+> paper before any write-up.**
 
 #### The obvious explanation is WRONG — we measured it (Qwen, L14, α=5, n=150)
 

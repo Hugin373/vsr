@@ -1,4 +1,16 @@
-"""CausalSpatial (Mwxinnn/CausalSpatial, MIT) — simulation-level validation layer.
+"""CausalSpatial (Mwxinnn/CausalSpatial, MIT; arXiv 2601.13304) — simulation-level validation layer.
+
+⚠ THE SUBSET NAMES BELOW ARE THE REPO'S FOLDER NAMES, **NOT THE PAPER'S TAXONOMY.**
+The paper's categories are **Collision / Occlusion / Compatibility / TRAJECTORY**; ``physics`` and
+``realworld`` appear nowhere in it. Verified 2026-07-17 by reading the items, not by inferring the
+mapping: every ``physics`` question is trajectory prediction ("based on the soccer ball's
+trajectory, will it go into the goal?"; "if the billiard ball moves along the red arrow, will any
+ball score?"). So **``physics`` == the paper's Trajectory category.** This matters beyond naming:
+our docs had written ``physics`` off as "loads on physics priors, not spatial primitives → a
+non-target control" — a scientific judgment made against a *directory name*. Trajectory is
+predicted future position from a current spatial configuration (stage S4-C territory).
+``SUBSETS`` keeps the folder names because they are what is on disk; consumers must not read them
+as the paper's categories.
 
 Five subsets with TWO different schemas, which the adapter normalises:
 

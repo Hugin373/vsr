@@ -158,7 +158,7 @@ fishing expedition. All single-image:
 | ordinal | **CV-Bench Depth (600) + Distance (600)** | 33.3% synthetic (Hypersim); report per-source. Zero absolute items. Two-ordering mandatory |
 | ordinal + absolute, human-verified GT | **ReVSI-1F** (derived — spec below) | the workhorse |
 | absolute, sensor GT | **SpatialRGPT-Bench distance slice** (~375 items) | the absolute type CV-Bench lacks — see (g) |
-| consequence-level | **CausalSpatial collision (826) + occlusion (189)** ONLY | compatibility (99) + realworld (116) too small for per-category stats; physics (311) loads on **physics priors** → both are **non-target controls**. ⚠ Their own admission: sim **floor-strip spacing encodes depth perspective** — the cue is artificially legible; caveat cross-dataset comparisons |
+| consequence-level | **CausalSpatial collision (826) + occlusion (189)** ONLY | compatibility (99) + realworld (116) too small for per-category stats. 🔴 **CORRECTED 2026-07-17: the `physics` FOLDER (311) is the paper's **TRAJECTORY** category** — verified by reading its items ("based on the soccer ball's **trajectory**, will it go into the goal?"; "if the billiard ball moves along the red arrow, will any ball score?"). The old note — *"physics (311) loads on physics priors, not spatial primitives → non-target control"* — **was a judgment made against a DIRECTORY NAME.** Trajectory = predicted future position from a current spatial configuration, i.e. **S4-C (hypothetical spatial state) territory**, not a prior-loaded throwaway. Keep it out of the S1 consequence-level row (S1 is visible-metric), but **re-scope it as an S4-C candidate instrument, not a non-target control.** ⚠ Their own admission: sim **floor-strip spacing encodes depth perspective** — the cue is artificially legible; caveat cross-dataset comparisons |
 
 **MindCube is NOT in it** (see §2 table). **Full-video ReVSI at 2–3 frame budgets is a *labeled
 extension analysis*, not the core.**
@@ -268,14 +268,19 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
 
 **RESULT — full report: `reports/m3_reproduction.md`.**
 - **M3.1 = PASS on the mechanism, FAIL on the absolute magnitude.** The mirror-swap patching
-  profile reproduces *exactly* on both models (**image patches early → object-word tokens middle
-  → text late**), rank-3 R² = **0.87 / 0.84** vs their ≥0.85, and steering along the spatial-ID
-  mirror direction is dramatically selective: **31.3% vs 0.0% norm-matched noise** (Qwen, at the
-  paper's α=5). What does NOT reproduce is the absolute swap rate (19–31%, not ~64%) — but our
-  noise floor is also ~0%, not their ~30%, so the paper's own summary statistic, the
-  **above-chance influence**, matches or exceeds theirs (+31.3 pts at α=5, **+43.3 pts** at the
-  dose-response peak, vs their +34.9). Our models are simply far more certain on this task
-  (95–98% accuracy), so a random nudge never flips a belief. **Nothing was tuned to close the gap.**
+  profile's **key qualitative signatures reproduce** on both models (**image patches early →
+  object-word tokens middle → text late**), rank-3 R² = **0.87 / 0.84** vs their ≥0.85, and
+  steering along the spatial-ID mirror direction shows a **positive direction-vs-noise contrast**:
+  **31.3% vs 0.0% norm-matched noise** (Qwen, at the paper's α=5). What does NOT reproduce is the
+  absolute swap rate (19–31%, not ≈64.5%); our noise floor is also ~0%, not their 29.5%.
+  **⚠ Corrected 2026-07-17 (DR3-r2 #10):** this said the profile reproduced *"exactly"* (banned
+  without a preregistered similarity metric — we have none) and that our above-chance influence
+  *"matches or exceeds theirs"* (banned — **cross-study effect comparisons are DESCRIPTIVE only**;
+  noise construction, doses, selection and baseline beliefs differ). **Report both, claim
+  superiority of neither.** ⚠ Kang's above-chance figure is **UNRESOLVED**: our report computes
+  +34.9 (64.4 − 29.5); `docs/CITATION_LEDGER.md` records **+43.6** from the full text. Settle it
+  against the paper before any write-up. Our models are far more certain on this task (95–98%
+  accuracy), so a random nudge rarely flips a belief. **Nothing was tuned to close the gap.**
 - **M3.2 = FAIL, and the cause is OUR STIMULI, not the method.** See §2.5(d) below — this is the
   most consequential thing M3 produced.
 
