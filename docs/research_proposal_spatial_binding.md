@@ -10,7 +10,7 @@
 
 **Program hypothesis (deliberately non-directional).** *Spatial failure is not a unitary absence of geometry. It can arise because spatial information is weakly encoded, loses object-specific structure during multimodal transfer, remains represented but inaccessible to the relevant readout, or is not causally used. The program localizes these failure modes across visible, occluded, absent, and hypothetical spatial states, then tests whether interventions repair the responsible transition.* Directional claims belong to individual stages (S1 keeps its own), **not** to the program — an earlier "progressive loss" phrasing prejudged what the later stages exist to find out.
 
-**Evidential ladder (program-wide):** `representation ⊂ accessibility ⊂ task-relevant causal use`. "Spatial understanding = causal use" is qualified: *the represented variable causally contributes to the corresponding output under controlled intervention.* Failure of **one** answering pathway is not absence of understanding in every sense.
+**Evidential ladder (program-wide), operationalized at DR3-r3 as five rungs:** `linearly decodable ⊂ image-grounded decodable (arbiter + nuisance baselines) ⊂ causally alterable (controlled intervention) ⊂ object-specific mediated use (specificity + mediation) ⊂ task-relevant causal use` (DR3-r5: rung 3 renamed — a generic intervention that moves answers is rung-3 evidence only with off-target controls; 'available/used' start at rung 4). The former three-term ladder compressed rungs 2–3 into "accessibility", letting probes+controls claim too much. "Spatial understanding = causal use" is qualified: *the represented variable causally contributes to the corresponding output under controlled intervention.* Failure of **one** answering pathway is not absence of understanding in every sense.
 
 **The program cube (organizing figure; also the thesis structure).** Each stage occupies a declared region of:
 - **Axis A — information condition:** visible / occluded / absent / hypothetical
@@ -22,7 +22,7 @@
 | Stage | Question | Unlock gate | Maturity |
 |---|---|---|---|
 | **S1 — Visible metric** | where metric fidelity becomes inaccessible to the language computation | M3 GO ✅ | **executable paper plan** |
-| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | **M4b** clears the transferred W&G bar | **well-formed extension** |
+| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | **M4b** clears its validity gate (5 conditions, DR3) | **well-formed extension** |
 | **S2 — The method audit** | what do spatial "fixes" actually change? | S1's probes + baselines exist | **strong next-paper candidate** |
 | **S3 — Other readouts (generation)** | does the generation pathway read the same spatial code? | an S1 finding (S3 tests it) | comparative framework — **needs operational definitions** |
 | **S4 — The unseen** | what is maintained about what cannot currently be seen? | S1.5's amodal result | **long-horizon agenda** (three candidate projects, not one experiment) |
@@ -33,8 +33,20 @@
 
 ⚠ **Wording discipline: "becomes unavailable or unusable" — never "is lost" or "is destroyed."** Five mechanistically distinct possibilities the design must distinguish, which the loss vocabulary silently collapses: metric information may be **erased**, **recoded nonlinearly**, **detached from the object**, **present-but-ignored** by the answering computation, or **corrupted at verbalization**.
 
-- **H1 — localization (primary):** metric variables remain recoverable in visual representations but lose **object-specific accessibility** when bound into language-token representations.
-- **H2 — mechanistic sub-hypothesis:** the binding transformation preferentially preserves low-dimensional **ordinal** structure while collapsing continuous magnitude.
+- **H1 — localization (primary), split into two predictions (DR3-r3 — "accessibility" must not be
+  claimed from probes alone):
+  · probe-level prediction:** continuous depth remains linearly recoverable at visual sites but
+  becomes **substantially less linearly recoverable** at object-word sites;
+  **· causal-level prediction:** targeted intervention at those sites changes **object-specific**
+  depth answers. **Only the two together license an accessibility/binding claim.**
+- **H2 — mechanistic sub-hypothesis, SPLIT at DR3-r4 (the 'or' let two different outcomes both
+  count as confirmation):
+  · H2a (representational):** ordinal information remains linearly recoverable at object-word
+  sites while continuous magnitude declines there;
+  **· H2b (causal):** continuous-magnitude interventions show weaker object-specific behavioral
+  mediation than ordinal interventions.
+  Each is tested by its own instrument; whether a decline reflects compression, recoding,
+  detachment, or non-use is what the probe-capacity ladder and interventions determine.
 - **H-occ — sub-hypothesis (S1.5, tested in the same battery):** occlusion is **primarily an ordinal visibility cue** — it identifies front–behind ordering more directly than continuous magnitude. **Over-reliance on it could support qualitative depth while leaving metric depth poorly represented.** *(Do not claim occlusion is "the only categorical cue" or carries "zero metric content" — false as stated: T-junctions, containment and support are also ordinal cues, and occlusion boundaries combined with known shapes and camera geometry do constrain metric depth.)*
 
 ⚠ **Do NOT argue "rank-3, therefore incapable."** Three continuous dimensions can carry arbitrary precision. The coarseness evidence is Kang's **discretized** (4×4-bin) ID derivation and Cui's ordinal-only codes; these **support H2 without proving it**. Candidate mechanisms stay open: discretization, effective rank under the data distribution, SNR, ordinal-preserving many-to-one maps.
@@ -55,17 +67,27 @@ Fifth anchor — **Dual Mechanisms of Spatial Variable Binding** ([2603.22278](h
 
 The representational question is primary; **robotics/embodied motivation stays explicitly secondary.**
 
-**Adjudication update (2026-07-16) — the gap is now a published disagreement.** Two very recent
-stage-localization studies contradict each other: **2605.20448** (activation patching across
-ViT→merger→LM on categorical occlusion tasks) finds spatial recovery **collapses at the
-merger/projector**, while **Anchored, Not Graded (2606.06714)** (probes on factorial slant
-stimuli) finds geometry **cleanly decodable at LM-input** with failure at the
-"representation-to-output interface" — and declares LM-internal tracing future work. Neither
-uses a controlled metric variable, leak-controlled probes, or object-word binding sites.
-**Claim, final wording:** *we present the first leak-controlled probe trace of a controlled,
-continuous metric depth variable across the full functional chain — including LM-internal visual
-tokens and object-word binding sites — adjudicating the projector-vs-post-projector disagreement
-(pre-registered site-2 vs site-4 primary contrast).* Supporting neighbors, cited: 2606.31257
+**Positioning update 2 (2026-07-16, revised at Design Revision 3 — supersedes the earlier
+"adjudication" framing).** Two very recent stage-localization studies motivate **competing
+localization hypotheses for different forms of spatial information**: **2605.20448** (activation
+patching, ViT→merger→LM, *categorical occlusion*) reports a sharp causal-recovery discontinuity
+around the merger/projector boundary; **Anchored, Not Graded (2606.06714)** (probes, factorial
+*continuous slant*, encoder→LM-input only) finds geometry decodable at LM-input while verbal
+output anchors, and interprets this as a representation-to-output failure — with the LM interior
+explicitly unmeasured (their declared future work). ⚠ These results are **strictly compatible**
+(different variables, methods, models, endpoints); only their *interpretations* point at
+opposite ends of the LM. Do NOT frame this as a published contradiction we "adjudicate" — frame
+it as **a variable-specific localization question no existing study can answer:** *does
+controlled continuous depth follow a projector-, binding-, or readout-bottleneck pattern?*
+Neither paper uses a controlled continuous metric variable through the full chain,
+leak-controlled probes, or object-word binding sites.
+**Claim, pre-result wording (Design Revision 3; the two-level variable structure is part of the
+claim):** *we develop a stage-wise, trivial-feature-controlled protocol for tracing
+object-specific depth information — **continuous depth (z; Δz/ratio secondary) as the probe
+target, ordinal ordering as the behavioral anchor** — from visual encoding through
+language-token representations including object-word binding sites, testing which localization
+pattern holds (pre-registered site-2 vs site-4 primary contrast).* A scoped "first" claim may be
+added at write-up only after results and a fresh sweep. Supporting neighbors, cited: 2606.31257
 (decodability ≠ grounding; we adopt its vision-ablation arbiter), 2607.03358 (direct vs
 text-mediated routing; synthetic↔natural flip caveat), SpatialBabel 2605.12586 and O3-D
 2607.01503 (behavioral dissociations motivating internal analysis).
@@ -74,7 +96,17 @@ text-mediated routing; synthetic↔natural flip caveat), SpatialBabel 2605.12586
 
 ### 2.1 Measurement taxonomy
 
-"Metric" is decomposed by what monocular geometry permits: **ordinal** depth (well-posed, prior-free), **ratio** distance (prior-free), **absolute** metric (requires a size prior — in principle). Core claims target ordinal + ratio; absolute is a secondary, explicitly prior-framed analysis (ReVSI showed absolute-scale scores are contaminated by category priors — e.g., size "estimation" from black videos).
+"Metric" is decomposed by what monocular geometry permits, **stated conditionally (Design
+Revision 3)**: **ordinal** depth is often constrained by monocular evidence; **ratio** distance
+is recoverable only under geometric assumptions (calibration, support plane, known camera);
+**absolute** metric additionally requires a scale prior. Our battery *supplies* these conditions
+by construction (exact calibration, known geometry), and the image-identifiability gate
+**verifies rather than assumes** per-level recoverability. Core claims target ordinal + ratio;
+absolute is a secondary, explicitly prior-framed analysis (ReVSI showed absolute-scale scores are
+contaminated by category priors — e.g., size "estimation" from black videos). **Two-level
+variable structure (claim-level): continuous depth (z; Δz/ratio secondary) is the PROBE target;
+ordinal ordering is the BEHAVIORAL anchor; qualitative is the positive control. Never write
+"ordinal depth" and "continuous metric depth" interchangeably in a claim sentence.**
 
 ### 2.2 Stimuli — THREE regimes, not two
 
@@ -95,11 +127,33 @@ Two object sets (canonical-size objects vs arbitrary primitives — their differ
    **Adopted standards (Cui et al. v2):** probe mask-pooled object tokens AND all-token/strip-level representations (spatial signal is distributed across background tokens; object-pooled-only probing underestimates what survives); two-ordering strict MCQ protocol; random-direction nulls; fixed-α and per-example-α (Probe*) reporting.
 
    **DECISION RULE — claim a binding bottleneck only when ALL FIVE hold:**
-   1. metric is recoverable from object-associated **visual** tokens;
-   2. it is **substantially less** recoverable from that object's **text** tokens *under matched evaluation*;
+   1. metric information has **significant incremental recoverability** from object-associated
+      **visual** representations, beyond prespecified selection- and annotation-derived nuisance
+      features, **under matched nested evaluation** (dumb-only / representation-only / combined /
+      Δ with permutation CI; matched token-count and region-shape controls — DR3-r3/r6: the token
+      *selection* itself can encode location, and Δ alone is not the criterion);
+   2. it is **substantially less** recoverable from that object's **text** tokens *under matched
+      evaluation* — **defined as: equal probe class and regularization (nested CV), matched probe capacity,
+      equalized sample counts, comparable pooling dimensionality, stage-specific nuisance
+      baselines (text side: token identity/position, mention order, template role;
+      lexical-identity controls), and a CI on the cross-stage DIFFERENCE itself** (DR3-r3: visual and text tokens are non-equivalent populations;
+      an unmatched comparison can manufacture the visual-high/text-low contrast as a readout
+      mismatch);
    3. **qualitative** information **does** transfer to those same text tokens (within-model positive control);
-   4. **causal intervention** at the transfer layers changes metric answers;
-   5. effects are **object-specific**, not global answer bias.
+   4. a **held-out, depth-specific intervention** at the candidate transfer layer changes **the
+      relevant internal depth readout AND the corresponding object-specific answer** (DR3-r5:
+      mediation moves INSIDE the decision rule — a generic vector that changes answers globally
+      does not satisfy this condition);
+   5. effects are **object-specific**, operationalized by **reference redirection** (DR3-r4):
+      renaming or re-referencing the object redirects the effect; intervening on the non-target
+      object does not reproduce it; adding a distractor does not absorb it; the effect follows
+      the **referred object**, not a fixed token position or answer option.
+
+   **Operationalization of 4–5 (DR3-r2 — influence-at-a-layer ≠ binding):** a BINDING reading
+   additionally requires that the intervention affects the CORRECT object's text token
+   (wrong-object intervention does not produce the same change), that the transfer is
+   prompt-conditioned, and that renaming/re-referencing the object REDIRECTS the effect —
+   object swaps, distractor controls, and name-reference manipulations are the concrete tests.
 
    **Outcome matrix** (replaces the vacuous "every outcome is a finding" — and it holds *only if* per-site positive controls validate probe sensitivity):
 
@@ -123,7 +177,7 @@ Two object sets (canonical-size objects vs arbitrary primitives — their differ
    **Positioning of the leak result — additive, not corrective.** Wang & Gao's confound taxonomy controls the **cue shortcut** (apparent size) and **semantic residualization**; **we complete it with SELECTION.** *(Verified 2026-07-16 by reading their appendices F–I.4 verbatim and inspecting their code read-only: the selection leak is neither mentioned nor controlled; their only shortcut control is size-based, with no `(u,v)` features anywhere.)* ⚠ **Why Far Looks Up's text-delta probe is IMMUNE to the leak** (visual components cancel in the delta) — do not list them as leak-affected.
 2. **Probe-vs-verbalization comparison** with three fairness defenses: rank correlations (not raw R²), few-shot-calibrated verbalization baseline, and oracle-text condition (ground-truth coordinates as text → proves the reasoning/verbalization machinery works given resolved input).
 3. **Anchor experiment — PROMOTED to a core mechanistic experiment** (it is the prompt-conditioned *binding* test, not a side manipulation). Same image; prompts {no reference / refer to B / ask A-relative-to-B}; compare representation changes for **A, B, unrelated objects, and answer tokens**. This is what distinguishes absolute encoding / relational recoding / answer-only computation / binding-dependent relationalization.
-4. **Causal repair**: metric extension of Kang's oracle-ID injection — inject continuous-valued metric IDs; measure verbalized-answer recovery, with dose-response (see §4).
+4. **Causal repair**: a **graded intervention along a validated depth-related direction or subspace** (DR3-r2: 'metric ID' is reserved until the construction is formally defined — candidate constructions: probe direction, regression-derived depth vector, matched-condition activation difference, low-rank depth subspace, interchange between depth-matched scenes; these have DIFFERENT causal interpretations and the choice must be stated). Measure verbalized-answer recovery with dose-response (see §4).
 
 ### 2.4 The image-identifiability gate (must pass before any "encoder failure" claim)
 
@@ -131,7 +185,15 @@ Two object sets (canonical-size objects vs arbitrary primitives — their differ
 
 ### 2.5 Intervention block — and its anti-"logit-hack" controls
 
-Derived from whatever the causal chain shows; **the intervention is CHOSEN by the probing pattern, not pre-committed**: upstream-low → encoder/projector intervention; visual-high/text-low → binding; text-high/behavior-low → readout.
+**Site selection, DR3-r5 (the old 'chosen by the probing pattern' rule risked circular analysis —
+inspect all stages, pick the largest drop, intervene there, declare confirmation):** the
+**PRIMARY intervention site is PREREGISTERED** (the stage-2 vs stage-4 contrast, matching the
+probing primary). Probe-indicated sites beyond it are **EXPLORATORY** and must be **confirmed on
+held-out data** (new scenes/splits untouched by site selection). The probing pattern still
+*informs* the exploratory branch: upstream-low → encoder/projector; visual-high/text-low →
+binding; text-high/behavior-low → readout. **Direction validation is split-independent:** the
+depth direction/subspace is constructed on training data, validated on a separate split, and
+causally evaluated on untouched test scenes.
 
 **Control battery (all of it, or the result is answer steering):** layer controls (hypothesized vs early/late); position controls (object tokens vs unrelated); content controls (correct vs sign-flipped vs shuffled vs random-direction); dose-response; generalization to unseen values; paraphrase transfer; free-response **and** ordinal ranking, not only MCQ; qualitative controls undegraded. **And the mediation pattern: injection → downstream metric decodability rises → behavior improves.** ⚠ **Injection that moves answers *without* moving downstream decodability is answer steering, not repair.**
 

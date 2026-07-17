@@ -233,7 +233,7 @@ latter found the most important paper, which cites none of our anchors.
 
 | Paper | What it is | Verdict vs our claims |
 |---|---|---|
-| **2605.20448** Do VLMs Understand 3D Scenes or Just Catalogue Objects? (Deccan AI, May 19) | 17-site activation-patching trace (ViT→merger→LM L0–27), categorical occlusion | 🔴🔴 closest competitor; localizes failure AT the projector — contradicts our H1 AND Anchored; no metric var / probes / binding sites. We adjudicate. |
+| **2605.20448** Do VLMs Understand 3D Scenes or Just Catalogue Objects? (Deccan AI, May 19) | 17-site activation-patching trace (ViT→merger→LM L0–27), categorical occlusion | 🔴🔴 closest competitor; reports a sharp causal-recovery discontinuity around the merger/projector, **for categorical occlusion under their patching protocol**; motivates a competing localization hypothesis. ⚠ **DR3: strictly COMPATIBLE with Anchored — not a contradiction we "adjudicate"** (different variables/methods/endpoints). No controlled continuous metric var / selection-leak-controlled probes / binding sites. |
 | **2606.06714** Anchored, Not Graded | probe trace of continuous SLANT, encoder→projector→LM-input, factorial synthetic | 🔴 publishes our front half; decodable at LM-input, output anchors; LM-internal = declared future work |
 | 2607.03358 Pathways of Visual Information Flow (Copenhagen) | direct vs text-mediated routing, patching, categorical | claims untouched; adopt restoration score; warnings: synthetic↔natural routing flip, prompt-format sensitivity |
 | 2606.31257 Decodable Is Not Grounded (UNSW/NUS) | vision-ablation arbiter; decodability ≠ grounding | claims survive; ADOPT arbiter (blank + mismatched reruns) as mandatory M5 control; boundary: near-field depth is grounded-correct — never claim "depth unused" |
@@ -242,9 +242,19 @@ latter found the most important paper, which cites none of our anchors.
 | 2604.13321 Why MLLMs Struggle w/ Orientations | encoder-only probing of continuous orientation | "present but diffuse, downstream unknown" — convergent motivation |
 | 2606.01914 Spatial Lexical Bias (Kyoto/NII) | mechanistic pipeline for relation-WORD bias | methodological sibling; cite; WATCH |
 
-**Consequences:** (1) claim reworded — *first leak-controlled probe trace of a controlled
-continuous metric depth variable across the full chain incl. object-word binding sites*;
-(2) framing upgraded from gap to **adjudication** of the published projector-vs-post-projector
-disagreement (site-2 vs site-4 pre-registered primary); (3) two named scoop risks with declared
+**Consequences:** (1) claim wording — 🔴 **SUPERSEDED BY DR3 (2026-07-16); retraction left visible.**
+This read *"**first** leak-controlled probe trace of a controlled continuous metric depth variable
+across the **full chain** incl. object-word binding sites"*. Pre-result **"first" is BANNED**, as is
+"full chain" (→ "five prespecified functional stages"). **Current form:** *a stage-wise,
+trivial-feature-controlled protocol for tracing object-specific depth information — continuous depth
+(z; Δz/ratio secondary) as the probe target, ordinal ordering as the behavioral anchor — from visual
+encoding through language-token representations including object-word binding sites.*
+(2) framing — 🔴 **SUPERSEDED BY DR3.** This read *"upgraded from gap to **adjudication** of the
+published projector-vs-post-projector disagreement"*. **"Adjudicates the disagreement" is BANNED:**
+2605.20448 and 2606.06714 are **strictly compatible** (different variables, methods, models,
+endpoints) — only their *interpretations* point at opposite ends of the LM. **Current form:** the two
+motivate **competing localization hypotheses for different forms of spatial information**; we test
+which pattern — projector-, binding-, or readout-bottleneck — holds for controlled continuous depth
+(site-2 vs site-4 pre-registered primary, unchanged); (3) two named scoop risks with declared
 follow-ups (Anchored's group, Deccan AI) → WACV R2 Aug 28 target; (4) protocol: monthly topic
 sweeps added — citation graphs missed the nearest competitor for two months.

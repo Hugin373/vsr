@@ -121,9 +121,16 @@ regime, the decorrelation failed — fix the generator, do not proceed.
 **Exact renderer GT ≠ pixel-inferable GT.** For **each target variable** (ordinal depth, ratio,
 absolute depth, lateral position — per axis) and **each regime**: a **directly-supervised model
 on raw pixels** (small CNN or regression on oracle geometric image features — your choice,
-justify it) must recover the variable **from the image**, evaluated on the same structured
-held-out splits, plus a **human spot-check** on a rendered subset (contact sheet: can a person
-tell which object is closer?). If the image does not contain the evidence, no VLM site can — and
+justify it) must recover the variable **from the image**, **evaluated on held-out NUISANCE
+factors (object identities, poses, textures, camera configurations, cue combinations) — never
+only random splits** (AMENDED at DR3-r2: a pixel model that passes only random splits may be
+passing through the very cues the battery controls). **Gate per LEVEL, separately: ordinal
+identifiability · continuous ranking · calibrated magnitude/ratio.** The **human spot-check**
+(contact sheet: can a person tell which object is closer?) licenses the ORDINAL level only —
+continuous/ratio levels are gated by the supervised baseline's held-out generalization.
+**Additionally deliver: the pre-registered NUMERIC acceptance bounds for M4b's leak criterion**
+(trivial-feature score ceiling with CI; Δ_repr|dumb permutation-null threshold) — M4b may not
+start without them. If the image does not contain the evidence, no VLM site can — and
 any later "low everywhere" probing profile would be an instrument failure wearing a finding's
 clothes. **A target that fails the gate is fixed or descoped before M4b — the WACV minimal core
 needs ordinal depth; protect that target first.** This gate is a per-target checklist with

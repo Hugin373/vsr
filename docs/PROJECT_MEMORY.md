@@ -1,4 +1,4 @@
-# Project Memory — Kaho's VSR Research (last updated 2026-07-16, third session)
+# Project Memory — Kaho's VSR Research (last updated 2026-07-17, fourth session)
 
 *Orientation file for future sessions. Read this first, then `research_proposal_spatial_binding.md` (the plan) and `VSR_niches_critical_deep_read.md` (the literature analysis). Companion: `docs/vsr_landscape_v8.pptx` — Kaho's independent 19-paper landscape analysis (2026-07-05, predating this project), folded into these docs on 2026-07-15 (stage reframing, the S1.5 occlusion stage, the "isolated structured perception hurts" finding, the five definitions / capability levels / tensions vocabulary).*
 
@@ -40,6 +40,249 @@
 - **Still open (unchanged):** YANS registration (closes Jul 24 — this week); the one-page
   問題・新規性・実験設定 statement for the professor; biweekly citation watch + monthly topic sweep
   not yet set up as a scheduled task; human-baseline/ethics decision.
+
+## 📌 2026-07-17 (fourth session) — DR3 MERGED into the repo docs. M4a still IN PROGRESS.
+
+**What happened:** DR3 (six review rounds) had been authored in a parallel session against the
+pre-pilot docs and staged in `docs/update/`. Merged it into `docs/` as a **3-way merge**
+(base = git `725ad42`, ours = `6c93848` the M4a pilot, theirs = `docs/update/`), so nothing was
+hand-copied. **5 conflict regions, all resolved and verified.**
+
+- **🔴 THE MERGE HAZARD, avoided:** `docs/update/` branched from `725ad42` — the commit BEFORE the
+  M4a pilot (`6c93848`). Applied wholesale it would have **silently reverted the M4a pilot record**
+  (header back to "second session", the pilot session block deleted, the plan's M4a status block
+  deleted, NEXT reset to "M4a — do not start unprompted") while 140 rendered+validated images, a
+  report and 134 green tests sat on disk. **Kept ours** for the header + pilot record, **took DR3**
+  for all new content. *(The parallel session flagged the risk itself: "AMENDED WHILE M4a RUNS —
+  sync to the repo copy!")* **Lesson: a doc update authored off-HEAD is a revert wearing an
+  update's clothes — 3-way merge it, never copy it.**
+- **🔴 DR3 BANNED WORDING IT DID NOT SWEEP — including in a doc it never opened.** DR3 retired
+  "dies" / "adjudicates-the-disagreement" / pre-result "first", then left **five live instances** in
+  sections it did not rewrite: PROJECT_MEMORY's "ADJUDICATION FRAMING … **We adjudicate**" +
+  "***first*** leak-controlled PROBE trace"; the plan's M5-#2 "This **adjudicates** a now-published
+  disagreement"; and — **the one that proves the point** — `VSR_niches_critical_deep_read.md`, which
+  **was not in `docs/update/` at all** (DR3 shipped 4 docs + 2 new; the niches doc was never in
+  scope), still carrying "We adjudicate", "*first* leak-controlled probe trace … across the **full
+  chain**", and "framing upgraded from gap to **adjudication**". All **superseded in place with
+  visible retraction banners** (rule 13: a silent deletion lets the elegant argument walk back in).
+  ***Generalises — a ban is not self-enforcing, and a revision's SCOPE is not the corpus's scope:
+  grep every doc for every banned form the same session the ban lands.*** The banned framing had
+  survived in a doc whose own §Revision section is where the competitor analysis lives.
+- **Verdict on the standing question — "was it safe to merge while M4a runs?" → YES, and NO restart.**
+  DR3 changed the **GATE (evaluation)**, never the **stimulus spec**: the five M3.2 decorrelations,
+  the solo-ID amodal pass, the validator, the calibration are all untouched. **No rendered pixel and
+  no generator line is invalidated.** The pilot was always going to be superseded by the gate-scale
+  render, so there was no sunk render to restart. **The timing was lucky** — DR3 landed *before* the
+  expensive render, not after.
+- **⚠ BUT M4a's SCOPE GREW, and two gaps are MEASURED (not inferred) — see plan M4a status items 6–8:**
+  - **Nuisance factors vary but are DISCARDED.** `sampler.py:240–252` samples `ground_color` and
+    `sun_energy`/`sun_direction_jitter` per image and never persists them into `factors` → the
+    held-out-lighting / held-out-background splits DR3 now requires are **not constructible from the
+    existing annotations**, even though the factor varies. Same class as `strip_pool()`-exists-but-
+    never-cached.
+  - **🔴 TEXTURES DO NOT EXIST** anywhere in `src/sbind/stimuli/` or the M4a configs (ground = flat
+    colour). **This is a PRE-EXISTING violation of the plan's own item (d)** — `reports/m4a_battery.md`
+    never flagged it. DR3 merely made it load-bearing. Also absent: lighting FAMILIES, renderer-seed
+    variation (`cycles_seed: 411` fixed), render/AA variation (`samples: 96` fixed).
+  - **New M4a deliverable:** the pre-registered NUMERIC bounds for M4b's leak criterion — **M4b may
+    not start without them** (relative collapse is insufficient: 0.94→0.40 is still a leak).
+  - Pilot NUMBERS are now measured against a superseded gate — not wrong, no longer *sufficient*.
+    The load-bearing signal survives: counterbalanced drove physical-size↔depth to **r = 0.033**.
+- **⚠ STALE DATA:** `$DATA_ROOT/stimuli/m4a_v1_counterbalanced/` = **60 images under the FULL-battery
+  name**, its own config declaring `n_images: 420` (aborted run at `725ad42`). Delete/rename — rule 5.
+- **Docs added:** `docs/PITCH.md` (canonical short pitch — referenced as canonical since 07-16 but
+  **never actually in the repo** until now) and `docs/REVIEW_RESPONSE_2026-07-16_1.md` (the DR3
+  arbitration). DR3's memory cited the latter as `REVIEW_RESPONSE_2026-07-16.md` — **a path that did
+  not resolve** (rule 10); fixed to the real filename.
+- **Checked, no action:** PITCH.md is already CLEAN of the new bans — DR3's own warning that
+  "'adjudicating' and 'first' phrasing likely present" is **stale**; its only "first" is the temporal
+  "we first need to establish". Nothing blocks the Jul 24 YANS registration on wording grounds.
+- **Unchanged and still open:** YANS registration **closes Fri Jul 24** (7 days); the one-page
+  問題・新規性・実験設定 statement; lit-watch scheduled task; human-baseline/ethics.
+
+### 🔴 DESIGN REVISION 3 (2026-07-16, second session) — third external review, arbitrated
+Full arbitration: `docs/REVIEW_RESPONSE_2026-07-16_1.md` (read it before writing any
+claim-level sentence). The review read the lab deck as a scientific argument; most points hit
+PROJECT framing, not just slides. **What changed (do not revert):**
+1. **Two-level variable structure, now explicit everywhere:** CONTINUOUS depth (z; Δz/ratio
+   secondary) = the PROBE target · ORDINAL ordering = the BEHAVIORAL anchor · qualitative =
+   positive control. The old wording alternated "continuous metric depth" / "ordinal depth" in
+   claim sentences — internally contradictory; fixed. Claim sentences must name both levels.
+2. **"Adjudicate the published disagreement" is RETIRED as the claim.** Deccan (2605.20448) and
+   Anchored (2606.06714) studied different variables/methods and are strictly compatible; their
+   *interpretations* point at opposite ends of the LM (kept as attributed motivation). Canonical:
+   *"competing localization hypotheses for different forms of spatial information; we test which
+   pattern — projector-, binding-, or readout-bottleneck — holds for controlled continuous
+   depth."* Pre-registered site-2-vs-4 contrast unchanged.
+3. **M4b's gate reformulated as VALIDITY-ONLY** (the old "W&G pattern must emerge / semantics ≫
+   metric" put a substantive hypothesis inside a validity gate): positive controls decode ·
+   nulls at chance · leak ceiling COLLAPSES vs v0 · held-out-factor generalization · dynamic
+   range. An unexpected metric ceiling triggers the mandatory diagnostic checklist — and if all
+   validity checks pass, high metric decodability is a FINDING, not a gate failure. W&G gradient
+   = benchmark comparison, not go/no-go.
+4. **Position-leak = CANDIDATE contribution** until the 6-condition promotion checklist passes
+   (see arbitration §18; condition 6 — prior work doesn't control an equivalent feature — already
+   verified for W&G). "Non-representational features" → "external/trivial-feature baseline".
+5. **Construct fix: cues are not shortcuts by definition.** Cue-responsive (single-cue reliance
+   failing under decorrelation) vs cue-integrated (generalizes when correlations change) — the
+   conflict regime's fusion analysis operationalizes exactly this.
+6. **Scoped readings enforced:** Kang faithfulness (tested models/tasks only) · W&G null
+   (protocol-relative — "challenges the naive form", never "kills") · Ill-Posed LoRA (tested
+   setups) · monocular taxonomy conditional (ratio needs assumptions; gate verifies, not assumes)
+   · oracle-text narrows-not-localizes · the M5 curve "distinguishes the three candidate patterns
+   for controlled depth in the tested architectures" (no universal adjudication) · ablation nulls
+   ≠ absence (redundancy; Cui's LM backup is the live example) · patching = "causally capable
+   under this intervention".
+7. **New wording bans:** dies/killed (information) · adjudicates-the-disagreement · "first…"
+   pre-result (safe form: *"a stage-wise, trivial-feature-controlled protocol for tracing
+   object-specific depth (continuous probe targets, ordinal behavioral anchor) from visual
+   encoding through language-token representations"*) · unqualified cue-shortcut ·
+   "explicitly/accessibly encoded" from a linear probe · "only rendering can decorrelate".
+8. **Meta-lesson (third instance): compression re-introduces retracted overclaims.** The deck
+   restated things the docs had already fixed. Every claim-level sentence in ANY artifact copies
+   from PITCH.md/proposal — now including decks built by AI sessions.
+⚠ PITCH.md and the YANS abstract must be re-checked against bans (2) and (7) — "adjudicating"
+and "first" phrasing likely present. Flag for Kaho before Jul 24 registration.
+
+### DR3 addendum — review round 2 (2026-07-16, same reviewer): framing ACCEPTED, 30 residuals adopted
+Verdict received: *"the central argument is now defensible."* All residual items adopted; the
+methodological ones (not just slide wording) are now in the docs:
+- **Gate 1 hardened** (plan + M4a prompt, AMENDED WHILE M4a RUNS — sync to the repo copy!):
+  supervised pixel baseline must generalize across held-out NUISANCE factors, never only random
+  splits; per-LEVEL gates (ordinal / continuous ranking / calibrated magnitude); human check
+  licenses ordinal only. M4a must also deliver the pre-registered NUMERIC bounds for M4b's leak
+  acceptance (relative "collapse vs v0" is insufficient — 0.94→0.40 would still be a leak).
+- **M5 additions 7–10 (plan):** text-side trivial baselines mandatory (token identity/position,
+  mention order, template role, option order — text probes have their own leak classes; never
+  imply visual=contaminated/text=clean) · stage profile reported under MATCHED evaluation
+  (matched-capacity readouts, nested CV, per-cell CIs, stage-specific dumb baselines; report
+  dumb-only/rep-only/combined/Δ with permutation null — Δ alone is not decodability) ·
+  two-ordering operationalized as ORDER-ROBUST ACCURACY (correct under both orders, adjusted
+  chance, per-order + order-effect CI) · cross-study effect comparisons DESCRIPTIVE only (our
+  +43.3 vs Kang's +34.9 not comparable — noise floors differ; patching profile = "qualitative
+  pattern reproduced", never "exact").
+- **"Metric ID" name RESERVED** until the construction is defined (probe direction / regression
+  vector / matched-condition difference / low-rank subspace / interchange — different causal
+  interpretations). Interim term: "graded intervention along a validated depth-related direction
+  or subspace" (proposal §2.3(4), plan M6).
+- **H2 rewritten** ("collapsing" presupposed a mechanism): ordinal remains recoverable at
+  object-word sites while continuous magnitude becomes substantially less recoverable or less
+  causally available — compression/recoding/detachment/non-use decided by the ladder +
+  interventions.
+- **Binding rule conditions 4–5 operationalized** (proposal): wrong-object intervention control,
+  prompt-conditioning check, name-reference redirection — influence-at-a-layer ≠ binding.
+- **Slide-level bans enforced in decks** (round-2 sweep): representation ≠ decodability (A6) ·
+  first-answer-token autoregression correction (A7) · functional-abstraction caveat on the
+  skeleton (A4) · ordinal/metric question split (A10) · "cannot measure it" → behavioral
+  contrast · "falls exactly along the ladder" → broadly consistent · MindEdit = hard spatial
+  reasoning, not clean metric-only evidence · compass wording → error-distribution observation ·
+  cue note fixed (A19) · "only rendering" removed from Part A · "accuracy lies" → limits of
+  accuracy · black-video → "much of the score available without visual evidence (linguistic/
+  category/benchmark priors)" · "synthetic ⇒ priors can't help" FIXED (our own war stories
+  disprove it) · "semantics: perfect" → protocol-scoped shape accuracy · "topology survives" →
+  "relative-neighborhood structure remains detectable under their analysis" · endpoint synthesis
+  → relationship-unmeasured wording · "nobody has traced" → "the studies reviewed here do not
+  provide…" · glossary prior-free error fixed.
+
+### DR3 addendum — review round 3 (2026-07-16): "conceptually ready"; residual wording + 4 doc refinements
+Round-3 verdict: no remaining flaw at the severity of the original two; ~40 wording items fixed in
+both decks (headline-vs-body compression was the pattern). **Doc-level refinements (operative):**
+1. **Evidential ladder → FIVE rungs (proposal §0):** linearly decodable ⊂ image-grounded decodable
+   (arbiter+ceilings) ⊂ causally available (intervention) ⊂ naturally used (specificity+mediation)
+   ⊂ task-relevant causal use. "Accessible" was compressing rungs 2–3 and claiming too much from
+   probes+controls.
+2. **H1 split into probe-level vs causal-level predictions (proposal §1):** less-linearly-
+   recoverable-at-object-word-sites is the probe prediction; accessibility/binding is licensed
+   only by probe + intervention together.
+3. **Binding rule conditions 1–2 hardened (proposal §2.3):** condition 1 requires beating
+   selection- AND annotation-derived baselines with matched token-count/region-shape controls;
+   condition 2's "matched evaluation" is now defined (matched capacity, equalized samples,
+   comparable pooling, text-side nuisance baselines, CIs). Condition 3 rephrased: "validated
+   Kang-style positive control" — Kang LOCALIZED influence to object-word sites and INTERPRETS it
+   as binding; we do not inherit the interpretation as fact.
+4. **Terminology:** "leak" reserved for the SELECTION mechanism; text-side controls are "nuisance
+   baselines". Claim wording: "selection-leak-controlled (with nuisance baselines)" — never bare
+   "leak-controlled" (cannot guarantee all leakage). "Kang's mechanism reproduced" → "key
+   qualitative signatures partially reproduced; absolute effect did not". "Kills the leak" →
+   "disrupts; residual verified against the preregistered bound". Scoop-risk phrasing: "adjacent
+   or overlapping territory".
+Also enforced in decks: ordinal ≠ near-floor (variable under familiar cue correlations; continuous
+is the consistently weak level) · A45's "signal in, signal not used out" → unresolved-contrast
+wording (the two observations are unlinked) · snap-back = patching-restorability, not
+natural-encoding · "no existing study" → "the studies reviewed here" · ablation-heads,
+LoRA-topology, Cui-underestimation all scoped to their setups.
+
+### DR3 addendum — review round 4 (2026-07-16): "very close to content-ready"; 33 residuals adopted
+Final wording pass on both decks (compression-overclaim pattern again) + three doc refinements:
+1. **H2 SPLIT into H2a (representational) / H2b (causal)** — proposal §1. The 'less recoverable OR
+   less causally available' phrasing let two different outcomes both confirm H2.
+2. **Binding condition 5 operationalized as REFERENCE REDIRECTION** (rename/re-reference redirects
+   the effect; non-target intervention doesn't reproduce it; effect follows the referred object,
+   not token position). **Condition 2's matched evaluation extended** (equal probe class +
+   regularization, nested CV, comparable pooling dimensionality, lexical-identity controls, CI on
+   the cross-stage difference itself).
+3. **Statistical criteria named precisely:** "nulls at chance" → label-permutation scores follow
+   the preregistered null distribution + nuisance baselines below the acceptance bound (shuffled
+   R² can be negative; chance is not one number). Δ reported with dumb-only / rep-only / combined
+   + permutation CI, matched regularization — never Δ alone. "Dumb-features CEILING" → prefer
+   "nuisance baseline + incremental-value analysis" (it is not a true upper bound).
+Deck-side (highlights): A37 note comparison removed (descriptive only) · Act-4 title "one public
+disagreement" → "two competing localization hypotheses" · B3 "cannot fool us" → "failure modes
+explicitly tested" · anchor experiment = transfer test (binding only via the full rule) · "repair,
+not steering" → "testing repair vs generic steering" · M3.2 W&G numbers = REFERENCE PATTERN (not
+'reproduction target' — stimuli/extraction differ) · "in-distribution" steering qualifier now
+carries operational checks (norm/distribution checks + unrelated-behavior preservation) · Kang
+4×4 coarseness attributed to their SUPERVISION/EVALUATION, not the internal channel · six-item
+leak-promotion checklist enumerated on-slide. Reviewer's close: content ready for a technically
+informed lab audience after these.
+
+### DR3 addendum — review round 5 (2026-07-16): REVISION LOOP CLOSED
+Reviewer: "substantively credible … final research-design hardening … after these, stop revising
+the conceptual framing and move to implementation." All 24 items applied. The three that changed
+the DESIGN (docs, not slides):
+1. **Intervention-site selection PREREGISTERED** (proposal §2.5, plan M5-#13): primary = the
+   stage-2 vs stage-4 contrast; probe-indicated sites are exploratory + confirmed on held-out
+   data — the old "intervene where the probes indict" rule risked pick-the-largest-drop
+   circularity. **Depth-direction construction / validation / causal evaluation on three disjoint
+   splits.**
+2. **Ordinal-vs-continuous comparisons DIFFICULTY-MATCHED** (plan M5-#11): matched-bin
+   discretization, ordinal-from-continuous-labels, equalized capacity + samples, calibrated noise
+   ceilings, rank/information metrics — otherwise H2a measures an easier target, not selective
+   preservation. **H1/H2a/H2b relabeled as one location claim + two selectivity claims layered on
+   it** (H2a extends H1, not independent).
+3. **TWO positive-control classes per stage** (plan M5-#12): semantic AND
+   continuous-geometric-by-construction/injection — a shape control cannot license a
+   continuous-depth null. Binding **condition 4 now contains mediation** (held-out, depth-specific
+   intervention must move the internal depth readout AND the object-specific answer).
+Also: **ladder rung 3 renamed "causally ALTERABLE"** (available/used start at rung 4; generic
+answer-moving interventions are rung-3 only with off-target controls) · Gate 1 held-out factors
+extended to renderer seeds / lighting families / backgrounds / render settings (cross-renderer
+ideal) · order-robust-accuracy null via permutation/paired-response model, not naive 25% ·
+"dumb-features CEILING" retired as a headline (nuisance baselines + incremental-value analysis;
+"leak ceiling" only as the defined selection-mechanism maximum) · "full chain" → "five
+prespecified functional stages" · "immune" → "escapes this specific leak" · Kang steering repro
+stated as "positive direction-vs-noise contrast". **Wording-review protocol going forward: the
+conceptual framing is FROZEN; future reviews target stimuli, statistical plan, extraction code,
+and results.**
+
+### DR3 addendum — review round 6 (2026-07-16): VERDICT "READY". Conceptual deck FROZEN.
+Reviewer: "This version is ready … The argument itself is no longer the weak point. The next
+scientific risk is experimental execution." Three final clarifications applied:
+1. **Continuous positive controls made NON-CIRCULAR** (plan M5-#12): injected implementation
+   control (independent activation dimension; validates pipeline) + independently established
+   natural geometric control — neither constructed from the probe being validated.
+2. **H2a difficulty-matching operationalized on-slide** (B7): matched targets from the same depth
+   labels/scenes, equalized capacity/samples/nuisance controls, ceiling-normalized evaluation.
+3. **Binding condition 1 upgraded** (proposal + appendix slide): "significant incremental
+   recoverability beyond prespecified selection/nuisance features under matched nested
+   evaluation" — the "above the leak ceiling" shorthand and the glossary's Δ-only criterion are
+   retired.
+(+ A48: "less recoverable — and whether/where causally unavailable — is unmeasured".)
+**STANDING RULE: the conceptual framing and both decks are FROZEN. Six review rounds complete.**
+Remaining review surface (the reviewer's own list): site-tensor mapping, scene-family leakage in
+splits, the continuous-control construction, ordinal/continuous matching, independent direction
+learning/evaluation, and POWER for the preregistered stage contrast. These live in M4a/M4b/M5
+execution — deck edits only follow DATA now (M4a renders into B-5, pilot curves into Act 7).
 
 ### Pre-M4a threat sweep (2026-07-16, second session) — CLEAR, M4a may start
 Anchor citers + topic sweep re-run before starting M4a. **No new threat found; no design change
@@ -120,14 +363,25 @@ code verification after these edits: `uv run ruff check src/ tests/ scripts/` gr
   SLANT across encoder→projector→**LM-INPUT visual tokens** (factorial synthetic; 4 VLMs):
   geometry decodable at LM-input (R² 0.70–0.88) while verbal output anchors; blames the
   "representation-to-output interface"; LM-internal tracing = their DECLARED future work.
-- **⇒ ADJUDICATION FRAMING (upgrade from "gap"):** two published traces now DISAGREE about where
-  spatial fidelity dies — projector (2605.20448, patching, categorical) vs post-projector
-  (Anchored, probes, slant). Neither uses a controlled METRIC variable, leak-controlled probes,
-  or object-word BINDING sites. **We adjudicate.** M5 pre-registers the site-2(projector) vs
-  site-4(binding) contrast as a PRIMARY analysis.
-- **⇒ CLAIM (1) FINAL WORDING (every qualifier load-bearing):** *first leak-controlled PROBE
-  trace of a controlled CONTINUOUS METRIC depth variable across the FULL functional chain
-  including LM-internal visual tokens and OBJECT-WORD BINDING sites.*
+- 🔴 **SUPERSEDED BY DESIGN REVISION 3 (2026-07-16) — the retraction stays visible on purpose.**
+  This section originally read: *"ADJUDICATION FRAMING (upgrade from 'gap'): two published traces
+  now DISAGREE about where spatial fidelity **dies** … **We adjudicate.**"* and claimed
+  *"**first** leak-controlled PROBE trace … across the FULL functional chain."* **All three forms
+  are now BANNED** (dies · adjudicates-the-disagreement · pre-result "first"). The two traces are
+  **strictly compatible** — different variables, methods, models and endpoints; only their
+  *interpretations* point at opposite ends of the LM. See the DR3 block at the top of this file.
+- **⇒ CANONICAL FRAMING (DR3):** the two studies motivate **competing localization hypotheses for
+  different forms of spatial information**; we test **which pattern — projector-, binding-, or
+  readout-bottleneck — holds for controlled continuous depth.** Neither paper uses a controlled
+  continuous metric variable through the full chain, selection-leak-controlled probes, or
+  object-word binding sites. M5 pre-registers the site-2(projector) vs site-4(binding) contrast as
+  a PRIMARY analysis (unchanged).
+- **⇒ CLAIM (1), PRE-RESULT WORDING (DR3; the two-level variable is part of the claim):** *a
+  stage-wise, trivial-feature-controlled protocol for tracing object-specific depth information —
+  **continuous depth (z; Δz/ratio secondary) as the probe target, ordinal ordering as the
+  behavioral anchor** — from visual encoding through language-token representations including
+  object-word binding sites.* A scoped "first" may return at write-up, after results + a fresh
+  sweep, each qualifier re-verified.
 - **Kang-citer batch (user's sweep + our completion; citer set now COMPLETE at 8 unique):**
   - 2607.03358 "Pathways of Visual Information Flow" (Copenhagen): direct vs text-mediated
     routing, categorical, LM-internal only; claims untouched. ⚠ WARNINGS: (i) routing FLIPS
@@ -249,7 +503,7 @@ agenda from being read as a queued experiment.
 | Stage | Question | Unlock gate | Maturity / status |
 |---|---|---|---|
 | **S1 — Visible metric** | where metric fidelity becomes inaccessible to the language computation | M3 GO ✅ | **executable paper plan** — running; M4 is the real gate |
-| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | **M4b** clears the transferred W&G bar | **well-formed extension** — spec'd as milestone **M4.5** (plan §4) |
+| **S1.5 — Occlusion & the amodal probe** | is the hidden part represented, object-specific, and bound? | **M4b** clears its validity gate (DR3) | **well-formed extension** — spec'd as milestone **M4.5** (plan §4) |
 | **S2 — The method audit** | what do spatial "fixes" actually change? | S1's probes + baselines exist | **strong next-paper candidate** (M7) — stays ahead of S3 unless S1 yields a strong readout-specific result |
 | **S3 — Other readouts (generation)** | does the generation pathway read the same spatial code? | an S1 finding (S3 tests it) | **comparative framework needing operational definitions** — parked |
 | **S4 — The unseen** | what is maintained about what cannot currently be seen: occluded (by things), out-of-view (by framing), future (by time) | S1.5's amodal result | **long-horizon agenda — THREE candidate projects, not one experiment.** Do not build |
@@ -441,7 +695,8 @@ unsuitability were **both invisible** from the dataset descriptions we had been 
 - Anything M4 adds (new primitive, new pose freedom, per-object size jitter) **invalidates the M1 calibration and the 1.158 area threshold** — recalibrate (`scripts/calibrate_sizes.py`) and re-derive the thresholds from worst-case constants.
 
 ### Forward constraints from S1.5 / M4.5 (added 2026-07-15) — M4 should not paint itself into a corner
-M4.5 (occlusion) runs only AFTER **M4b** passes the transferred W&G bar, but two of its needs are cheap
+M4.5 (occlusion) runs only AFTER **M4b** passes its VALIDITY gate (5 conditions, DR3 — the old
+"transferred W&G bar" is retired as a go/no-go), but two of its needs are cheap
 to accommodate now and expensive to retrofit:
 - **The amodal mask is nearly free — take it.** The composite ID pass gives the *visible* mask
   (current pipeline); rendering each object **alone** in a solo ID pass gives the **amodal** mask
@@ -729,6 +984,16 @@ against the ROLE it could predict, not just its own marginal.**
 - **Dual Mechanisms v2 (2603.22278v2, Jun 2026, deep-read 2026-07-09):** retitled to "spatial VARIABLE BINDING" — terminology collision risk; define our claim explicitly as the *vision→text-token binding step* (Kang-style), cite them as the ordinal counterpart. Our territory intact (no metric, no site decomposition, no text-token sites, no probe-vs-verbalization in v2). Adopted their standards into IMPLEMENTATION_PLAN M5: strip-level + object-pooled probing (their negative control shows background tokens carry signal), two-ordering MCQ protocol, random-direction nulls, Probe* reporting. Their code/data: spatial.baulab.info.
 
 ## Deliverables in outputs folder
+- `lab_presentation_partA.pptx` (55 slides) + `lab_presentation_partB.pptx` (35 slides) +
+  `CITATION_LEDGER.md` (built 2026-07-16): rookie-oriented lab seminar deck, English, 90+ min.
+  Every number verified against paper full texts (ledger caught: W&G shape=1.00 is ACCURACY not
+  R²; Kang steering 64.4/64.6 inconsistency; Cui null 9.6–13.1; CausalSpatial = arXiv 2601.13304,
+  taxonomy Collision/Occlusion/Compatibility/Trajectory). Paper figures redrawn (sandbox can't
+  fetch arXiv images) — original-figure URLs in slide citations/notes for manual paste-in.
+  Part B slide B-5 regime sketches: swap for real M4a renders when available.
+  **Revised at Design Revision 3 (same day):** all claim-level sentences re-scoped per the third
+  external review (two-level variable, competing-hypotheses framing, no "dies/kills/adjudicates/
+  first", validity-only Gate 2, candidate leak contribution). Decks now match the framing docs.
 - `research_proposal_spatial_binding.md` — full proposal (advisor asks: plan endorsement + cluster access, model sign-off, human-baseline/ethics decision, external reader).
 - `VSR_niches_critical_deep_read.md` — 15+ paper critical analysis with revision banners per niche.
 - `research_proposal_spatial_binding.pptx` — 11-slide advisor deck (phase-framed, no conference dates).
@@ -739,9 +1004,9 @@ against the ROLE it could predict, not just its own marginal.**
 - **🧭 PROGRAM REFRAMED (2026-07-14/15): stages, not papers — then DESIGN REVISION 2 (2026-07-15).**
   See "The research program" above. The work is S1 → S1.5 → S2 → S3 → S4, dependency-gated; papers and
   degree documents are *bindings* of whatever is defensible at a deadline. **M4.5 (= stage S1.5) now
-  exists as a milestone** in IMPLEMENTATION_PLAN §4, between M4 and M5, **LOCKED until M4b passes the
-  transferred Wang & Gao bar** — the same gate that guards M5. If M4's battery still gives R² ≈ 0.99
-  everywhere after the leak controls, **neither M4.5 nor M5 starts.** Do not start M4.5 unprompted.
+  exists as a milestone** in IMPLEMENTATION_PLAN §4, between M4 and M5, **LOCKED until M4b passes
+  its VALIDITY gate (reformulated at Design Revision 3 — 5 conditions; the old 'W&G pattern must
+  emerge' bar is retired as a go/no-go)**. A validity failure blocks **both M4.5 and M5.** Do not start M4.5 unprompted.
 - **⚠ WHAT DESIGN REVISION 2 CHANGED THAT YOU MUST NOT REVERT** (two external reviews + a
   ground-truth dataset inspection, all 2026-07-15). Each of these *overwrote something these docs
   asserted a day earlier* — if you find the old form somewhere, it is stale, not a second opinion:
@@ -788,8 +1053,8 @@ against the ROLE it could predict, not just its own marginal.**
   IMPLEMENTATION_PLAN §2.5(d), the M4a/M4b specs, and `reports/m3_reproduction.md` §2.4.
   - **M4a = the stimulus battery.** Gate: **image-identifiability** — *do our images actually contain
     the evidence?* Needs **no VLM at all**, which is exactly why it runs first.
-  - **M4b = the extraction pipeline.** Gate: **the transferred W&G bar** — *does our instrument
-    measure models, or itself?*
+  - **M4b = the extraction pipeline.** Gate: **validity, 5 conditions (DR3)** — *does our instrument
+    measure models, or itself?* (W&G gradient = benchmark comparison, not go/no-go.)
   - **Why split:** M4 had two deliverables and two gates, and run as one milestone **a failure at
     either gate could not be attributed** — "metric is not decodable" would be indistinguishable from
     "the images never contained it" *and* from "the extraction is mis-mapping tokens". With M4a

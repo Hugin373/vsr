@@ -288,7 +288,7 @@ only itself.
 
 **🔀 WHY THE SPLIT (decided 2026-07-15).** M4 had accumulated two independent deliverables (a
 generator and an extraction pipeline) **and two independent gates** — the image-identifiability gate
-and the transferred Wang & Gao bar. Run as one milestone, **a failure at either gate leaves you
+and the M4b validity gate (formerly 'the transferred Wang & Gao bar' — reformulated at Design Revision 3). Run as one milestone, **a failure at either gate leaves you
 unable to say which half was wrong**: "metric is not decodable" would be indistinguishable from "the
 images never contained it" *and* from "the extraction is mis-mapping tokens". They are now separate
 milestones with **separate gates**, in dependency order. *(This is a sub-split like M1.1/M1.2 and
@@ -297,7 +297,7 @@ M3.1/M3.2 — **M0–M7 are NOT renumbered**; M4.5 still follows M4b.)*
 | | Deliverable | Its gate | The question that gate answers |
 |---|---|---|---|
 | **M4a** | stimulus battery v1 (generator) | **image-identifiability** | *Do our images actually contain the evidence?* |
-| **M4b** | extraction pipeline + cache | **transferred W&G bar** | *Does our instrument measure models, or itself?* |
+| **M4b** | extraction pipeline + cache | **validity gate (5 conditions)** | *Does our instrument measure models, or itself?* |
 
 **M4a's gate is a property of the STIMULI and needs no VLM at all** — which is exactly why it must
 pass first. Do not build M4b against a battery that has not cleared it.
@@ -349,9 +349,17 @@ forward-compat but is outside the core matrix.)
   by byte-compare** (hard rule); validation suite green **with margins reported, not pass/fail**;
   recalibrated cue constants derived from **worst case** (evaluation law, clause 1 — these are
   constructed quantities).
-- **🚦 M4a's GATE — THE IMAGE-IDENTIFIABILITY GATE (6f). Exact renderer GT ≠ pixel-inferable GT.**
-  A **directly-supervised model on raw pixels** (or oracle geometric image features) must recover
-  each target variable **from the image**, plus a **human spot-check** on a subset.
+- **🚦 M4a's GATE — THE IMAGE-IDENTIFIABILITY GATE (6f; hardened at DR3-r2). Exact renderer GT ≠
+  pixel-inferable GT.** A **directly-supervised model on raw pixels** (or oracle geometric image
+  features) must recover each target variable **from the image** — **evaluated on held-out
+  nuisance factors (object identities, poses, textures, camera configurations, cue combinations — plus renderer
+  seeds, lighting families, backgrounds, and render/anti-aliasing settings; cross-renderer
+  validation is the ideal), never only random splits**: otherwise the supervised baseline can pass
+  through the very cues and artifacts the battery is meant to control.
+  **Per-LEVEL gates, separately: ordinal identifiability · continuous ranking · calibrated
+  magnitude/ratio.** The human spot-check licenses ORDINAL identifiability only (humans do not
+  produce calibrated metric values) — continuous/ratio levels are gated by the supervised
+  baseline's held-out generalization.
   **If the image does not contain the evidence, no site can** — and a "low everywhere" probing
   profile would then be an **instrument failure wearing a finding's clothes** (CLAUDE.md rule 11).
   **This gate needs no VLM, and it is why M4a runs first:** clearing it is what makes a later null at
@@ -365,14 +373,53 @@ forward-compat but is outside the core matrix.)
   counterbalanced 60, conflict 40. All three pass the output validator with margins reported; full
   test suite: `134 passed`. Oracle geometric-image analysis clears the target-variable gates for the
   counterbalanced and conflict pilots, while natural-congruent remains a control and fails ratio
-  generalization under held-out splits. Report: `reports/m4a_battery.md`. Remaining before M4a accept:
-  true contrastive matched pairs, gate-scale pilot/full battery, M4a determinism byte-compare,
-  human spot-check/contact sheet, and replacement/attribution of procedural stand-ins with real CC0
-  assets if the final claim requires imported canonical objects. **M4b remains locked.**
+  generalization under held-out splits. Report: `reports/m4a_battery.md`.
+  ⚠ **The pilot NUMBERS were measured against the PRE-DR3 gate** (flat `acc >= 0.70` / `R2 >= 0.20`,
+  no per-level split, nuisance factors not held out). They are not wrong; they are **no longer
+  SUFFICIENT** to clear the hardened Gate 1. The load-bearing pilot signal survives: counterbalanced
+  drove physical-size↔depth to **r = 0.033**, breaking the shortcut M3.2 died on.
+
+  **Remaining before M4a accept — ORIGINAL five:**
+  1. true contrastive matched pairs (only a config scaffold exists);
+  2. gate-scale pilot / full battery (140 rendered; configs declare 1,020 = 180+420+180+240);
+  3. M4a determinism byte-compare (hard rule, never yet run on M4a outputs);
+  4. human spot-check / contact sheet (⚠ DR3: licenses the ORDINAL level ONLY);
+  5. procedural chair/mug/bottle → imported CC0 assets, if the final claim needs canonical objects.
+
+  **Added by DR3's hardened Gate 1 (2026-07-16; measured against the battery 2026-07-17):**
+  6. **Persist the nuisance factors that ALREADY vary but are DISCARDED.** `sampler.py` samples
+     `ground_color` (4 values) and `sun_energy` (3.0–5.5) + `sun_direction_jitter` per image, passes
+     them to the renderer, and **never writes them into the annotation's `factors`** — so no
+     held-out-lighting / held-out-background split is constructible even though the factor varies.
+     Cheap, pure gain. *(Same class as `strip_pool()` existing but never cached.)*
+  7. **Add the factor axes that DO NOT EXIST.** ⚠ **TEXTURES ARE ABSENT ENTIRELY** — grep of
+     `src/sbind/stimuli/` + the M4a configs returns nothing for texture/checker/HDRI; ground is flat
+     colour. **This is a PRE-EXISTING gap against the plan's own item (d)** ("nuisance variation:
+     textures, distractors, lighting jitter"), not something DR3 created — DR3 only made it
+     load-bearing by naming textures in the held-out list. Also absent: **lighting FAMILIES**
+     (one sun + continuous jitter is one family), **renderer-seed variation** (`cycles_seed: 411`
+     fixed battery-wide), **render/AA-setting variation** (`samples: 96` fixed).
+  8. **Per-LEVEL gates + PRE-REGISTERED NUMERIC BOUNDS.** Gate separately: ordinal identifiability ·
+     continuous ranking · calibrated magnitude/ratio. And deliver the numeric bounds M4b's leak
+     criterion needs (trivial-feature ceiling with CI; Δ_repr|dumb permutation-null threshold) —
+     **relative "collapse vs v0" is insufficient (0.94→0.40 is still a leak), and M4b MAY NOT START
+     without them.**
+  `scripts/m4a_analyze_stimuli.py` currently implements held-out object identity / camera pose /
+  depth range / object pair / depth gap / cue combo — i.e. the ORIGINAL list only.
+  **Sequencing (nothing needs re-rendering for DR3):** DR3 changed the GATE, not the stimulus spec —
+  no rendered pixel and no generator line is invalidated, and the pilot was always going to be
+  superseded by the gate-scale render. Do 6+7 (generator + annotation), THEN render at gate scale,
+  THEN analyze under 8. **M4b remains locked.**
+
+  ⚠ **STALE DATA ON DISK (found 2026-07-17):** `$DATA_ROOT/stimuli/m4a_v1_counterbalanced/` carries
+  the FULL-battery name but holds only **60 images**, while its own `config.yaml` /
+  `run_metadata.json` declare `n_images: 420` (aborted run at git `725ad42`). Delete or rename before
+  it is mistaken for the battery — an analysis pointed at it would silently get 14% of the intended
+  set with every name and config asserting otherwise (rule 5).
 
 ---
 
-#### M4b — Extraction pipeline + cache. Gate: THE TRANSFERRED W&G BAR
+#### M4b — Extraction pipeline + cache. Gate: THE VALIDITY GATE (5 conditions, DR3)
 
 1. `extract/`: generic HF-VLM wrapper (LLaVA-1.5/1.6, Qwen2-VL, Qwen2.5-VL-7B, **Qwen2.5-VL-3B**, InternVL, Gemma-3) over the **five functional stages** of §3 — including the **new `lm_ans_L{k}` readout hook, which does not exist yet**; mask-pooling (coverage-weighted, per Wang & Gao's method — reimplemented) and object-word token extraction (tokenizer-aware span finding); writes §3 caches; per-batch checkpointing + `--resume`.
    **S2 forward-compatibility:** include both Qwen2.5-VL-7B and -3B Instruct in the model list — they are the shared bases of the method-audit checkpoints (S2/M7: SpaceR + ViLaSR on 7B; SpatialLadder + SpaceQwen/SpaceOm + Spatial-MLLM on 3B), so every S1 measurement on them doubles as the audit baseline. The wrapper must accept arbitrary HF checkpoint paths of the same architecture (base vs fine-tune swap = config change only).
@@ -391,23 +438,41 @@ forward-compat but is outside the core matrix.)
 - **The three leak controls of `reports/m3_reproduction.md` §2.4 implemented and reported**:
   dumb-features leak ceiling, fixed-grid strip probes, camera-pose jitter — the ceiling in the
   **incremental form Δ_repr|dumb** (6g), never as a bare difference of two scores.
-- **🚦 M4b's GATE — THE TRANSFERRED M3.2 BAR: the Wang & Gao pattern EMERGES on the new battery** —
-  semantics ≫ metric, with a **difficulty gradient present**, measured *above the leak ceiling*.
-  If the decorrelated set still gives R² ≈ 0.99 everywhere after the leak controls, **the instrument
-  is still measuring itself: neither M4.5 nor M5 starts.** When the gradient appears, it is finally
-  measuring models. **⚠ Because M4a's gate has already passed, a failure HERE is unambiguous — it is
-  the extraction or the leak controls, NOT the images.** That disambiguation is the entire point of
-  the split.
-- **Pilot exit criterion (fixes the final analysis matrix):** ≥1 model shows metric decoding **above
-  the nuisance ceiling** at an upstream stage (**or** strong evidence the premise fails) **AND** M4a's
-  identifiability gate passed **AND** the W&G gradient emerged.
+- **🚦 M4b's GATE — VALIDITY-ONLY (reformulated at Design Revision 3, 2026-07-16; the old
+  "W&G pattern must emerge" bar put a SUBSTANTIVE HYPOTHESIS inside a validity gate — if metric
+  were genuinely strong on the fixed battery, the old bar would have rejected the experiment for
+  failing to reproduce the expected weakness).** The gate now requires ALL of:
+  1. **positive controls decode** (per-stage probe sensitivity demonstrated);
+  2. **label and feature nulls at chance** (shuffled labels; dumb-features probe at its expected
+     floor on decorrelated targets);
+  3. **the leak ceiling COLLAPSES vs v0 — with a PRE-REGISTERED ABSOLUTE acceptance rule, not
+     only a relative one** (DR3-r2: 0.94→0.40 would still be an unacceptable leak). Before M4b
+     probing starts, the M4a report must fix numeric bounds: trivial-feature score below a
+     prespecified ceiling (with CI), incremental gain Δ_repr|dumb materially above a permutation
+     null, and held-out-factor splits where the nuisance baseline FAILS while the target remains
+     identifiable;
+  4. **generalization across held-out objects / camera poses / depth ranges** (not only random
+     splits);
+  5. **demonstrated dynamic range** (the protocol can distinguish representations it should
+     distinguish).
+  **⚠ If metric decodability is STILL near ceiling after 1–5 pass:** run the mandatory diagnostic
+  checklist (per-cell leak ceilings, contrastive-pair estimator, held-out-factor splits, token
+  registration re-verification). If everything passes, **high metric decodability is a FINDING —
+  strong metric representation — not a gate failure**; Phase 2 proceeds with the finding
+  inverted. The **W&G gradient (semantics ≫ metric, x≈chance, z modest) is a BENCHMARK
+  COMPARISON to report, not a go/no-go criterion.** ⚠ Because M4a's gate has already passed, a
+  *validity* failure here is unambiguous — extraction or leak controls, NOT the images. That
+  disambiguation is the point of the split.
+- **Pilot exit criterion (fixes the final analysis matrix):** M4a's identifiability gate passed
+  **AND** M4b's five validity conditions hold **AND** the leak-ceiling collapse is demonstrated.
+  (The old "W&G gradient emerged" clause is retired with the gate reformulation.)
 
 ### M4.5 — Occlusion & the amodal probe (= stage **S1.5**) — 🔒 LOCKED until **M4b's** gate passes
 *(Its cheap prerequisite — the solo-object ID pass — belongs to **M4a**, while the generator is open.)*
-**Do not start this unprompted.** M4.5 unlocks *only* when M4b clears the transferred Wang & Gao bar
-(difficulty gradient present, above the leak ceiling). If M4's battery still probes at R² ≈ 0.99
-everywhere, the instrument is measuring itself and **an occlusion result would be just as
-meaningless as a metric one** — fix the stimuli first. Milestones are **not renumbered**: M4.5 sits
+**Do not start this unprompted.** M4.5 unlocks *only* when M4b clears its VALIDITY gate (5
+conditions, Design Revision 3 — positive controls, nulls, leak-ceiling collapse, held-out
+generalization, dynamic range). If the instrument fails validity, **an occlusion result would be
+just as meaningless as a metric one** — fix the instrument first. Milestones are **not renumbered**: M4.5 sits
 between M4 and M5 and is independent of M5 (both are gated on M4; either may run first).
 
 **Why occlusion, scientifically — H-occ.** Occlusion is **primarily an ORDINAL VISIBILITY cue**: it
@@ -603,9 +668,12 @@ while accuracy stays flat, i.e. *larger models become decisively wrong*, which a
    behavioral readouts with (a) gray-blank images and (b) mismatched-real images. Report
    real-vs-ablated per site. Decodability that survives blanking is prior, not grounding.
 2. **Pre-registered PRIMARY contrast: site 2 (projector output) vs site 4 (object-word tokens).**
-   This adjudicates a now-published disagreement: 2605.20448 (patching: collapse AT the
-   merger/projector) vs Anchored 2606.06714 (probes: decodable at LM-input) vs our H1
-   (binding-loss). Name the comparison in the analysis plan; power the design for it.
+   This tests which of three competing localization patterns holds for controlled continuous
+   depth: 2605.20448 (patching: a sharp causal-recovery discontinuity around the merger/projector,
+   for categorical occlusion) vs Anchored 2606.06714 (probes: decodable at LM-input, slant) vs our
+   H1 (binding). ⚠ **The two are strictly compatible — do NOT frame this as adjudicating a
+   published contradiction (DR3 ban);** their *interpretations* are the motivation. Name the
+   comparison in the analysis plan; power the design for it.
 3. **Natural-image sanity check (from 2607.03358):** routing flips synthetic↔natural — run a
    reduced probe pass on a real-image subset (CV-Bench sensor slices) or carry an explicit
    scope caveat in every claim.
@@ -616,10 +684,50 @@ while accuracy stays flat, i.e. *larger models become decisively wrong*, which a
 6. **Intervention vocabulary:** frame injection/patching results as usage / necessity /
    sufficiency (2607.03358), with the mediation chain as the sufficiency-with-specificity test.
    Adopt their normalized restoration score + both-clean-correct pair filtering.
+7. **(DR3-r2) TEXT-SIDE trivial baselines are mandatory, mirroring the visual-side dumb ceiling:**
+   token identity, token position, object mention order, prompt-template role, option order —
+   plus text-only / blank-image hidden-state controls. Text-token probes escape the SELECTION
+   leak but have their own leak classes; the visual-vs-text contrast must never imply
+   "contaminated vs clean".
+8. **(DR3-r2) The stage-wise profile is reported UNDER MATCHED EVALUATION, never as one raw
+   curve:** matched-capacity readouts (or capacity controls), equalized sample counts, nested CV
+   for probe hyperparameters, per-cell CIs, and the incremental score over STAGE-SPECIFIC dumb
+   baselines. Report per cell: dumb-only, representation-only, combined, and Δ with a permutation
+   distribution — Δ alone is not the definition of decodability (suppression, capacity, and
+   ceiling effects can distort it).
+9. **(DR3-r2) Two-ordering protocol, operational definition:** primary metric =
+   **order-robust accuracy** (correct under BOTH orderings; chance level adjusts accordingly),
+   reported alongside per-order accuracies and an order-effect confidence interval. "Both orders
+   must pass" without this definition changes the estimand silently.
+10. **(DR3-r2) Cross-study effect comparisons are DESCRIPTIVE only:** our above-noise steering
+   contrast and Kang's are not directly comparable (noise construction, doses, selection, and
+   baseline belief distributions differ) — report both, claim superiority of neither. The
+   patching-profile reproduction is stated as "qualitative stage/layer pattern reproduced;
+   absolute effect size did not" — never "exact" without a preregistered similarity metric.
+11. **(DR3-r5) Ordinal-vs-continuous comparisons must be DIFFICULTY-MATCHED — else H2a measures
+   an easier classification target, not selective preservation:** discretize continuous depth
+   into matched-bin classification; predict ordinal relations FROM the same continuous labels;
+   equalize probe capacity and sample sizes; report calibrated noise ceilings per target class;
+   prefer rank/information-theoretic metrics for the cross-target comparison.
+12. **(DR3-r5/r6) THREE per-stage positive controls, and the continuous ones must be
+   NON-CIRCULAR:** (a) semantic (shape/colour); (b) an **injected implementation control** — a
+   known scalar written into an independent activation dimension/synthetic channel, verifying
+   that extraction + probing recover it (validates the pipeline, NOT natural detection); (c) an
+   **independently established natural geometric control** — a representation/site where
+   continuous image geometry is expected recoverable on independent grounds. **Neither (b) nor
+   (c) may be constructed from the probe being validated** — injecting along a probe-derived
+   direction and decoding it with the same probe is near-guaranteed and validates nothing about
+   natural geometry. A shape control alone cannot license a continuous-depth null.
+13. **(DR3-r5) Intervention-site preregistration:** primary = the stage-2 vs stage-4 contrast;
+   probe-indicated sites are exploratory, confirmed on held-out data. Depth-direction
+   construction / validation / causal evaluation use three disjoint splits.
 
 ### M6 — Interventions (Phase-3, spec later)
-Continuous metric-ID injection (graded steering, dose-response curves), binding-layer LoRA + metric
-auxiliary loss vs matched-budget SFT. **Do not design in detail until M5 results exist — the evidence
+Graded intervention along a **validated depth-related direction or subspace** (DR3-r2: the
+construction — probe direction / regression vector / matched-condition difference / low-rank
+subspace / depth-matched interchange — must be formally defined and stated; they carry different
+causal interpretations. Reserve the name "metric ID" until then). Dose-response curves;
+binding-layer LoRA + metric auxiliary loss vs matched-budget SFT. **Do not design in detail until M5 results exist — the evidence
 chooses the intervention.**
 
 **⚠ M6's intervention is SELECTED BY M5's PATTERN — do not pre-commit to binding-layer injection**
@@ -698,7 +806,7 @@ depth / graph alone each *degrade*), SpatiaLQA (segmentation alone **67.4 → 50
 
 ## 6. Suggested vibe-coding session order
 M0 → M1.1 (spike, decides renderer) → M1.2–1.3 → M2 (parallelizable, boring) → M3.1 → M3.2 (gate) →
-**M4a (gate: image-identifiability)** → **M4b (gate: the transferred W&G bar)** → then M4.5 and M5,
+**M4a (gate: image-identifiability)** → **M4b (gate: validity, 5 conditions)** → then M4.5 and M5,
 in either order — **both are gated on M4b and neither is gated on the other.** M4.5 (occlusion /
 S1.5) is the cheaper of the two, and its solo-ID prerequisite should already be in **M4a's**
 generator. **One milestone per session** — and M4a/M4b are two sessions, not one: that is the point
