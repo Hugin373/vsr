@@ -69,6 +69,26 @@ Key correlations with depth:
 
 The counterbalanced pilot reduces physical-size/depth correlation to near zero but apparent size remains correlated with depth, as expected for monocular images where retinal size is a real cue. The full M4a image-identifiability gate should report these dumb-feature ceilings explicitly rather than treating them as failures.
 
+## Retired Artifacts (2026-07-17) — recorded, not silently dropped
+
+- **DELETED `$DATA_ROOT/stimuli/m4a_v1_counterbalanced/`** — 60 images carrying the FULL-battery
+  name while its own `config.yaml` / `run_metadata.json` declared `n_images: 420` (aborted run).
+  It was **unreproducible**: the stamp said `git_hash: 725ad42`, but
+  `configs/m4a_v1_counterbalanced.yaml` did not exist at that commit (added in `6c93848`) — the
+  tree was dirty and that generator state was never committed. Deleting lost nothing recoverable.
+  The active hazard was `render_stimuli.py --resume`, which **skips ids whose annotation already
+  exists**: a later 420-image run with `--resume` would have rendered 360 and silently inherited
+  60 stale images from a different generator, with every validator green.
+- **DELETED `reports/m4a_smoke_analysis.json`** — it analysed exactly that set, so it was an
+  analysis of a 60-image fragment of a 420-image config produced by uncommitted code. Superseded
+  by `m4a_counterbalanced_pilot_analysis.json` (the proper `_pilot` set). Git retains the history.
+- **FIXED the cause, not just the symptom:** `utils/config.git_hash()` recorded a bare `HEAD` and
+  **never inspected the working tree**, so the plan's §1 promise ("every run logs config, git
+  hash, seed") was silently false for every run from a dirty tree. It now suffixes `-dirty`, and
+  `run_metadata` records `git_dirty` + `git_patch_sha`. **Untracked files count as dirty** — the
+  case above was driven by an untracked config, which a `git diff HEAD`-only check would miss.
+  Six tests, verified to FAIL against the old implementation.
+
 ## Remaining M4a Blockers
 
 - True contrastive matched pairs are not implemented yet; only the config scaffold exists.

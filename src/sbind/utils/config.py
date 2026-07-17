@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import subprocess
@@ -118,20 +119,77 @@ def load_config(
     return expanded
 
 
-def git_hash(short: bool = True) -> str:
-    """Current git commit hash, or ``"unknown"`` if not a repo / git unavailable."""
+def _git(*args: str) -> str | None:
+    """Run a git command, returning stripped stdout, or None if not a repo / git absent."""
     try:
-        args = ["git", "rev-parse", "--short", "HEAD"] if short else ["git", "rev-parse", "HEAD"]
-        out = subprocess.run(args, capture_output=True, text=True, check=True)
+        out = subprocess.run(["git", *args], capture_output=True, text=True, check=True)
         return out.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def git_dirty() -> bool | None:
+    """Does the working tree differ from HEAD? None if not a repo / git unavailable.
+
+    ⚠ UNTRACKED FILES COUNT AS DIRTY, deliberately. This is not paranoia — it is the exact
+    case that produced the bug this function exists to catch: the aborted
+    ``m4a_v1_counterbalanced`` render (2026-07-16) stamped ``git_hash: 725ad42`` while the
+    config it rendered from (``configs/m4a_v1_counterbalanced.yaml``) was still UNTRACKED and
+    the generator uncommitted — neither existed at that commit. Checking only *tracked*
+    modifications would have called that tree clean and reproduced the same false stamp.
+    A false "dirty" costs nothing; a false "clean" is a provenance lie.
+    """
+    status = _git("status", "--porcelain")
+    return None if status is None else bool(status)
+
+
+def git_patch_sha(short: bool = True) -> str | None:
+    """sha256 of the uncommitted delta, so two runs from the SAME dirty tree stamp alike.
+
+    Covers tracked edits (``git diff HEAD``) AND the untracked/staged file list
+    (``git status --porcelain``) — a diff alone cannot see a new untracked file's existence.
+    Returns None when the tree is clean or git is unavailable. This does not make a dirty run
+    reproducible; it makes it *identifiable*.
+    """
+    if not git_dirty():
+        return None
+    status = _git("status", "--porcelain") or ""
+    diff = _git("diff", "HEAD") or ""
+    digest = hashlib.sha256(f"{status}\n{diff}".encode()).hexdigest()
+    return digest[:12] if short else digest
+
+
+def git_hash(short: bool = True) -> str:
+    """Current git commit, ``-dirty``-suffixed if the tree has uncommitted changes.
+
+    Returns ``"unknown"`` if not a repo / git unavailable.
+
+    ⚠ The suffix is load-bearing (added 2026-07-17). This returned a bare ``HEAD`` hash and
+    never looked at the working tree, so the plan's §1 promise — "every run logs config, git
+    hash, seed" — was silently FALSE for every run made from a dirty tree, i.e. most runs
+    during active development. A stamp naming a commit that could not have produced the output
+    is worse than no stamp: it manufactures provenance. Same shape as every other bug in this
+    project's history — the pipeline ran green while recording wrong data.
+    """
+    args = ["rev-parse", "--short", "HEAD"] if short else ["rev-parse", "HEAD"]
+    head = _git(*args)
+    if head is None:
         return "unknown"
+    return f"{head}-dirty" if git_dirty() else head
 
 
 def run_metadata(config: dict, seed: int) -> dict:
-    """Assemble the reproducibility stamp attached to every run: config + git + seed."""
+    """Assemble the reproducibility stamp attached to every run: config + git + seed.
+
+    ``git_dirty`` is recorded EXPLICITLY rather than left implicit in the hash suffix, so a
+    consumer can filter on it without string-matching, and ``git_patch_sha`` identifies *which*
+    dirty state. A run with ``git_dirty: true`` is NOT reproducible from (git_hash, seed) alone
+    and must not be treated as such — that is precisely the claim this field exists to refute.
+    """
     return {
         "git_hash": git_hash(),
+        "git_dirty": git_dirty(),
+        "git_patch_sha": git_patch_sha(),
         "seed": seed,
         "config": config,
     }

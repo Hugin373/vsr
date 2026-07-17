@@ -88,8 +88,26 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     not start without them** (relative collapse is insufficient: 0.94→0.40 is still a leak).
   - Pilot NUMBERS are now measured against a superseded gate — not wrong, no longer *sufficient*.
     The load-bearing signal survives: counterbalanced drove physical-size↔depth to **r = 0.033**.
-- **⚠ STALE DATA:** `$DATA_ROOT/stimuli/m4a_v1_counterbalanced/` = **60 images under the FULL-battery
-  name**, its own config declaring `n_images: 420` (aborted run at `725ad42`). Delete/rename — rule 5.
+- **⚠ STALE DATA — DELETED 2026-07-17, and it exposed a PROVENANCE BUG that outlives it.**
+  `$DATA_ROOT/stimuli/m4a_v1_counterbalanced/` held **60 images under the FULL-battery name**, its
+  own config declaring `n_images: 420` (aborted run). Deleted, with `reports/m4a_smoke_analysis.json`
+  (which analysed it). Three reasons, in ascending order of importance:
+  1. **`--resume` would have silently mixed it in.** `render_stimuli.py --resume` skips ids whose
+     annotation exists → a later 420 run inherits 60 images from a *different generator*, all green.
+  2. **It was unreproducible**, so nothing recoverable was lost: stamp said `git_hash: 725ad42`, but
+     `configs/m4a_v1_counterbalanced.yaml` **did not exist at that commit** (added in `6c93848`).
+  3. **🔴 THAT MISMATCH IS THE REAL FINDING: `utils/config.git_hash()` NEVER LOOKED AT THE WORKING
+     TREE.** It returned a bare `HEAD`, so the plan's §1 promise — *"every run logs config, git hash,
+     seed"* — was **silently FALSE for every run from a dirty tree**, i.e. most runs during active
+     development. A stamp naming a commit that could not have produced the output is worse than no
+     stamp: **it manufactures provenance.** Same shape as every bug in this project's history — the
+     pipeline ran green while recording wrong data. **Fixed:** `git_hash()` suffixes `-dirty`;
+     `run_metadata` records `git_dirty` + `git_patch_sha` (sha of the uncommitted delta, so a dirty
+     run is at least *identifiable*). **Untracked files count as dirty** — the case above was driven
+     by an *untracked* config, which a `git diff HEAD`-only check would have called clean. Six tests,
+     **verified to FAIL against the old implementation** (rule 11: prove the instrument registers a
+     positive). This was load-bearing for **M4a blocker 3 (determinism byte-compare)**, where
+     provenance IS the deliverable, and for every M5 probe run after it.
 - **Docs added:** `docs/PITCH.md` (canonical short pitch — referenced as canonical since 07-16 but
   **never actually in the repo** until now) and `docs/REVIEW_RESPONSE_2026-07-16_1.md` (the DR3
   arbitration). DR3's memory cited the latter as `REVIEW_RESPONSE_2026-07-16.md` — **a path that did
