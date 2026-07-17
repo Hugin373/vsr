@@ -185,6 +185,32 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     the ban list **against the artifacts**, not against the reports' own summaries. `m4a_battery.md`
     listed 5 blockers because it enumerated *what the session did*; the brief requires **three more**
     nobody had listed (below). **A report's own blocker list is a hypothesis too.**
+- **🔬 M4a BLOCKER #10 DONE — the v1 LEAK CEILING is measured (structured splits). Result: the
+  decorrelation is INSUFFICIENT as configured → §2.7 says do NOT launch the 1k render yet.**
+  Report: `reports/leak_ceiling_v1.md`; JSON: `reports/leak_ceiling_v1/`.
+  - **Tooling:** `leak_ceiling.py` did RANDOM KFold only, which §2.7 forbids ("never only random
+    splits"). Extended it (and `probes/ridge.py` — added a `groups=` GroupKFold path, since M5 needs
+    structured splits too) to hold out whole object identities / depth ranges / camera poses. New
+    invariant test: a group-confounded signal recovered on a random split MUST collapse under a
+    held-out-group split (`test_grouped_split_kills_a_group_confounded_leak`).
+  - **z_depth (PRIMARY), structured ceiling, counterbalanced:** held-out depth-range **0.837**
+    (v0 was 0.957) — a real but PARTIAL improvement; headroom opened (v0's ~0.99 left none), but the
+    residual ~0.84 comes from **elevation + retinal size, which are LEGITIMATE monocular depth cues a
+    plausible scene cannot remove** — partly irreducible, and the honest baseline the model must beat,
+    not a bug. ⚠ v0's held-out-OBJECT z was 0.375 only because it was removing the category↔depth
+    confound; counterbalanced fixed that confound, so its held-out-object z is 0.875 (geometry leaks
+    depth robustly across objects). Compare sets on held-out-DEPTH-range, the clean shared axis.
+  - **x_lateral (the POSITION LEAK): did NOT improve** (≈0.94 → ≈0.94 structured). ⚠ **World-frame x
+    is also 0.915** (held-out camera pose) — so it is NOT a camera-frame-target artifact; the camera
+    jitter genuinely fails to decorrelate image position from lateral world position. **Hypothesis to
+    TEST (rule 13), not asserted: jitter too weak** (yaw ±3°, pitch ±2.5°, height ±0.12 m). Fix is a
+    generator parameter (widen ranges / add camera lateral translation), then re-measure — cheap.
+  - **THE CALL (advisor-level, NOT decided by me):** before the 1k render — (1) strengthen camera
+    jitter and re-run the ceiling (target: x structured < 0.9); (2) decide the z policy: accept ~0.84
+    as the irreducible monocular baseline OR split the ceiling into position/selection features
+    (fixable) vs monocular-cue features (inherent) so Δ_repr|dumb does not conflate them; (3) proceed
+    only if headroom is defensible. **The blocker did its job: caught insufficient decorrelation
+    BEFORE the expensive render — which is exactly why the leak ceiling runs first.**
 - **⚠ M4a BLOCKER LIST IS 11, NOT 8 — three found 2026-07-17 by auditing §5 Definition of Done:**
   - **9. Worst-case cue constants were NEVER re-derived.** v0 carried its derivation *in config*
     (`required_ratio_by_pairing`, worst case `near_cylinder_far_cube: 1.158`, +2% → `min_depth_ratio:

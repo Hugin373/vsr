@@ -1,0 +1,22 @@
+{
+  "random": {
+    "x_lateral": 0.9350488539490976,
+    "z_depth": 0.8696330556056694,
+    "shape": 0.6590909090909091,
+    "color": 0.2939393939393939
+  },
+  "structured": {
+    "heldout_object_identity": {
+      "x_lateral": 0.9282768231674629,
+      "z_depth": 0.8752891723406424
+    },
+    "heldout_depth_range": {
+      "x_lateral": 0.9082401645496236,
+      "z_depth": 0.8366898618765403
+    },
+    "heldout_camera_pose": {
+      "x_lateral": 0.9395532722370847,
+      "z_depth": 0.8571045277720876
+    }
+  }
+}

@@ -45,32 +45,57 @@ GEOM_NAMES = [
 ]
 
 
-def dumb_features(anns: list[dict]) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+def _pose_bin(f: dict) -> str | None:
+    """A camera-pose group key from the per-image jitter deltas, or None if the set has a
+    FIXED camera (v0 has no such fields) — in which case a held-out-pose split is undefined and
+    is correctly skipped rather than faked."""
+    y, p = f.get("camera_yaw_delta_deg"), f.get("camera_pitch_delta_deg")
+    if y is None or p is None:
+        return None
+    return f"{round(float(y) / 1.5)}|{round(float(p) / 1.5)}"  # ~1.5-deg buckets -> several groups
+
+
+def dumb_features(
+    anns: list[dict],
+) -> tuple[np.ndarray, dict[str, np.ndarray], dict[str, np.ndarray]]:
+    """Flatten objects -> (geometry matrix, targets, structured-split group keys).
+
+    Groups are built in the SAME iteration order as the rows, so they stay aligned. A group key
+    that cannot be derived for a set (e.g. camera pose on the fixed-camera v0) is dropped from the
+    returned dict, so a held-out split is only offered where it is actually defined."""
     G, x, z, shape, color = [], [], [], [], []
+    g_obj, g_depth, g_pose = [], [], []
+    pose_ok = True
     for a in anns:
+        f = a.get("factors", {})
         for o in a["objects"]:
             x0, y0, x1, y1 = o["bbox_px"]
             G.append(
-                [
-                    (x0 + x1) / 2,
-                    (y0 + y1) / 2,
-                    o["mask_area_px"],
-                    x1 - x0,
-                    y1 - y0,
-                    o["retinal_size_px"],
-                    o["elevation_px"],
-                ]
+                [(x0 + x1) / 2, (y0 + y1) / 2, o["mask_area_px"], x1 - x0, y1 - y0,
+                 o["retinal_size_px"], o["elevation_px"]]
             )
             x.append(o["pos_cam"][0])
             z.append(o["depth_m"])
             shape.append(o["category"])
             color.append(o["name"].split("_")[0])
-    return np.asarray(G, dtype=float), {
+            g_obj.append(o["category"])  # held-out OBJECT IDENTITY
+            g_depth.append(int(o["depth_m"] // 0.5))  # held-out DEPTH RANGE (0.5 m bins)
+            pb = _pose_bin(f)  # held-out CAMERA POSE (v1 only)
+            pose_ok = pose_ok and pb is not None
+            g_pose.append(pb)
+    targets = {
         "x_lateral": np.asarray(x),
         "z_depth": np.asarray(z),
         "shape": np.asarray(shape),
         "color": np.asarray(color),
     }
+    groups = {
+        "heldout_object_identity": np.asarray(g_obj, dtype=object),
+        "heldout_depth_range": np.asarray(g_depth, dtype=object),
+    }
+    if pose_ok:
+        groups["heldout_camera_pose"] = np.asarray(g_pose, dtype=object)
+    return np.asarray(G, dtype=float), targets, groups
 
 
 def main() -> int:
@@ -85,11 +110,15 @@ def main() -> int:
     if not anns:
         print(f"no annotations in {args.set}", file=sys.stderr)
         return 1
-    G, targets = dumb_features(anns)
+    G, targets, groups = dumb_features(anns)
     print(f"set: {args.set}  objects={len(G)}  dumb features={GEOM_NAMES}\n")
 
-    ceiling: dict[str, float] = {}
-    print("--- CEILING: what mask geometry ALONE gives you (no activations, no model) ---")
+    out: dict[str, dict] = {"random": {}, "structured": {}}
+
+    # (1) RANDOM split — the historical baseline. ⚠ an OVERESTIMATE on a factorial battery: a
+    # random fold leaks every factor into training. Kept only for the v0 comparison / as an
+    # upper bound. The GATE reads the STRUCTURED numbers below (§2.7 / evaluation-law clause 2).
+    print("--- RANDOM-split ceiling (upper bound; NOT the gate — see structured below) ---")
     for name, y in targets.items():
         if name in ("shape", "color"):
             r = logistic_probe(G, y, name)
@@ -97,20 +126,28 @@ def main() -> int:
         else:
             r = ridge_probe(G, y.astype(float), name)
             print(f"  {name:10s} R2  = {r.value:+.4f}   (shuffled ctrl {r.control:+.3f})")
-        ceiling[name] = r.value
+        out["random"][name] = r.value
 
-    print("\n--- the single most damning slices ---")
-    u = ridge_probe(G[:, [0]], targets["x_lateral"].astype(float), "x", seeds=(0, 1, 2))
-    print(f"  x from the mask centroid u ALONE (one number):        R2 = {u.value:+.4f}")
-    ev = ridge_probe(G[:, [1, 5]], targets["z_depth"].astype(float), "z", seeds=(0, 1, 2))
-    print(f"  z from (elevation v, retinal height) ALONE:           R2 = {ev.value:+.4f}")
+    # (2) STRUCTURED held-out splits — the gate measurement. Hold out whole object identities /
+    # depth ranges / camera poses so the ceiling cannot be reached by memorising a leaked factor.
+    print("\n--- STRUCTURED held-out ceiling (THE GATE: does the leak survive decorrelation?) ---")
+    for gname, g in groups.items():
+        print(f"  [{gname}]  ({len(np.unique(g))} groups)")
+        out["structured"][gname] = {}
+        for name in ("x_lateral", "z_depth"):
+            try:
+                r = ridge_probe(G, targets[name].astype(float), name, groups=g)
+                print(f"     {name:10s} R2 = {r.value:+.4f}   (shuffled ctrl {r.control:+.3f})")
+                out["structured"][gname][name] = r.value
+            except ValueError as e:
+                print(f"     {name:10s} SKIP ({e})")
+                out["structured"][gname][name] = None
 
-    print(
-        "\nAny probe on model activations must EXCEED these numbers to be evidence that the "
-        "quantity is in the REPRESENTATION rather than in the mask."
-    )
+    print("\nThe STRUCTURED numbers are the leak floor a model probe must EXCEED to show the "
+          "quantity is in the REPRESENTATION, not the mask. If they stay near ceiling in the "
+          "counterbalanced regime, the decorrelation failed (§2.7 — fix the generator first).")
     if args.out:
-        write_json(ceiling, Path(args.out))
+        write_json(out, Path(args.out))
         log.info("wrote ceiling -> %s", args.out)
     return 0
 

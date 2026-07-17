@@ -38,6 +38,45 @@ def test_ridge_probe_fails_on_shuffled_labels(planted):
     assert r.value - r.control > 0.5, "probe does not separate real from shuffled labels"
 
 
+@pytest.fixture
+def group_confounded():
+    """A target that is CONSTANT within each group and readable from X only via a per-group
+    fingerprint. A random split leaks (train and test share groups); a held-out-group split
+    cannot — this is the leak-ceiling scenario in miniature (the v0 position leak was exactly a
+    factor confounded with a held-out axis)."""
+    rng = np.random.default_rng(1)
+    n_groups, per = 8, 16
+    groups = np.repeat(np.arange(n_groups), per)
+    group_val = rng.normal(size=n_groups)  # each group's constant target
+    fingerprint = rng.normal(size=(n_groups, 12))  # each group's distinct X signature
+    y = group_val[groups]
+    X = fingerprint[groups] + rng.normal(size=(n_groups * per, 12)) * 0.05  # ~pure group id
+    return X, y, groups
+
+
+def test_grouped_split_kills_a_group_confounded_leak(group_confounded):
+    """THE INVARIANT that makes the structured split worth having: a signal carried entirely by
+    group identity is recovered by a RANDOM split (leak) and must COLLAPSE under a held-out-group
+    split. If both are high, the grouped split is not actually holding groups out."""
+    X, y, groups = group_confounded
+    random = ridge_probe(X, y, "confounded", seeds=(0, 1))
+    grouped = ridge_probe(X, y, "confounded", seeds=(0, 1), groups=groups)
+    assert random.value > 0.8, f"random split should leak the group signal (got {random.value:.3f})"
+    assert grouped.value < 0.3, (
+        f"held-out-group split must NOT recover a group-confounded signal "
+        f"(got {grouped.value:.3f}; random was {random.value:.3f}) — split not isolating groups"
+    )
+
+
+def test_grouped_split_still_finds_within_group_signal(planted):
+    """The complement: a genuine feature->target map that holds WITHIN every group survives a
+    held-out-group split, else the grouped split would just destroy all signal indiscriminately."""
+    X, y = planted
+    groups = np.arange(len(y)) % 5  # signal is in the features, unrelated to group assignment
+    r = ridge_probe(X, y, "planted", seeds=(0, 1), groups=groups)
+    assert r.value > 0.6, f"grouped split lost a genuine within-group signal (R2={r.value:.3f})"
+
+
 def test_ridge_control_is_computed_on_the_same_features():
     """A pure-noise target must score ~0, NOT negative-but-called-positive."""
     rng = np.random.default_rng(1)

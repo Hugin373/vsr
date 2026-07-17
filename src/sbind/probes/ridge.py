@@ -21,10 +21,29 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import GroupKFold, KFold, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 
 ALPHAS = np.logspace(-1, 5, 13)
+
+
+def _folds(X, labels, groups, n_folds, seed, *, stratify):
+    """Yield (train, test) index pairs.
+
+    With ``groups`` (a per-sample key array), holds out WHOLE groups via GroupKFold — the
+    structured split the evaluation law demands: a random split over a factorial battery leaks
+    every factor into training by construction (IMPLEMENTATION_PLAN M5, DR3-r2). Without groups,
+    the historical random split (KFold / StratifiedKFold). GroupKFold is deterministic, so the
+    seed only re-shuffles the labels for the shuffled-label control, never the real split.
+    """
+    if groups is not None:
+        n_groups = len(np.unique(groups))
+        if n_groups < 2:
+            raise ValueError(f"grouped split needs >= 2 groups, got {n_groups}")
+        return GroupKFold(n_splits=min(n_folds, n_groups)).split(X, labels, groups)
+    if stratify:
+        return StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed).split(X, labels)
+    return KFold(n_splits=n_folds, shuffle=True, random_state=seed).split(X)
 
 
 @dataclass
@@ -122,15 +141,23 @@ def _ridge_dual_fit_predict(Xtr, ytr, Xte, alphas=ALPHAS) -> np.ndarray:
 
 
 def ridge_probe(
-    X: np.ndarray, y: np.ndarray, target: str, seeds=(0, 1, 2, 3, 4), n_folds: int = 5
+    X: np.ndarray,
+    y: np.ndarray,
+    target: str,
+    seeds=(0, 1, 2, 3, 4),
+    n_folds: int = 5,
+    groups: np.ndarray | None = None,
 ) -> ProbeResult:
-    """Out-of-fold R2 for a continuous target, plus the shuffled-label control."""
+    """Out-of-fold R2 for a continuous target, plus the shuffled-label control.
+
+    ``groups`` (optional) holds out whole groups (GroupKFold) instead of random folds — the
+    structured split for the leak ceiling / M5 (never leak a factor into training).
+    """
     scores, ctrl_scores = [], []
     for seed in seeds:
         for labels, bucket in ((y, scores), (_shuffled(y, seed), ctrl_scores)):
-            kf = KFold(n_splits=n_folds, shuffle=True, random_state=seed)
             oof = np.zeros_like(labels, dtype=float)
-            for tr, te in kf.split(X):
+            for tr, te in _folds(X, labels, groups, n_folds, seed, stratify=False):
                 sc = StandardScaler().fit(X[tr])  # TRAIN only — no test leakage
                 oof[te] = _ridge_dual_fit_predict(
                     sc.transform(X[tr]), labels[tr], sc.transform(X[te])
@@ -147,15 +174,23 @@ def ridge_probe(
 
 
 def logistic_probe(
-    X: np.ndarray, y: np.ndarray, target: str, seeds=(0, 1, 2, 3, 4), n_folds: int = 5
+    X: np.ndarray,
+    y: np.ndarray,
+    target: str,
+    seeds=(0, 1, 2, 3, 4),
+    n_folds: int = 5,
+    groups: np.ndarray | None = None,
 ) -> ProbeResult:
-    """Out-of-fold accuracy for a categorical target (the SEMANTIC controls), + shuffled ctrl."""
+    """Out-of-fold accuracy for a categorical target (the SEMANTIC controls), + shuffled ctrl.
+
+    ``groups`` (optional) holds out whole groups (GroupKFold, unstratified) instead of random
+    stratified folds — the structured split for the leak ceiling.
+    """
     scores, ctrl_scores = [], []
     for seed in seeds:
         for labels, bucket in ((y, scores), (_shuffled(y, seed), ctrl_scores)):
-            skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
             oof = np.empty_like(labels)
-            for tr, te in skf.split(X, labels):
+            for tr, te in _folds(X, labels, groups, n_folds, seed, stratify=True):
                 sc = StandardScaler().fit(X[tr])  # TRAIN only
                 # exact inner-product-preserving reduction (see kernel_features): same
                 # estimator, 4.5x fewer dims, and the shuffled control stops taking 38 s a fit
