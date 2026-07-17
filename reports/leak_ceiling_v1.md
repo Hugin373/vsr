@@ -70,3 +70,49 @@ which is exactly why the leak ceiling runs first.
 - `uv run pytest tests/test_probes.py` — includes the new grouped-split invariant
   (`test_grouped_split_kills_a_group_confounded_leak`: a group-confounded signal recovered on a
   random split must collapse under a held-out-group split).
+
+---
+
+## Strengthening experiment (2026-07-18) — camera translation added
+
+Added lateral/depth camera **translation** to the generator (the camera was fixed at x=0 and only
+panned). New set `m4a_v1_counterbalanced_pilot_j2`: pos_x ±0.3 m, pos_y ±0.2 m, yaw ±4°, pitch ±3°,
+height ±0.16 m (60 imgs, validation green). Two things surfaced:
+
+**(1) The tool was regressing the WRONG lateral target.** `leak_ceiling.py` uses `pos_cam[0]` =
+**camera-frame** x, which is coupled to image position by the projection identity
+`u ≈ f·X_cam/Z_cam + c_x` — **no camera motion can decorrelate it**, so its ~0.94 ceiling is a
+definitional identity, not a representational leak (the same trap as v0's x). The
+scientifically meaningful target is **world-frame** x (`pos_world[0]`): the model must combine image
+position with inferred camera pose to recover it, so the mask alone cannot when the camera varies.
+
+**(2) Translation works on the target that can actually move.** World-frame x leak, held-out camera
+pose:
+
+| set | camera | world-x R² | cam-x R² | corr(centroid_u, world-x) |
+|---|---|---:|---:|---:|
+| counterbalanced pilot | pan-only ±3° | 0.915 | 0.940 | 0.960 |
+| **counterbalanced j2** | **+translation ±0.3 m** | **0.817** | 0.929 | 0.915 |
+
+A modest ±0.3 m dolly dropped the world-x leak **0.915 → 0.817**; camera-frame x stayed put (0.94 →
+0.93), confirming it is un-decorrelatable. More translation would lower it further, but the
+**target-placement guard limits how far it can go** — aggressive jitter (±0.6 m / ±10°) failed to
+place non-overlapping in-frame target pairs. Going further needs a **wider FOV / pulled-back camera**
+(more scene in frame → room for bigger camera motion), which triggers the §2.2(e) size recalibration.
+
+**Also found & fixed while doing this:** `target_bbox_margin_px` / `target_frame_margin_px` /
+`target_placement_attempts` were read from the wrong config section (`constraints` vs `condition`),
+so the documented 14/6-px margins silently defaulted to **0** and attempts was stuck at 120 on every
+M4a render to date. Fixed (`cf244b3`) with two regression tests; the existing pilots were rendered
+with zero target margins and need re-rendering under the corrected wiring regardless.
+
+## Decisions now on the table (advisor-level)
+
+1. **Which lateral target is the claim about** — world-frame x (decorrelatable, meaningful; ~0.82
+   and falling with translation) or camera-frame/egocentric x (projection-coupled, un-decorrelatable
+   — drop it as a leak target, like v0's x). Update `leak_ceiling.py` to target world-frame x.
+2. **How far to push camera motion** — accept ±0.3 m (world-x ≈ 0.82) or widen the FOV / pull the
+   camera back to allow more (and recalibrate).
+3. **z policy** — z ceiling ≈ 0.82–0.88 is largely monocular cues (elevation + retinal size),
+   partly irreducible; accept as the baseline the model must beat, or split position vs monocular
+   features in the ceiling.

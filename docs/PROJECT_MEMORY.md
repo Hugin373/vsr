@@ -211,6 +211,36 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     (fixable) vs monocular-cue features (inherent) so Δ_repr|dumb does not conflate them; (3) proceed
     only if headroom is defensible. **The blocker did its job: caught insufficient decorrelation
     BEFORE the expensive render — which is exactly why the leak ceiling runs first.**
+- **🔧 STRENGTHENING EXPERIMENT (2026-07-18, "strengthen" instruction) — translation WORKS on the
+  meaningful target; and it uncovered a placement-config bug + a wrong-target bug in the leak tool.**
+  Report addendum: `reports/leak_ceiling_v1.md`. Set: `m4a_v1_counterbalanced_pilot_j2`.
+  - **Added camera TRANSLATION** to `_jitter_camera` (`pos_x_m`/`pos_y_m`; camera was fixed at x=0,
+    pan-only). Result: **world-frame x leak 0.915 → 0.817** with just ±0.3 m lateral dolly (held-out
+    camera pose). It works.
+  - **🔴 THE LEAK TOOL WAS REGRESSING THE WRONG LATERAL TARGET.** `leak_ceiling.py` used `pos_cam[0]`
+    = **camera-frame** x, which is coupled to image position by the projection identity
+    `u ≈ f·X_cam/Z_cam + c_x` — **NO camera motion can decorrelate it** (0.94 → 0.93 under strong
+    jitter). Its ~0.94 "leak" is a definitional identity, not a representational leak — the SAME trap
+    as v0's x. The meaningful target is **world-frame x** (`pos_world[0]`): the model must fuse image
+    position with inferred camera pose to recover it. **⚠ TODO: point `leak_ceiling.py`'s x target at
+    pos_world[0], not pos_cam[0]** (deferred — it is an M5 leak-methodology choice: which lateral
+    quantity is the claim about).
+  - **🔴 PLACEMENT CONFIG WAS DEAD (bug, `cf244b3`).** `target_bbox_margin_px` (14) /
+    `target_frame_margin_px` (6) / `target_placement_attempts` were read from `constraints` but every
+    config puts them under `condition` → margins silently **0**, attempts stuck at 120, on EVERY M4a
+    render to date. The "explicit margins" PROJECT_MEMORY bragged about never took effect. Fixed
+    (read from condition, constraints fallback) + 2 regression tests. **⚠ Existing pilots were
+    rendered with ZERO target margins → they need re-rendering under the corrected wiring regardless
+    of jitter.** Another "config that looked set but wasn't" — the recurring failure class.
+  - **PLACEMENT vs DECORRELATION TENSION (a real design finding):** aggressive camera jitter
+    (±0.6 m/±10°) can't place non-overlapping in-frame target pairs — keeping both targets cleanly
+    in-frame IS a position constraint that fights decorrelation. Going past ±0.3 m needs a WIDER FOV /
+    pulled-back camera (→ §2.2(e) recalibration).
+  - **z is unchanged** by camera motion (~0.82–0.88) — it is monocular cues (elevation + retinal
+    size), partly irreducible. Camera translation targets the lateral leak, not the depth one.
+  - **DECISIONS ON THE TABLE (advisor-level, NOT decided):** (1) world-frame vs camera-frame lateral
+    target; (2) how far to push camera motion (±0.3 m now, or wider FOV + recalibrate); (3) z policy
+    (accept ~0.85 monocular baseline, or split position vs monocular features in the ceiling).
 - **⚠ M4a BLOCKER LIST IS 11, NOT 8 — three found 2026-07-17 by auditing §5 Definition of Done:**
   - **9. Worst-case cue constants were NEVER re-derived.** v0 carried its derivation *in config*
     (`required_ratio_by_pairing`, worst case `near_cylinder_far_cube: 1.158`, +2% → `min_depth_ratio:
