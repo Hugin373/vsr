@@ -24,9 +24,17 @@ from sbind.utils.logging import get_logger
 log = get_logger("sbind.kang")
 
 # The paper's reported values — the bar this reproduction is measured against.
+# ⚠ swap_spatial_id / swap_noise are the Fig-2 pair (median steer vs norm-matched noise).
+# DO NOT read their DIFFERENCE (0.644 - 0.295 = 0.349) as the paper's "above-chance influence":
+# that NAMED statistic is +43.6% (Kang §3 + Fig 2 caption), a CROSS-MODEL AVERAGE, not this
+# pair's subtraction. The m3 report once constructed 0.349 and mislabeled it as the paper's own
+# summary statistic (corrected 2026-07-18, verified against 2601.12626v1). The "gap" column below
+# is a DESCRIPTIVE within-set steer-noise difference and is NOT commensurable with the paper's
+# figure (DR3-r2 #10: cross-study effect comparisons are descriptive only).
 PAPER = {
-    "swap_spatial_id": 0.644,  # median binary belief swap, spatial-ID steering
-    "swap_noise": 0.295,  # norm-matched noise control
+    "swap_spatial_id": 0.644,  # median binary belief swap, spatial-ID steering (Fig 2)
+    "swap_noise": 0.295,  # norm-matched noise control (Fig 2)
+    "above_chance_influence": 0.436,  # the paper's NAMED stat (cross-model avg) — NOT 0.644-0.295
     "rank3_r2": 0.85,  # rank-3 explains >= 85% of the spatial-ID structure
 }
 

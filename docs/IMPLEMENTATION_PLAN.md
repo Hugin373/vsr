@@ -277,9 +277,10 @@ Download + adapter per dataset in §2 (skip Kang/SynSpat3D/MetricVQA). Uniform i
   without a preregistered similarity metric — we have none) and that our above-chance influence
   *"matches or exceeds theirs"* (banned — **cross-study effect comparisons are DESCRIPTIVE only**;
   noise construction, doses, selection and baseline beliefs differ). **Report both, claim
-  superiority of neither.** ⚠ Kang's above-chance figure is **UNRESOLVED**: our report computes
-  +34.9 (64.4 − 29.5); `docs/CITATION_LEDGER.md` records **+43.6** from the full text. Settle it
-  against the paper before any write-up. Our models are far more certain on this task (95–98%
+  superiority of neither.** ✅ **RESOLVED 2026-07-18 against the paper:** Kang's "above-chance
+  influence" is a NAMED statistic = **+43.6%** (§3 + Fig 2 caption), a cross-model average — NOT
+  64.4 − 29.5 = 34.9. Our report had constructed 34.9 and mislabeled it as Kang's; the ledger was
+  right. Our +31.3 / +43.3 stay descriptive, not comparable to it (owed: PDF Fig-2 eyeball). Our models are far more certain on this task (95–98%
   accuracy), so a random nudge rarely flips a belief. **Nothing was tuned to close the gap.**
 - **M3.2 = FAIL, and the cause is OUR STIMULI, not the method.** See §2.5(d) below — this is the
   most consequential thing M3 produced.

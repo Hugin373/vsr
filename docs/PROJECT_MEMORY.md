@@ -159,12 +159,16 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     - **🔑 THE SHARPEST INSTANCE YET OF "A BAN IS NOT SELF-ENFORCING": THIS FILE STATED THE BAN AT
       LINE ~228 (DR3 addendum r2) AND VIOLATED IT AT ~808 AND ~818 — in the same document, on the
       same day.** Writing a rule into a doc does not apply it to the doc.
-  - **🔴 UNRESOLVED NUMBER, now flagged in all three places — settle before ANY write-up.**
-    `reports/m3_reproduction.md` derived Kang's above-chance influence as 64.4 − 29.5 = **+34.9 pts**.
-    `docs/CITATION_LEDGER.md` — verified against the arXiv full text — records **+43.6%**. **Both
-    cannot describe the same statistic.** Either the ledger mis-transcribed, **or "above-chance
-    influence" is NOT steer−noise, in which case our report CONSTRUCTED a statistic and attributed
-    it to the authors** — the more serious error, and exactly what rule 4 exists to catch. DR3-r2
+  - **✅ RESOLVED 2026-07-18 against the paper (2601.12626v1 HTML full text) — it was the more
+    serious error.** Kang's paper reports a NAMED statistic, "above-chance influence" = **+43.6%**
+    (its §3 text AND Fig 2 caption: *"Spatial IDs have 43.6% above-chance influence on average"*).
+    **43.6 ≠ 64.4 − 29.5 = 34.9** — it is a CROSS-MODEL AVERAGE, not the naive median-minus-noise
+    subtraction our report performed. **The ledger was right; our report CONSTRUCTED 34.9 and
+    labeled it "the paper's own summary statistic."** 34.9 is deleted as a Kang attribution
+    everywhere; our +31.3 / +43.3 stay as OUR descriptive figures. Fixed in the report (table +
+    resolved retraction block), plan, and this file. ⚠ Final owed check: eyeball the actual Fig 2
+    caption in the PDF — the resolution rests on the ledger's full-text read + a web-fetch of the
+    HTML (two agreeing secondary reads), not the rendered figure. DR3-r2
     #10 makes it non-load-bearing for the CLAIM; it is still load-bearing for the REPORT.
   - **M2 — 🔴 "physics" IS THE PAPER'S *TRAJECTORY* CATEGORY (verified from the items, 2026-07-17).**
     CausalSpatial's paper taxonomy is **Collision / Occlusion / Compatibility / TRAJECTORY**;
@@ -285,7 +289,9 @@ methodological ones (not just slide wording) are now in the docs:
   dumb-only/rep-only/combined/Δ with permutation null — Δ alone is not decodability) ·
   two-ordering operationalized as ORDER-ROBUST ACCURACY (correct under both orders, adjusted
   chance, per-order + order-effect CI) · cross-study effect comparisons DESCRIPTIVE only (our
-  +43.3 vs Kang's +34.9 not comparable — noise floors differ; patching profile = "qualitative
+  +43.3 vs Kang's above-chance influence [⚠ RECORDED HERE AS +34.9; CORRECTED 2026-07-18 to the
+  paper's actual +43.6 — 34.9 was our own mis-derived subtraction, never Kang's number] not
+  comparable — noise construction/doses/selection differ; patching profile = "qualitative
   pattern reproduced", never "exact").
 - **"Metric ID" name RESERVED** until the construction is defined (probe direction / regression
   vector / matched-condition difference / low-rank subspace / interchange — different causal
@@ -900,14 +906,11 @@ cutouts (deviation: they used Objaverse), on LLaVA-1.5-7B + Qwen2.5-VL-7B.
   > differ, so the two numbers are not commensurable and neither is "bigger". ⚠ **And the ban was
   > ALREADY RECORDED IN THIS FILE (see the DR3 addendum r2 above) while these lines still violated
   > it** — a ban is not self-enforcing.
-  > ⚠ **UNRESOLVED NUMBER — do not use either figure in a write-up until settled.**
-  > `reports/m3_reproduction.md` computes Kang's above-chance as 64.4 − 29.5 = **+34.9 pts**, but
-  > `docs/CITATION_LEDGER.md` (verified against the arXiv full text, 2026-07-16) records their
-  > above-chance as **+43.6%**. Both cannot describe the same statistic. Either the ledger
-  > mis-transcribed, or **Kang's "above-chance influence" is NOT steer−noise** and our report
-  > constructed a statistic and attributed it to them. **Resolve against the paper before any
-  > write-up** (rule 4: an upstream field — including one we ourselves transcribed — is a
-  > hypothesis). DR3-r2 #10 makes it non-load-bearing for the CLAIM, not for the REPORT.
+  > ✅ **RESOLVED 2026-07-18 against the paper.** Kang's "above-chance influence" is a NAMED
+  > statistic = **+43.6%** (§3 + Fig 2 caption), a CROSS-MODEL AVERAGE — **not** 64.4 − 29.5 = 34.9.
+  > The ledger was right; this report constructed 34.9 by subtraction and mislabeled it "the paper's
+  > own summary statistic" (rule 4's worse branch). Kang's number is +43.6; ours (+31.3 / +43.3) are
+  > descriptive and NOT commensurable with it (DR3-r2 #10). Owed: PDF Fig-2-caption eyeball.
   **⚠ The obvious explanation is WRONG and we measured it.** "Our models are more certain, so
   noise can't flip them" does NOT survive: noise flips **0.0% in EVERY confidence bin** (0/23 at
   conf 0.90–0.99; 0/7 at 0.70–0.90), and spatial-ID flip rate is **uncorrelated with confidence**

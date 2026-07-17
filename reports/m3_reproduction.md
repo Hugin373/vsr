@@ -72,10 +72,16 @@ same-row pairs (so every gold answer is defined); answer key 52.0% left.
 | task accuracy before intervention | — | 95.3% | 98.0% |
 | **steering @ α=5**, best middle-third layer | **64.4%** | 19.3% (L12) | 31.3% (L14) |
 | **norm-matched noise control** | **29.5%** | **0.7%** | **0.0%** |
-| **above-chance effect** (steer − noise) | **+34.9 pts** | +18.7 pts | **+31.3 pts** |
+| above-chance influence (Kang: NAMED stat, cross-model avg; ours: steer − noise, descriptive) | **+43.6 pts** ⚠ | +18.7 pts | **+31.3 pts** |
 | peak over the α sweep | — | 31.3% (α=40) | **43.3% (α=10)** |
-| **peak above-chance effect** | +34.9 pts | +30.0 pts | **+43.3 pts** |
+| peak (ours only; NOT comparable to Kang, DR3-r2 #10) | — | +30.0 pts | **+43.3 pts** |
 | rank-3 R² (low-rank position code) | **≥ 0.85** | **0.87** | **0.84** |
+
+⚠ **Column-definition mismatch, stated so the table is not misread (DR3-r2 #10):** Kang's
+"above-chance influence" (+43.6%) is a NAMED statistic averaged across their tested models (§3 +
+Fig 2 caption); it is **not** 64.4 − 29.5 = 34.9. Our +31.3 / +43.3 are a within-set steer − noise
+difference on ONE model. The columns are **descriptive, side by side, not commensurable** — do not
+subtract or rank across them.
 
 ### 1.3 The mirror-swap patching profile — the paper's central localization claim
 
@@ -141,13 +147,22 @@ dose-response peak. Kang report ≈64.5% median vs 29.5% noise.
 > example selection and baseline belief distributions all differ between the two setups, so the
 > two above-chance figures are **not commensurable** and neither is "bigger". Report both; claim
 > superiority of neither.
-> ⚠ **AND THE ATTRIBUTED NUMBER IS UNRESOLVED.** The text above derived Kang's above-chance as
-> 64.4 − 29.5 = **+34.9 pts**. `docs/CITATION_LEDGER.md` — verified against the arXiv full text
-> (2026-07-16) — records their above-chance as **+43.6%**. These cannot both describe the same
-> statistic. Either the ledger mis-transcribed, **or "above-chance influence" is not steer−noise
-> and this report constructed a statistic and attributed it to the authors.** The latter would be
-> the more serious error, and it is exactly what rule 4 exists to catch. **Resolve against the
-> paper before any write-up.**
+> 🔴 **RESOLVED 2026-07-18 against the paper (arXiv 2601.12626v1 HTML full text) — and it was the
+> more serious error.** This report derived Kang's above-chance as 64.4 − 29.5 = **+34.9 pts** and
+> called it *"the paper's own summary statistic, the above-chance influence."* **It is not.** The
+> paper reports a NAMED statistic — "above-chance influence" — equal to **+43.6%** (its own §3 text
+> AND its Figure 2 caption: *"Spatial IDs have 43.6% above-chance influence on average"*), and
+> **43.6 ≠ 64.4 − 29.5**: it is an AVERAGE ACROSS the tested models, not the naive median-minus-noise
+> for the headline pair. So this report **constructed a statistic (a single subtraction), got 34.9,
+> and attributed it to the authors** — precisely rule 4's worse branch. The ledger was correct.
+> **34.9 pts is deleted as an attribution to Kang throughout** (it was never their number). Our own
+> +31.3 / +43.3 remain OUR descriptive figures. ⚠ Note the now-doubly-retracted claim
+> *"+43.3 matches or exceeds theirs"* was also **numerically** false against the real figure
+> (43.3 < 43.6) — but the primary reason it is retired is DR3-r2 #10: the two are **not
+> commensurable** (different noise construction, doses, selection, baselines), so report both and
+> claim superiority of neither. **Final check owed before any write-up: eyeball the actual Fig 2
+> caption in the PDF — this resolution rests on the ledger's full-text read plus a web-fetch of the
+> HTML, two secondary reads that agree, not on the rendered figure itself.**
 
 #### The obvious explanation is WRONG — we measured it (Qwen, L14, α=5, n=150)
 
