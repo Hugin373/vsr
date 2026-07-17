@@ -47,12 +47,17 @@ GEOM_NAMES = [
 
 def _pose_bin(f: dict) -> str | None:
     """A camera-pose group key from the per-image jitter deltas, or None if the set has a
-    FIXED camera (v0 has no such fields) — in which case a held-out-pose split is undefined and
-    is correctly skipped rather than faked."""
+    FIXED camera (v0 has no such fields) — held-out-pose is then undefined and correctly skipped.
+    Includes lateral/depth TRANSLATION deltas when present (0.3 m buckets), so held-out-pose holds
+    out the camera translation, not only the pan."""
     y, p = f.get("camera_yaw_delta_deg"), f.get("camera_pitch_delta_deg")
     if y is None or p is None:
         return None
-    return f"{round(float(y) / 1.5)}|{round(float(p) / 1.5)}"  # ~1.5-deg buckets -> several groups
+    key = f"{round(float(y) / 1.5)}|{round(float(p) / 1.5)}"  # ~1.5-deg pan buckets
+    dx, dy = f.get("camera_x_delta_m"), f.get("camera_y_delta_m")
+    if dx is not None:
+        key += f"|{round(float(dx) / 0.3)}|{round(float(dy or 0.0) / 0.3)}"  # 0.3 m buckets
+    return key
 
 
 def dumb_features(

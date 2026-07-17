@@ -1,8 +1,10 @@
 """Factorial sampler: determinism + marginal balance."""
 
+import copy
 from collections import Counter
 
 import numpy as np
+import pytest
 
 from sbind.stimuli.sampler import balanced_levels, build_scene_specs, factorial_assignments
 
@@ -60,6 +62,45 @@ def test_build_scene_specs_deterministic():
     s2 = build_scene_specs(CONFIG, seed=0)
     assert [s.to_dict() for s in s1] == [s.to_dict() for s in s2]
     assert len(s1) == 120
+
+
+def test_placement_params_are_read_from_the_condition_section():
+    """Regression: target placement params live under `condition:` in every config, but the code
+    read them from `constraints:` — so the documented 14/6-px margins silently defaulted to 0 and
+    the attempts knob was stuck at 120 (dead config that LOOKED set, fixed 2026-07-18).
+
+    An IMPOSSIBLE frame margin placed under `condition` must make placement fail. If the param
+    were still read only from `constraints`, this margin would be ignored and the set would build
+    fine — so this test fails on the old wiring and passes on the fix."""
+    cfg = copy.deepcopy(CONFIG)
+    cfg["n_images"] = 4
+    cfg["condition"] = {
+        **cfg["condition"],
+        "target_frame_margin_px": 100_000.0,  # no object can be 100k px inside a 256-px frame
+        "target_placement_attempts": 5,
+    }
+    with pytest.raises(RuntimeError, match="could not place non-overlapping target pair"):
+        build_scene_specs(cfg, seed=0)
+
+
+def test_placement_margin_under_condition_actually_pushes_targets_inward():
+    """The positive half: a real frame margin read from `condition` keeps target bboxes off the
+    frame edge, where a margin of 0 (the old silent default) allowed edge placement. Boxes are
+    projected with the sampler's own helper (ObjectSpec carries no bbox until render time)."""
+    from sbind.stimuli.sampler import _projected_box
+
+    cfg = copy.deepcopy(CONFIG)
+    cfg["n_images"] = 24
+    margin = 20.0
+    cfg["condition"] = {**cfg["condition"], "target_frame_margin_px": margin}
+    res_x, res_y = cfg["render"]["res_x"], cfg["render"]["res_y"]
+    for s in build_scene_specs(cfg, seed=0):
+        for o in s.objects[:2]:  # the two TARGETS (distractors are exempt)
+            box = _projected_box(s.camera, o)
+            assert box is not None
+            x0, y0, x1, y1 = box
+            assert x0 >= margin - 1 and y0 >= margin - 1
+            assert x1 <= res_x - margin + 1 and y1 <= res_y - margin + 1
 
 
 def test_build_scene_specs_seed_changes_set():

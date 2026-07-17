@@ -103,11 +103,20 @@ def _uniform_range(rng: np.random.Generator, value, default: tuple[float, float]
 def _jitter_camera(
     cam_cfg: dict, render_cfg: dict, rng: np.random.Generator
 ) -> tuple[CameraSpec, dict]:
-    """Apply per-image height/pitch/yaw jitter around the config camera."""
+    """Apply per-image camera jitter around the config camera.
+
+    Height / pitch / yaw pan the camera; ``pos_x_m`` / ``pos_y_m`` TRANSLATE it (lateral dolly +
+    depth dolly). Translation is the load-bearing addition (2026-07-18): with the camera fixed at
+    x=0 and only panning, image position stays tied to lateral WORLD position (leak-ceiling
+    measured world-x still R²≈0.92). Moving the camera laterally injects a per-image offset a
+    global probe cannot recover, which is what actually decorrelates image position from world x.
+    Absent keys default to 0.0, so a config without them reproduces the old behaviour exactly."""
     base_pos = np.asarray(cam_cfg["pos_world"], dtype=float)
     base_target = np.asarray(cam_cfg["target_world"], dtype=float)
     jitter = cam_cfg.get("jitter", {}) or {}
     dh = _uniform_range(rng, jitter.get("height_m"), (0.0, 0.0))
+    dx = _uniform_range(rng, jitter.get("pos_x_m"), (0.0, 0.0))
+    dy = _uniform_range(rng, jitter.get("pos_y_m"), (0.0, 0.0))
     dp = math.radians(_uniform_range(rng, jitter.get("pitch_deg"), (0.0, 0.0)))
     dyaw = math.radians(_uniform_range(rng, jitter.get("yaw_deg"), (0.0, 0.0)))
 
@@ -118,6 +127,8 @@ def _jitter_camera(
     pitch = math.atan2(direction[2], horiz) + dp
 
     pos = base_pos.copy()
+    pos[0] += dx
+    pos[1] += dy
     pos[2] += dh
     new_dir = np.array(
         [
@@ -137,6 +148,8 @@ def _jitter_camera(
     )
     rec = {
         "camera_height_delta_m": dh,
+        "camera_x_delta_m": dx,
+        "camera_y_delta_m": dy,
         "camera_pitch_delta_deg": math.degrees(dp),
         "camera_yaw_delta_deg": math.degrees(dyaw),
     }
@@ -395,9 +408,16 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
         mult_by_role = {closer: near_mult, farther: far_mult}
         obj_size = {slot: size_by_cat[cats[slot]] * mult_by_role[slot] for slot in (0, 1)}
 
-        target_margin_px = float(constraints.get("target_bbox_margin_px", 0.0))
-        target_frame_margin_px = float(constraints.get("target_frame_margin_px", 0.0))
-        max_attempts = int(constraints.get("target_placement_attempts", 120))
+        # ⚠ These live under `condition:` in every config, NOT `constraints:` — read from cond
+        # FIRST (constraints as fallback). They were read from `constraints` alone until 2026-07-18,
+        # so the documented margins (bbox 14 px / frame 6 px) silently defaulted to 0 and the
+        # attempts knob was stuck at 120: dead config that LOOKED set. Classic wrong-section bug.
+        target_margin_px = float(cond.get("target_bbox_margin_px",
+                                          constraints.get("target_bbox_margin_px", 0.0)))
+        target_frame_margin_px = float(cond.get("target_frame_margin_px",
+                                                constraints.get("target_frame_margin_px", 0.0)))
+        max_attempts = int(cond.get("target_placement_attempts",
+                                    constraints.get("target_placement_attempts", 120)))
         objects: list[ObjectSpec] = []
         placement_attempt = -1
         for attempt in range(max_attempts):
