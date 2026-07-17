@@ -489,11 +489,11 @@ code verification after these edits: `uv run ruff check src/ tests/ scripts/` gr
 ### Full anchor citation sweep + TOPIC sweep (all five anchors; 2026-07-16)
 - **🔴🔴 2605.20448 "Do VLMs Understand 3D Scenes or Just Catalogue Objects?" (May 19, Deccan AI)
   — found ONLY by topic sweep (cites none of our anchors).** 17-site activation-patching trace
-  (ViT blocks → merger/projector → LM L0–27; Qwen3-VL-8B; categorical occlusion counterfactuals):
+  (ViT blocks → merger/projector → LM L0–27; **Qwen3-VL-8B-Thinking**; categorical occlusion counterfactuals):
   spatial recovery **collapses at the merger/projector**. Directly contradicts H1 AND Anchored.
 - **🔴 2606.06714 "Anchored, Not Graded" — closest probe-based neighbor.** Traces continuous
   SLANT across encoder→projector→**LM-INPUT visual tokens** (factorial synthetic; 4 VLMs):
-  geometry decodable at LM-input (R² 0.70–0.88) while verbal output anchors; blames the
+  geometry decodable at LM-input (R² **0.696–0.88** — ⚠ low end is 0.696, not 0.70, ledger L61) while verbal output anchors; blames the
   "representation-to-output interface"; LM-internal tracing = their DECLARED future work.
 - 🔴 **SUPERSEDED BY DESIGN REVISION 3 (2026-07-16) — the retraction stays visible on purpose.**
   This section originally read: *"ADJUDICATION FRAMING (upgrade from 'gap'): two published traces
@@ -833,7 +833,7 @@ unsuitability were **both invisible** from the dataset descriptions we had been 
   - ⚠ **License murky** (GitHub says Apache-2.0, HF card untagged, nuScenes/KITTI upstream
     non-commercial) → **internal eval use only**.
 
-- **REPORT THE NOT-SURE RATE wherever an abstain option exists (added 2026-07-15, from the landscape deck's CausalSpatial read).** CausalSpatial's own scaling analysis finds **NSR collapses with model scale (18.77% → 0.10%) while accuracy stays flat** — i.e. *larger models become decisively wrong*, not more right. Accuracy alone hides that entirely. The adapter already carries `meta.not_sure_letter` (derived from the option TEXT, since the upstream column is a lie — see the second retro-audit), so NSR is free to compute: **report it as a metric alongside accuracy in the M5 validation layer.** Two further details from the same read, worth holding: **COW (their video-sim method) FAILS on its own occlusion task** — useful context for when our oracle-injection helps or doesn't; and **scale saturation** (Qwen3-VL 4B/8B/30B plateau at 44–46%) — a model-scale claim our per-primitive decomposition can actually speak to.
+- **REPORT THE NOT-SURE RATE wherever an abstain option exists (added 2026-07-15, from the landscape deck's CausalSpatial read).** CausalSpatial's own scaling analysis finds **NSR collapses with model scale (18.77% → 0.10%) while accuracy stays flat** — i.e. *larger models become decisively wrong*, not more right. Accuracy alone hides that entirely. The adapter already carries `meta.not_sure_letter` (derived from the option TEXT, since the upstream column is a lie — see the second retro-audit), so NSR is free to compute: **report it as a metric alongside accuracy in the M5 validation layer.** Two further details from the same read, worth holding: **COW (their video-sim method) FAILS on its own occlusion task** — useful context for when our oracle-injection helps or doesn't; and **scale saturation** (Qwen3-VL 4B/8B/30B plateau at **43.5–45.8%** — 44.76/43.53/45.80; ⚠ corrected 2026-07-18 from "44–46", ledger L81) — a model-scale claim our per-primitive decomposition can actually speak to.
 
 ## M4 design constraints (inherited from M1 — read before building the conflict conditions)
 - **⚠ `fixed_retinal_size` condition must NOT define "retinal size" as mask AREA.** A cube's mask area varies **±11% with pose/depth** (a nearer cube shows more of its faces; measured cube-as-far ∈ [139863, 171495] vs cube-as-near ∈ [148480, 182933] for `area×depth²`). So "equal retinal area" is not well-defined without also fixing pose. Two acceptable routes: **(a) define retinal size as mask HEIGHT** (`retinal_size_px`, which the M1 calibration equalises across shapes to `height×depth` ≈ 407 — pose-stable), or **(b) control pose explicitly (fixed yaw per object)** and only then use area. Do not silently mix the two.

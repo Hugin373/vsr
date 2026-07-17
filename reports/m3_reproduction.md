@@ -218,9 +218,14 @@ InternVL 16×16; worst centroid error **0.019** grid units over all 500 images.
 |---|---|---|---|
 | **x** (lateral) R² | **−0.09** (≈ chance) | **+0.997** | **+0.999** |
 | **z** (depth) R² | **+0.28** (modest) | **+0.990** | **+0.996** |
-| shape | R² = 1.00 | acc = 1.000 | acc = 1.000 |
+| shape (classification acc, all cols) | acc = 1.00 ⚠ | acc = 1.000 | acc = 1.000 |
 | colour | — | acc = 1.000 | acc = 1.000 |
 | shuffled-label controls | — | x/z R² ≤ −0.01, shape 0.33, colour 0.25 | same — all exactly at chance ✓ |
+
+⚠ **Shape corrected 2026-07-18 (ledger L27): W&G's shape 1.00 is k-NN classification ACCURACY, not
+R²** — it was printed here as "R² = 1.00", the same definition-vs-value error as the Kang number.
+Shape is categorical, so it is an accuracy for every column; only x/z are R². (AGENTS.md rule 4:
+verify the definition, not only the value.)
 
 Flat across **every** layer probed, on **both** models: x R² ∈ [0.997, 0.999], z R² ∈ [0.984,
 0.996]. Their *exact two models*, and neither shows any trace of the dissociation.
