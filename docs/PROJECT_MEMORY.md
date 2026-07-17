@@ -115,6 +115,54 @@ hand-copied. **5 conflict regions, all resolved and verified.**
 - **Checked, no action:** PITCH.md is already CLEAN of the new bans — DR3's own warning that
   "'adjudicating' and 'first' phrasing likely present" is **stale**; its only "first" is the temporal
   "we first need to establish". Nothing blocks the Jul 24 YANS registration on wording grounds.
+- **🔁 SECOND UPDATE BATCH, same day (`docs/updates/`, plural — the first was `docs/update/`):
+  DR3-r7 execution annex A1–A11 ADOPTED; four REVERTS rejected. THE HAZARD REPEATED.**
+  - **Taken:** the **M5/M6 EXECUTION ANNEX (DR3-r7)** — 86 lines, plan §M5: identification protocols,
+    not framing (the framing stays frozen). A1 leak decomposition · A2 cross-stage equivalence ·
+    A3 alternative-route battery (**new outcome-matrix row: DISTRIBUTED BINDING**) · A4 common
+    latent-noise for H2a · A5 Gate-1 scope · A6 oracle-text scope · A7 anchor-experiment controls ·
+    **A8 mediation needs an INDEPENDENT decoder** (an intervention-defining probe may never grade its
+    own intervention — h′=h+αw raises w·h′ ALGEBRAICALLY) · A9 quantitative preregistration for H1 ·
+    A10 external validity split behavioral/mechanistic · A11 capacity ladder is CORE (recoding vs
+    bottleneck). Plus the M4a prompt's **THIRD AMENDMENT** (Gate 1 = *statistical recoverability under
+    this training distribution*; + renderer-family/resolution+AA/photometric holdouts, cue-ablation
+    renders, an interpretable pixel baseline beside the CNN, human pairwise ranking).
+  - **🔴 Rejected — the batch's PLAN branched from the OLD pre-merge `docs/update/` copy, not HEAD**
+    (arithmetic: 759 + 87 ≈ 846 = their line count), so adopting it wholesale would have (1) deleted
+    the M4a status block **again**, (2) reverted the M4b header to the retired W&G bar, (3) restored
+    **"This adjudicates a now-published disagreement"** — wording **DR3 itself banned** — and (4)
+    un-fixed the M5 numbering. Their PROJECT_MEMORY was byte-identical to ours, which is what made the
+    plan's off-HEAD provenance visible. **Only the annex was lifted; all four reverts rejected.**
+  - **🔑 THE PATTERN, now twice in one day, and the irony is the lesson:** the very batch that ADDS a
+    new ban (A1) simultaneously re-introduced wording an EARLIER ban had already retired — because it
+    was authored against a stale base. **A ban travels with a document, not with the project.**
+    **STANDING PRACTICE (adopt): every incoming doc drop is (a) diffed against HEAD before adoption,
+    (b) checked for the authored-off-HEAD signature — does it contain the newest committed session
+    entry? — and (c) merged by taking NEW CONTENT ONLY, never by copying the file over.**
+  - **A1's new ban applied corpus-wide:** *"the selection IS the answer"* → **"selection and stimulus
+    geometry already contain most of the answer"** (PROJECT_MEMORY + proposal, retractions visible).
+    Our R² = 0.942 proves **stimulus confounding** and invalidates raw scores; it does **not** isolate
+    the **selection mechanism** from **positional representation**. The strong form needs A1's
+    isolation battery (random-i.i.d.-token control · position-only synthetic tokens · fixed-mask/
+    different-depth pairs · content-location permutation · pooling ± positional components). Leak
+    stays a **CANDIDATE** contribution. ⚠ **A1's fixed-mask/different-depth control IS the contrastive
+    pairs — already M4a blocker 1**, so that blocker now carries M5 weight too.
+- **📎 Decks + ledger now IN THE REPO** (`docs/CITATION_LEDGER.md`, `lab_presentation_part{A,B}.pptx`):
+  the ledger is **verified against arXiv full texts** and closes the one-page's last gap — a
+  **verified** concrete failure example now exists without new experiments. Strongest lead:
+  **Ill-Posed 2606.24335** — a **text-only LLM that never sees the image beats every open VLM** on the
+  tape-measured in-the-wild split, and apparent-size manipulation expected to move answers **2.33×**
+  moves them **1.00× (median, all 12 models)** — paired with **our own** 95.3% / 98.0% qualitative
+  left/right (`reports/m3_reproduction.md`). ⚠ Nuance the one-page must not muddle: Ill-Posed finds
+  models **insensitive to apparent size** and driven by **identity priors** (8/12; largest −20.3 pp) —
+  the *benchmark* carries the cue confound; the *model's* strategy is priors. Both true, not the same.
+  ⚠ **Ledger correction NOT yet propagated:** CausalSpatial = **arXiv 2601.13304** (never in our docs)
+  and its real taxonomy is **Collision / Occlusion / Compatibility / TRAJECTORY** — **"physics" and
+  "realworld" are REPO FOLDER NAMES, not paper categories**. But plan §2.5(f) + this file's validation
+  layer specify the closed set using those folder names, including the judgment *"physics (311) loads
+  on physics priors → non-target control"* — a scientific call made against a folder name, and the
+  **third** time this dataset's surface has misled us (after the `id` and `not_sure` lies). Fix before
+  M5; it does not touch M4a.
 - **Unchanged and still open:** YANS registration **closes Fri Jul 24** (7 days); the one-page
   問題・新規性・実験設定 statement; lit-watch scheduled task; human-baseline/ethics.
 
@@ -798,7 +846,17 @@ distractor variation.** See IMPLEMENTATION_PLAN §2.5(d).
 
 ### 🔴 THE POSITION LEAK — a THREAT TO THE CORE EXPERIMENT, not a probe caveat
 **Mask-pooling from position-indexed visual tokens LEAKS POSITION BY CONSTRUCTION** — the pooled
-vector averages tokens *at the object's image location*. **The selection IS the answer.**
+vector averages tokens *at the object's image location*. **Selection and stimulus geometry already
+contain most of the answer.**
+> 🔴 **WORDING CORRECTED 2026-07-17 (DR3-r7 / annex A1) — the retraction stays visible.** This read
+> **"The selection IS the answer."** That overstates what we measured. A1 decomposes the claim into
+> THREE sources: (1) **stimulus confounding** (depth ↔ size/height/position in v0); (2) **positional
+> representation** (activations genuinely encode 2D token location); (3) **selection-induced
+> leakage** (the pooling operator itself creates the signal). **Our mask-geometry R² = 0.942 proves
+> (1) and invalidates raw scores — it does NOT isolate (3).** Only after checklist item 4's
+> isolation battery (random-i.i.d.-token control · position-only synthetic tokens · fixed-mask /
+> different-depth matched pairs · content-location permutation · pooling ± positional components)
+> may the stronger form be used. Until then the leak is a **CANDIDATE contribution** (DR3 §18).
 
 **Measured leak ceiling on v0 (dumb features, NO activations, no model at all):**
 | target | mask **geometry alone** | mask-pooled activations | model adds |

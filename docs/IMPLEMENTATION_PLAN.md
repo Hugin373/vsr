@@ -722,6 +722,92 @@ while accuracy stays flat, i.e. *larger models become decisively wrong*, which a
    probe-indicated sites are exploratory, confirmed on held-out data. Depth-direction
    construction / validation / causal evaluation use three disjoint splits.
 
+#### ⚠ M5/M6 EXECUTION ANNEX (DR3-r7, 2026-07-16 — from the execution-level review; the
+#### conceptual framing stays frozen, these are IDENTIFICATION protocols)
+
+**A1 — Selection-leak claim, decomposed into THREE sources (the mask-geometry R²=0.94 proves #1
+and invalidates raw scores; it does NOT yet isolate #3):** (1) stimulus confounding (depth ↔
+size/height/position in v0); (2) positional representation (activations genuinely encode 2D
+token location); (3) selection-induced leakage (the pooling operator itself creates the signal).
+**Checklist item 4 ("formal isolation of the selection mechanism") is operationalized as:**
+random-i.i.d.-token control (pool random tokens with the same mask → does "depth" still decode?)
+· position-only synthetic-token control (replace contents with pure positional encodings) ·
+fixed-mask/different-depth matched pairs (= the contrastive pairs, already an M4a deliverable) ·
+content-location permutation · pooling with vs without explicit positional components.
+**Claim wording until these pass: "selection and stimulus geometry already contain most of the
+answer" — never "the selection IS the answer."**
+
+**A2 — Cross-stage equivalence protocol (H1's 3→4 comparison is between non-equivalent
+populations; matched budgets alone are insufficient):** same outer splits · same training-sample
+counts · matched effective dimensionality (subsample/project the wider side) · matched
+regularization budget · matched target transformations · stage-specific positive controls ·
+**representation-subsampling curves and score-vs-training-size curves per stage** — the binding
+reading requires stage 4 lower at ALL matched budgets, not at one operating point. Report
+information-vs-capacity curves, not single R² per stage.
+
+**A3 — The binding-site assumption is a DESIGN ASSUMPTION, stated as such:** "correct binding ⇒
+locally decodable at the object-name token" is Kang-derived, not definitional. **Alternative-route
+battery (mandatory before any binding-failure reading):** object-name token · relation token
+("closer") · final question token · all text tokens jointly · text→visual attention-mediated
+readout (can the answer position read visual tokens directly at answer time?). **If metric
+information exists in the joint text representation but not the single object token, the reading
+is DISTRIBUTED BINDING, not binding failure** — new row in the outcome matrix.
+
+**A4 — Common latent-noise analysis for H2a (accuracy-vs-R² comparison cannot establish
+selectivity: a noisy continuous scalar + threshold yields high ordinal accuracy with low R²):**
+derive ordinal predictions FROM the continuous readout · compare observed ordinal accuracy
+against the ordinal ceiling implied by the best continuous scalar readout + threshold ·
+margin-stratify ordinal pairs by |Δz| · one shared scalar decoder evaluated for both ranking and
+calibration. **Selectivity is claimed ONLY if ordinal performance exceeds what the best
+continuous-scalar readout + threshold explains.**
+
+**A5 — Gate 1 scope statement:** a supervised pixel model establishes *statistical
+recoverability from pixels under this training distribution* — NOT that the intended geometric
+evidence is visually available in a human-usable sense (it may read renderer textures, aliasing,
+seed families, size distributions). Additional holdouts: renderer-family / resolution +
+anti-aliasing / photometric postprocessing; plus cue-ablation renders, a simple interpretable
+pixel baseline (reported next to the CNN), and human pairwise ranking. **Continuous-magnitude
+identifiability claims are written narrowly (distribution-relative).**
+
+**A6 — Oracle-text is a DOWNSTREAM COMPETENCE CONTROL, not localization evidence:** text
+coordinates may recruit symbolic arithmetic with no multimodal binding at all. It rules out "the
+LM cannot compute the relation" — nothing finer.
+
+**A7 — Anchor experiment: the two outcomes are NOT mutually exclusive** (a reference prompt can
+simultaneously shift attention, priors, strategy, and representation). Controls before any fork
+reading: semantically equivalent reference paraphrases · length-matched prompts ·
+irrelevant-detail controls · reference redirection · token-position controls ·
+attention/readout mediation · a visual-representation-unchanged check. Until these pass it is a
+useful perturbation, not a decisive fork.
+
+**A8 — MEDIATION MUST USE AN INDEPENDENT DECODER (the sharpest circularity risk):** if the
+direction w comes from a probe, h′ = h + αw raises w·h′ ALGEBRAICALLY — "internal readout rises"
+is guaranteed by construction, not evidence. The internal-depth readout in the mediation chain
+is evaluated by: an independent decoder (disjoint probe family / held-out training data) ·
+orthogonalized readouts · cross-seed (ideally cross-model) direction transfer · matched-scene
+interchange as the non-parametric check. **An intervention-defining probe may never grade its
+own intervention.**
+
+**A9 — Quantitative preregistration for H1 (before unblinding M5):** the primary claim requires
+Δ(3→4) > max(Δ(1→2), Δ(2→3), Δ(4→5)) + δ, with δ, minimum effect size, CI criterion, replication
+criterion (both core models), and the ordinal–continuous interaction criterion fixed in the
+prereg doc. The outcome matrix INTERPRETS patterns; the preregistered inequality TESTS H1 —
+without it the matrix is a post-hoc taxonomy.
+
+**A10 — External validation split into two kinds, per dataset, fixed roles:** *behavioral
+external validity* (does the synthetic finding correlate with real-benchmark behavior) vs
+*mechanistic external validity* (does the stage profile itself reappear on natural images —
+possible only where masks/geometry allow; CV-Bench sensor slices at most). Every §2.5(f) dataset
+gets ONE declared role; datasets without masks/geometry are labeled **no-mechanistic-claim**.
+
+**A11 — The probe-capacity ladder is CORE, not a robustness appendix:** a stage-4 linear drop
+that a low-capacity nonlinear probe (kernel ridge / low-rank bilinear / small strictly-controlled
+MLP / joint-token probe / RSA / cross-condition decoding) recovers is RECODING, not a bottleneck
+— and that is a headline-relevant distinction ("did depth go anywhere, or did the readout stop
+matching the code?"). Also framing for the eventual paper: the cross-population comparison
+methodology (comparing representation availability across token populations, selection
+operators, and readout capacities) is itself a candidate methods contribution.
+
 ### M6 — Interventions (Phase-3, spec later)
 Graded intervention along a **validated depth-related direction or subspace** (DR3-r2: the
 construction — probe direction / regression vector / matched-condition difference / low-rank

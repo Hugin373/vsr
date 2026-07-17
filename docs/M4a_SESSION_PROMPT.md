@@ -130,7 +130,13 @@ identifiability · continuous ranking · calibrated magnitude/ratio.** The **hum
 continuous/ratio levels are gated by the supervised baseline's held-out generalization.
 **Additionally deliver: the pre-registered NUMERIC acceptance bounds for M4b's leak criterion**
 (trivial-feature score ceiling with CI; Δ_repr|dumb permutation-null threshold) — M4b may not
-start without them. If the image does not contain the evidence, no VLM site can — and
+start without them.
+**THIRD AMENDMENT (DR3-r7):** the gate's supervised model establishes *statistical
+recoverability from pixels under this training distribution* — state it that narrowly. Add:
+renderer-family / resolution+anti-aliasing / photometric-postprocessing holdouts where feasible;
+cue-ablation renders; a simple INTERPRETABLE pixel baseline reported next to the CNN; human
+pairwise ranking (ordinal license only). Continuous-magnitude identifiability claims are
+distribution-relative, never absolute. If the image does not contain the evidence, no VLM site can — and
 any later "low everywhere" probing profile would be an instrument failure wearing a finding's
 clothes. **A target that fails the gate is fixed or descoped before M4b — the WACV minimal core
 needs ordinal depth; protect that target first.** This gate is a per-target checklist with
