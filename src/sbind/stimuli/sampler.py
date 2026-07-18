@@ -323,6 +323,7 @@ def build_scene_specs(
     seed: int,
     proposal_log: list[dict] | None = None,
     raise_on_placement_failure: bool = True,
+    placement_failures: list[dict] | None = None,
 ) -> list[SceneSpec]:
     """Turn a stimulus-set config dict into a deterministic list of SceneSpec.
 
@@ -496,6 +497,12 @@ def build_scene_specs(
                 raise RuntimeError(
                     f"could not place non-overlapping target pair after {max_attempts} attempts "
                     f"for {set_name}_{i:05d}; loosen lateral_range or size_multiplier_range"
+                )
+            if placement_failures is not None:
+                placement_failures.append(
+                    {"image": i, "near_depth_bin": a["near_depth_bin"],
+                     "depth_gap_bin": a["depth_gap_bin"], "near_cat": near_cat, "far_cat": far_cat,
+                     "size_mult_near": near_mult, "size_mult_far": far_mult}
                 )
             continue  # DRY-RUN AUDIT: skip the un-placeable image and keep going
         distractors = _make_distractors(config, size_by_cat, color_items, rng, camera, objects)

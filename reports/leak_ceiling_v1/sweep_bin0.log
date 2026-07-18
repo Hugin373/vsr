@@ -1,0 +1,12 @@
+current near_depth_bins: [0.2, 0.65, 1.1, 1.55, 2.0]
+Traceback (most recent call last):
+  File "/tmp/claude-1100/-home-hugin-vsr/9682058f-0ba5-4e89-b296-cc896c323db0/scratchpad/sweep_bin0.py", line 15, in <module>
+    rr = [max(o["pos_world"][1] for o in s.objects[:2]) / max(min(o["pos_world"][1] for o in s.objects[:2]), 0.01) for s in specs]
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-1100/-home-hugin-vsr/9682058f-0ba5-4e89-b296-cc896c323db0/scratchpad/sweep_bin0.py", line 15, in <listcomp>
+    rr = [max(o["pos_world"][1] for o in s.objects[:2]) / max(min(o["pos_world"][1] for o in s.objects[:2]), 0.01) for s in specs]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-1100/-home-hugin-vsr/9682058f-0ba5-4e89-b296-cc896c323db0/scratchpad/sweep_bin0.py", line 15, in <genexpr>
+    rr = [max(o["pos_world"][1] for o in s.objects[:2]) / max(min(o["pos_world"][1] for o in s.objects[:2]), 0.01) for s in specs]
+              ~^^^^^^^^^^^^^
+TypeError: 'ObjectSpec' object is not subscriptable
