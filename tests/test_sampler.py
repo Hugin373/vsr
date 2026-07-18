@@ -134,8 +134,8 @@ def test_build_scene_specs_seed_changes_set():
 def test_frozen_m4a_configs_place_at_scale():
     """§4 freeze (2026-07-18): the closest depth bin (0.2 m) was un-placeable under +/-0.3 m camera
     translation — the near object clips the frame regardless of lateral sampling, and MORE ATTEMPTS
-    never helped (500 vs 2000 gave the same failures). Fixed by dropping the closest bin. This guards
-    the fix: no frozen M4a pilot config may reintroduce a near bin close enough to fail placement."""
+    never helped (500 vs 2000 gave the same failures). Fixed by dropping the closest bin. Guards it:
+    no frozen M4a translation config may reintroduce a near bin close enough to fail placement."""
     import glob
 
     from sbind.utils.config import load_config
