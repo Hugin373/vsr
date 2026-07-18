@@ -131,6 +131,26 @@ def test_build_scene_specs_seed_changes_set():
     assert [s.to_dict() for s in s0] != [s.to_dict() for s in s1]
 
 
+def test_scene_appearance_factors_are_persisted():
+    """§4.2 (2026-07-18): ground_color / sun_energy / sun_direction are sampled per image and were
+    passed only to the renderer, not recorded — so the DR3 held-out-lighting / held-out-background
+    splits could not be built. They must now appear in factors AND actually vary across images."""
+    cfg = copy.deepcopy(CONFIG)
+    cfg["scene"] = {
+        "ground_colors": [[0.4, 0.4, 0.4], [0.5, 0.45, 0.4], [0.4, 0.45, 0.5]],
+        "sun_energy_range": [3.0, 5.5],
+        "sun_direction": [5, -5, 8],
+        "sun_direction_jitter": 0.6,
+    }
+    specs = build_scene_specs(cfg, seed=0)
+    for s in specs:
+        for k in ("ground_color", "sun_energy", "sun_direction"):
+            assert k in s.factors, f"{k} not persisted to factors"
+    # must actually vary (else there is no factor to hold out)
+    assert len({s.factors["sun_energy"] for s in specs}) > 1
+    assert len({tuple(s.factors["ground_color"]) for s in specs}) > 1
+
+
 def test_frozen_m4a_configs_place_at_scale():
     """§4 freeze (2026-07-18): the closest depth bin (0.2 m) was un-placeable under +/-0.3 m camera
     translation — the near object clips the frame regardless of lateral sampling, and MORE ATTEMPTS

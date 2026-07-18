@@ -1342,10 +1342,20 @@ Executing the "FREEZE the generator, then REVALIDATE" finalization prompt. Done 
   image 110/10k) → the 1k render would crash on ~9 images. Must fix in §4 before the render (raise
   attempts vs loosen the binding constraint — measure which). Added `raise_on_placement_failure=False`
   to `build_scene_specs` for audits (rendering keeps the raise default).
-- **REMAINING this finalization (not started):** §4 freeze — fix placement-at-scale · derive_cue_constants
-  (#9, worst-case) · persist ground_color/sun_energy/sun_direction · nuisance texture/lighting families
-  · determinism byte-compare · tag the freeze commit. §5 revalidation pilot (~100–200 imgs, all audits).
-  NOT started: contrastive pairs, 1k render.
+- **§4 freeze PROGRESS:** ✅ **placement-at-scale FIXED** — the ±0.3 m translation made near_depth_bin=0
+  (0.2 m) un-placeable (~0.5% of combos), and MORE ATTEMPTS NEVER HELPED (500 vs 2000 identical); it is
+  a framing limit. Dropped the closest bin → `near_depth_bins: [0.65, 1.1, 1.55, 2.0]` in all three
+  frozen pilot configs; 100% placement at n=1200 verified; config-guard test added. Added
+  `build_scene_specs(placement_failures=...)` audit hook. ✅ **factor persistence (§4.2)** —
+  ground_color/sun_energy/sun_direction now written into `factors` (were sampled and discarded → DR3
+  held-out-lighting/background splits are now constructible); regression test added.
+  **STILL OWED in §4:** derive_cue_constants for 6 cats (⚠ script reads shared `size_multiplier`; the
+  counterbalanced/conflict sets use `size_multiplier_near/far` — needs a schema update) + measure the
+  1.85 floor's ratio-squeeze · nuisance TEXTURE families (do not exist — real work) + lighting/renderer-
+  seed families · determinism byte-compare · TAG the freeze. **§5 revalidation** (~100–200 imgs, re-render
+  frozen configs + all four audits + decorrelation matrix + validate + contact sheet). NOT started:
+  contrastive pairs, 1k render.
+  ⚠ **The existing pilot renders are now STALE** (old bins, no appearance factors) → §5 re-renders anyway.
 
 ## 📌 2026-07-17 (fifth session, advisor chat) — RULINGS on the three leak-ceiling decisions; project docs synced
 

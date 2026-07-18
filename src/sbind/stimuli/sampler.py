@@ -528,6 +528,13 @@ def build_scene_specs(
             "size_condition": cond.get("size_condition", "congruent"),
             "elevation_condition": cond.get("elevation_condition", "congruent"),
             "distractor_count": len(distractors),
+            # §4.2 (2026-07-18): PERSIST the scene-appearance factors that were sampled and
+            # discarded — without them the DR3 held-out-lighting / held-out-background splits are
+            # not constructible (a probe cannot be tested for generalization across a factor the
+            # annotation does not record).
+            "ground_color": list(ground_color),
+            "sun_energy": float(sun_energy),
+            "sun_direction": list(sun_direction),
             **lateral_record,
             **size_record,
             **camera_record,
