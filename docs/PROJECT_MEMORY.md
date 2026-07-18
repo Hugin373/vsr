@@ -1445,7 +1445,21 @@ A second advisor-level review of the strengthening results was arbitrated in the
   empirical endorsement of ruling 2's ±0.3 m and ruling 1's keep-world-x-conditional logic. z
   unaffected (primary). ⚠ MASK+POSE uses true extrinsics (upper bound); realising it from scene cues
   is a gate-scale question. **cam-x stays the projection-coupled positive control (~0.93, in band).**
-- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ done (KEEP at ±0.3 m); descope world-x
+- **✅ RE-RENDER UNDER FIXED WIRING DONE (2026-07-18) — and the margin bug WAS consequential.**
+  Isolated it: current code + seed, `target_bbox_margin_px` 14 vs 0 → **366 geometry mismatches**
+  over 60 images (the 14 px margin feeds the target-OVERLAP check, so it rejects pairs packed tighter
+  than 14 px). So the pre-fix pilots (`725ad42`, margins silently 0) were genuinely corrupted — their
+  measurements are audit history. **j2 (counterbalanced primary) was rendered post-fix → its numbers
+  stand.** Re-rendered conflict + natural-congruent with the frozen j2 jitter (ruling 2) + fixed
+  margins; **both validate GREEN**, and **natural-congruent kept congruence under translation** (worst
+  retinal 1.89 / area 1.38 — the 1.85 floor absorbs the camera motion) → **no §2.2(e) recalibration
+  triggered.** cam-x positive control in band on all three regimes; world-x ~0.82, z ~0.78–0.89
+  consistent. Old pan-only pilots superseded; `_j2` now redundant with the canonical counterbalanced.
+  ⚠ **Latent reproducibility caveat found:** `_uniform_range` consumes an RNG draw even for a
+  zero-width range, so adding zero-defaulted `pos_x_m`/`pos_y_m` shifts the whole random stream — old
+  renders are not byte-reproducible by new code (determinism still holds WITHIN a code version). Left
+  as-is (fixing reshuffles measured j2).
+- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ done (KEEP at ±0.3 m); ~~re-render under fixed wiring~~ ✅ done (battery green); descope world-x
   if it fails) · re-render pilots under fixed placement wiring `cf244b3` (ruling 2) · rejection-
   sampling bias check (ruling 2) · B0/B1/B2 z-baseline split + preregister Δ_R|B0,B2 (ruling 3) ·
   decorrelation matrix (#11) · `derive_cue_constants` (#9).

@@ -168,3 +168,36 @@ as a SECONDARY target; the primary axis z is unaffected either way.
 that 0.10 from SCENE cues (not given the pose) is a gate-scale question a 60-image pilot can't
 settle. (2) The verdict endorses ruling 2's ±0.3 m: it clears world-x's gate without the
 identifiability loss that more aggressive translation risks.
+
+---
+
+## Re-render under fixed placement wiring (2026-07-18) — the margin bug WAS consequential
+
+**The wiring bug (`cf244b3`) changed the rendered output — confirmed by isolation.** Rendering the
+counterbalanced config under the SAME current code + seed with `target_bbox_margin_px` 14 vs 0 gave
+**366 object-geometry mismatches** across 60 images. The 14 px margin also feeds the
+target-overlap check (`_boxes_overlap` on margin-expanded boxes), so it rejects target pairs closer
+than 14 px and re-samples — the buggy renders (margin silently 0) had targets packed tighter than
+intended. So the pre-fix pilots (natural-congruent, counterbalanced pan-only, conflict — all git
+`725ad42`) were genuinely corrupted; their measurements are audit history. **j2 was rendered post-fix
+(`cf244b3`), so the counterbalanced-primary numbers stand.**
+
+⚠ **Separate latent finding (not a determinism violation, but a reproducibility caveat):**
+`_uniform_range` calls `rng.uniform()` even for a zero-width range, so adding the (zero-defaulted)
+`pos_x_m`/`pos_y_m` sampling consumes 2 extra draws/image and shifts the ENTIRE random stream. A
+pan-only config therefore renders *differently* under current code than under `725ad42` — expected
+(code is part of the pipeline; determinism holds WITHIN a code version) but it means old renders
+cannot be byte-reproduced by new code. Left as-is (fixing it would reshuffle j2, which is measured).
+
+**Battery re-rendered with the frozen j2 jitter (ruling 2) + fixed margins; both validate green:**
+
+| regime | n | camera | validation | cam-x (pos ctrl) | world-x (heldout pose) | z |
+|---|---:|---|---|---:|---:|---:|
+| natural-congruent (control) | 40 | +translation | GREEN (congruence held: retinal 1.89, area 1.38) | 0.894 ✓ | 0.816 | 0.819 |
+| counterbalanced (= j2) | 60 | +translation | GREEN | 0.923 ✓ | 0.817 | 0.885 |
+| conflict | 40 | +translation | GREEN | 0.952 ✓ | 0.848 | 0.780 |
+
+**natural-congruent kept its congruence under translation** — the min_depth_ratio 1.85 floor absorbs
+the camera motion, so **no §2.2(e) recalibration was triggered.** cam-x positive control in band on
+every regime (tool validated). world-x ~0.82 and z ~0.78–0.89 consistent across the battery. The
+old pan-only pilots are superseded; `_j2` is now redundant with the canonical counterbalanced config.

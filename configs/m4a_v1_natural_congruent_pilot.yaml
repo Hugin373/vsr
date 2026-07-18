@@ -26,14 +26,20 @@ camera:
   sensor_width_mm: 36.0
   jitter:
     height_m:
-    - -0.12
-    - 0.12
+    - -0.16
+    - 0.16
+    pos_x_m:        # frozen j2 translation (ruling 2): lateral dolly — decorrelates world-x
+    - -0.3
+    - 0.3
+    pos_y_m:        # depth dolly
+    - -0.2
+    - 0.2
     pitch_deg:
-    - -2.5
-    - 2.5
-    yaw_deg:
     - -3.0
     - 3.0
+    yaw_deg:
+    - -4.0
+    - 4.0
 scene:
   ground_colors:
   - - 0.45
@@ -117,7 +123,7 @@ constraints:
 condition:
   target_bbox_margin_px: 14.0
   target_frame_margin_px: 6.0
-  target_placement_attempts: 120
+  target_placement_attempts: 500
   regime: natural_congruent
   size_condition: congruent
   elevation_condition: congruent
