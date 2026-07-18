@@ -318,8 +318,15 @@ def _make_distractors(
     return out
 
 
-def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
-    """Turn a stimulus-set config dict into a deterministic list of SceneSpec."""
+def build_scene_specs(
+    config: dict, seed: int, proposal_log: list[dict] | None = None
+) -> list[SceneSpec]:
+    """Turn a stimulus-set config dict into a deterministic list of SceneSpec.
+
+    If ``proposal_log`` is given, every target-placement proposal (accepted and rejected) is
+    appended to it for the rejection-sampling bias audit (ruling 2). This never changes the
+    output or the RNG stream — it only records.
+    """
     rng = np.random.default_rng(seed)
     n = int(config["n_images"])
     set_name = config["output"]["set_name"]
@@ -455,13 +462,24 @@ def build_scene_specs(config: dict, seed: int) -> list[SceneSpec]:
                 )
             box0 = _projected_box(camera, candidate[0], margin_px=target_margin_px)
             box1 = _projected_box(camera, candidate[1], margin_px=target_margin_px)
-            if (
+            ok = (
                 box0 is not None
                 and box1 is not None
                 and _box_in_frame(box0, camera.res_x, camera.res_y, target_frame_margin_px)
                 and _box_in_frame(box1, camera.res_x, camera.res_y, target_frame_margin_px)
                 and not _boxes_overlap(box0, box1)
-            ):
+            )
+            if proposal_log is not None:
+                # Rejection-sampling bias audit (ruling 2): the placement guard is a selection
+                # operator, so log EVERY proposal (pose fixed per image, positions re-drawn per
+                # attempt) with its accept/reject verdict. A pose↔position correlation that is ~0
+                # over proposals but nonzero over accepted-only means the guard re-introduced the
+                # correlation the camera jitter removed. Logging never consumes RNG.
+                proposal_log.append(
+                    {"image": i, "attempt": attempt, "near_x": near_x, "far_x": far_x,
+                     "accepted": ok, **camera_record}
+                )
+            if ok:
                 objects = candidate
                 placement_attempt = attempt
                 break

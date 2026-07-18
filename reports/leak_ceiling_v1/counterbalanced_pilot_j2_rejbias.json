@@ -1,0 +1,43 @@
+{
+  "acceptance_rate": 0.3076923076923077,
+  "sig_threshold": 0.2581988897471611,
+  "correlations": {
+    "camera_x_delta_m__near_x": {
+      "accepted": -0.008304426119333175,
+      "proposed": -0.2749321194431251,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_x_delta_m__far_x": {
+      "accepted": 0.03614845745122021,
+      "proposed": 0.23331142204052532,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_y_delta_m__near_x": {
+      "accepted": 0.02978765632871526,
+      "proposed": 0.28157691704212945,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_y_delta_m__far_x": {
+      "accepted": -0.0604628639442668,
+      "proposed": -0.250771036010467,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_yaw_delta_deg__near_x": {
+      "accepted": -0.1055700740539012,
+      "proposed": -0.5307938683272373,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_yaw_delta_deg__far_x": {
+      "accepted": 0.12561397317730869,
+      "proposed": 0.5006418100915756,
+      "significant": false,
+      "guard_introduced": false
+    }
+  },
+  "verdict": "CLEAN"
+}

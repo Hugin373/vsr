@@ -64,6 +64,27 @@ def test_build_scene_specs_deterministic():
     assert len(s1) == 120
 
 
+def test_proposal_log_records_every_attempt_without_changing_output():
+    """The rejection-bias hook (ruling 2) must log EVERY placement proposal, exactly one ACCEPTED
+    per image, and must NOT change the built specs or the RNG stream (it only records)."""
+    log: list[dict] = []
+    with_log = build_scene_specs(CONFIG, seed=0, proposal_log=log)
+    without_log = build_scene_specs(CONFIG, seed=0)
+    # logging changes nothing about the output
+    assert [s.to_dict() for s in with_log] == [s.to_dict() for s in without_log]
+    # exactly one accepted proposal per image, and it is that image's last logged attempt
+    accepted = [p for p in log if p["accepted"]]
+    assert len(accepted) == len(with_log), "must be exactly one accepted placement per image"
+    assert {p["image"] for p in accepted} == set(range(len(with_log)))
+    for p in accepted:
+        same_img = [q for q in log if q["image"] == p["image"]]
+        assert same_img[-1] is p, "accepted proposal must be the last attempt (it breaks the loop)"
+        assert not any(q["accepted"] for q in same_img[:-1]), "no accept before the winning attempt"
+    # every proposal carries the pose deltas + candidate positions the audit correlates
+    for k in ("near_x", "far_x", "camera_x_delta_m", "camera_yaw_delta_deg"):
+        assert k in log[0]
+
+
 def test_placement_params_are_read_from_the_condition_section():
     """Regression: target placement params live under `condition:` in every config, but the code
     read them from `constraints:` — so the documented 14/6-px margins silently defaulted to 0 and

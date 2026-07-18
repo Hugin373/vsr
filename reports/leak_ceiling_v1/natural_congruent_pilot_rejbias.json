@@ -1,0 +1,43 @@
+{
+  "acceptance_rate": 0.5333333333333333,
+  "sig_threshold": 0.31622776601683794,
+  "correlations": {
+    "camera_x_delta_m__near_x": {
+      "accepted": -0.2932593266367627,
+      "proposed": -0.32826987660424,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_x_delta_m__far_x": {
+      "accepted": 0.3220380065582466,
+      "proposed": 0.30797214330655287,
+      "significant": true,
+      "guard_introduced": false
+    },
+    "camera_y_delta_m__near_x": {
+      "accepted": -0.09162528863817335,
+      "proposed": -0.19190351368061193,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_y_delta_m__far_x": {
+      "accepted": 0.1003571493683144,
+      "proposed": 0.18852832566671032,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_yaw_delta_deg__near_x": {
+      "accepted": 0.16001263042911903,
+      "proposed": -0.08853428205602784,
+      "significant": false,
+      "guard_introduced": false
+    },
+    "camera_yaw_delta_deg__far_x": {
+      "accepted": -0.14814042169013733,
+      "proposed": 0.09516566019271364,
+      "significant": false,
+      "guard_introduced": false
+    }
+  },
+  "verdict": "BIASED"
+}

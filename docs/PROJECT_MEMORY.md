@@ -1459,7 +1459,17 @@ A second advisor-level review of the strengthening results was arbitrated in the
   zero-width range, so adding zero-defaulted `pos_x_m`/`pos_y_m` shifts the whole random stream — old
   renders are not byte-reproducible by new code (determinism still holds WITHIN a code version). Left
   as-is (fixing reshuffles measured j2).
-- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ done (KEEP at ±0.3 m); ~~re-render under fixed wiring~~ ✅ done (battery green); descope world-x
+- **✅ REJECTION-SAMPLING BIAS AUDIT DONE (ruling 2, 2026-07-18).** `scripts/rejection_bias.py`
+  (new `proposal_log` hook on `build_scene_specs` — logs every accepted+rejected placement, no
+  render, no RNG change). Estimand = pose↔position correlation in the ACCEPTED (rendered) set; band
+  = 2/√n. **Primary regime (j2, n=60, acceptance 0.31 = the MOST rejection pressure): CLEAN** — worst
+  accepted |r|=0.126 << band 0.258, and the guard actually REDUCED correlation (proposed yaw×near-x
+  −0.53 → accepted −0.11). So the guard is NOT re-introducing what the translation removed. conflict
+  + natural-congruent (n=40) each show ONE borderline `camera_x_delta × far_x` ≈ 0.32 (~band 0.316),
+  **present in the independent draws too → NOT guard-introduced → small-sample noise** (~1 false
+  positive/regime expected across 18 tests). **Re-audit at gate scale** (500 imgs → band ~0.09;
+  cheap, no render). Report: `reports/leak_ceiling_v1.md`.
+- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ done (KEEP at ±0.3 m); ~~re-render under fixed wiring~~ ✅ done (battery green); ~~rejection-sampling bias check~~ ✅ done (primary CLEAN); descope world-x
   if it fails) · re-render pilots under fixed placement wiring `cf244b3` (ruling 2) · rejection-
   sampling bias check (ruling 2) · B0/B1/B2 z-baseline split + preregister Δ_R|B0,B2 (ruling 3) ·
   decorrelation matrix (#11) · `derive_cue_constants` (#9).

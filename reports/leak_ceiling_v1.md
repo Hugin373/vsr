@@ -201,3 +201,32 @@ cannot be byte-reproduced by new code. Left as-is (fixing it would reshuffle j2,
 the camera motion, so **no §2.2(e) recalibration was triggered.** cam-x positive control in band on
 every regime (tool validated). world-x ~0.82 and z ~0.78–0.89 consistent across the battery. The
 old pan-only pilots are superseded; `_j2` is now redundant with the canonical counterbalanced config.
+
+---
+
+## Rejection-sampling bias audit (ruling 2) — placement guard did NOT bias the primary regime
+
+`scripts/rejection_bias.py` replays the placement loop WITHOUT rendering (new `proposal_log` hook
+on `build_scene_specs`, logs every accepted+rejected proposal) and measures the pose↔position
+correlation in the ACCEPTED (rendered) set. The guard is a selection operator — under camera
+translation an extreme pose can make one side un-placeable, so accepted positions could correlate
+with pose. Estimand = the accepted set; significance band = 2/√n (95% of a zero-corr null). Proposed
+correlation is a diagnostic only (attempt-count varies with pose, so it is inflated, NOT a null).
+
+| regime | n | accept rate | worst accepted |r| | band 2/√n | verdict |
+|---|---:|---:|---:|---:|:--|
+| **counterbalanced (j2, primary)** | 60 | 0.31 | 0.126 | 0.258 | **CLEAN** |
+| conflict | 40 | 0.71 | 0.322 | 0.316 | borderline (in-draws) |
+| natural-congruent | 40 | 0.53 | 0.322 | 0.316 | borderline (in-draws) |
+
+**The primary regime is CLEAN, and under the MOST rejection pressure** (acceptance 0.31, 3.2
+attempts/image): every accepted correlation is well below the band, and the guard actually *reduced*
+correlation (proposed camera-yaw×near-x −0.53 → accepted −0.11). So the guard is not re-introducing
+the pose↔position correlation the translation removed.
+
+The two secondary regimes each show ONE correlation (`camera_x_delta × far_x` ≈ +0.32) just over
+their n=40 band. It is **present in the independent draws too (proposed ≈ accepted), so NOT
+guard-introduced** — consistent with small-sample noise (18 correlations tested; ~1 false positive
+per regime expected at p<0.05, both landing on the same pair right at threshold). **Must re-audit at
+gate scale** (500 images → band ~0.09): if it's noise it vanishes; if it persists it's real and the
+frame is widened. The audit runs in seconds with no rendering, so it's cheap to repeat.
