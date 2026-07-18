@@ -131,6 +131,33 @@ def test_build_scene_specs_seed_changes_set():
     assert [s.to_dict() for s in s0] != [s.to_dict() for s in s1]
 
 
+def test_category_role_balanced_at_scale():
+    """§3 (2026-07-18): the ordered (near,far)-pair balancing must give each category a ~50/50
+    near/far split AT SCALE — the mechanism that keeps identity priors from predicting depth (B2).
+    At the pilot n=120 a residual imbalance is expected (incomplete factorial); it must vanish by
+    n>=2000. This guards against the 55.1% shape-only class of confound re-appearing."""
+    from collections import Counter
+
+    cats = list(CONFIG["objects"]["categories"])
+    cat_pairs = [(a, b) for a in cats for b in cats]
+    ncol = len(CONFIG["objects"]["colors"])
+    factors = {
+        "near_depth_bin": list(range(len(CONFIG["factors"]["near_depth_bins"]))),
+        "depth_gap_bin": list(range(len(CONFIG["factors"].get("depth_gaps", [1])))),
+        "closer_object": [0, 1], "lateral_swap": [0, 1],
+        "cat_pair": list(range(len(cat_pairs))), "color_pair": list(range(ncol * ncol)),
+    }
+    bon = ["closer_object", "near_depth_bin", "cat_pair", "color_pair", "lateral_swap"]
+    a = factorial_assignments(factors, 4000, np.random.default_rng(0), balanced_on=bon)
+    near, far = Counter(), Counter()
+    for r in a:
+        nc, fc = cat_pairs[r["cat_pair"]]
+        near[nc] += 1
+        far[fc] += 1
+    worst = max(abs(near[c] / (near[c] + far[c]) - 0.5) for c in cats)
+    assert worst < 0.02, f"category-role imbalance {worst:.3f} at n=4000 — B2->depth confound risk"
+
+
 def test_closer_object_balanced():
     specs = build_scene_specs(CONFIG, seed=0)
     counts = Counter(s.factors["closer_object"] for s in specs)

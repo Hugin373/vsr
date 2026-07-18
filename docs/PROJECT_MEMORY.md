@@ -1324,6 +1324,29 @@ against the ROLE it could predict, not just its own marginal.**
 - Dataset availability verified 2026-07-08: What'sUp/CV-Bench/VSI-Bench/ReVSI/MindCube/CausalSpatial/DepthCues all released & ungated. Kang data is script-generated (repo has NO license — reimplement, never copy; same for pittisl/vlm-latent-shaping). SynSpat3D dataset NOT released. **Metric VQA (Ill-Posed) NOT released despite abstract claim** — recheck monthly.
 - Open decisions: ~~bpy vs Apptainer vs pyrender~~ RESOLVED (bpy, M1.1); ~~wandb vs CSV~~ RESOLVED (CSV default, wandb wired, M0); human baseline yes/no (ethics timing) still open; biweekly lit-watch scheduled task not yet created.
 
+## 📌 2026-07-18 (sixth session) — M4a FREEZE finalization (§2 corrections + §3 decision gate)
+
+Executing the "FREEZE the generator, then REVALIDATE" finalization prompt. Done so far:
+- **§2 doc corrections (visible retractions), committed:** three-estimators "must agree" → need not
+  agree in MAGNITUDE (contrastive-pair conditions away part of B1; agreement = qualitative story);
+  "irreducible" applied to B1 → "strong interpretable monocular baseline" (PRESERVED, not beaten)
+  corpus-wide; ruling-3d verbatim into PITCH + plan; 07-18→07-17 JST dates. (§2a already done.)
+- **§3 DECISION GATE — B2→z RESOLVED as CLEAN (no sampler fix needed).** Measured the category↔role
+  balance directly from `factorial_assignments` (instant): **exactly 0.500 per category at n=4000**
+  (0.05 residual at n=60 = incomplete factorial); factor-level B2→depth R² ~0 at n=60 and n=800. The
+  rendered pilot 0.26 was a **small-sample held-out-pose CV artifact**, NOT a design confound — the
+  ordered-(near,far)-pair balancing (`balanced_on=cat_pair`) is correct. Guard test added
+  (`test_category_role_balanced_at_scale`). ⚠ re-confirm the *rendered* B2→z at gate scale.
+- **🔴 NEW FREEZE PREREQUISITE found by the §3 dry-run: PLACEMENT FAILS AT SCALE.** The j2 config
+  (±0.3 m translation) can't place ~1 in ~110 factor combinations within 500 attempts (crashed at
+  image 110/10k) → the 1k render would crash on ~9 images. Must fix in §4 before the render (raise
+  attempts vs loosen the binding constraint — measure which). Added `raise_on_placement_failure=False`
+  to `build_scene_specs` for audits (rendering keeps the raise default).
+- **REMAINING this finalization (not started):** §4 freeze — fix placement-at-scale · derive_cue_constants
+  (#9, worst-case) · persist ground_color/sun_energy/sun_direction · nuisance texture/lighting families
+  · determinism byte-compare · tag the freeze commit. §5 revalidation pilot (~100–200 imgs, all audits).
+  NOT started: contrastive pairs, 1k render.
+
 ## 📌 2026-07-17 (fifth session, advisor chat) — RULINGS on the three leak-ceiling decisions; project docs synced
 
 The strengthening experiment (camera translation; see the leak-ceiling entry above and

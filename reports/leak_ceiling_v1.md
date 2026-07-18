@@ -262,3 +262,26 @@ decorrelated regimes. For conflict this is partly by design (size_condition mani
 vs depth). For counterbalanced it is a residual identity↔depth coupling the gate CONTROLS (B2 is in
 the Δ_R|B0,B2 baseline) but that **must be re-checked at gate scale** — at n=60 it may be small-sample,
 or a real imbalance to fix in the sampler (the 55.1% shape-only lesson). Not a blocker; a watch item.
+
+---
+
+## §3 pre-freeze decision gate (2026-07-18) — B2→z is CLEAN; a placement issue surfaced
+
+**B2→z coupling RESOLVED at scale — the pilot 0.26 was small-sample, the sampler is correct.**
+Measured on the factorial assignment (instant, no render): **P(near | category)** is off by ≤0.05 at
+n=60 (chair 0.545, sphere 0.450) but **exactly 0.500 for every category at n=4000** (worst |dev| =
+0.000). Factor-level **B2→depth R²** is ~0 at both n=60 (−0.021) and n=800 (−0.001). So the ordered
+(near,far)-pair balancing (`balanced_on=cat_pair`) IS correctly implemented and achieves exact
+category↔role balance at scale; the rendered pilot's B2→z = 0.26 was a small-sample held-out-pose CV
+artifact on 132 objects, not a design confound. **No sampler fix needed before freeze.** Guarded by
+`test_category_role_balanced_at_scale` (worst imbalance < 0.02 at n=4000). ⚠ Still re-confirm the
+*rendered* B2→z at gate scale (the rendered estimate carries extra CV variance the factor level does not).
+
+**🔴 NEW FREEZE PREREQUISITE — placement fails at scale.** Dry-running the j2 config at n=10k
+(no render) crashed at image 110: *"could not place non-overlapping target pair after 500 attempts"*.
+The ±0.3 m translation makes ~1 in ~110 factor combinations un-placeable at 500 attempts → the 1k
+gate-scale render would crash on ~9 images. **Must be resolved in §4 before the render** (raise
+attempts if it's a slow-convergence issue, or loosen the binding constraint for the hard combos —
+measure which). Added `raise_on_placement_failure=False` to `build_scene_specs` so audits can measure
+the failure rate instead of crashing (rendering keeps the raise default — a render must place every
+image or the factor balance breaks).

@@ -319,13 +319,21 @@ def _make_distractors(
 
 
 def build_scene_specs(
-    config: dict, seed: int, proposal_log: list[dict] | None = None
+    config: dict,
+    seed: int,
+    proposal_log: list[dict] | None = None,
+    raise_on_placement_failure: bool = True,
 ) -> list[SceneSpec]:
     """Turn a stimulus-set config dict into a deterministic list of SceneSpec.
 
     If ``proposal_log`` is given, every target-placement proposal (accepted and rejected) is
     appended to it for the rejection-sampling bias audit (ruling 2). This never changes the
     output or the RNG stream — it only records.
+
+    ``raise_on_placement_failure`` defaults True (a rendering run must place EVERY image, or the
+    factor balance is broken). Set False for a DRY-RUN AUDIT: an un-placeable image is skipped and
+    omitted from the result (the RNG has already consumed its attempts, so the remaining images are
+    unaffected), letting an audit measure the placement-failure RATE instead of crashing.
     """
     rng = np.random.default_rng(seed)
     n = int(config["n_images"])
@@ -484,10 +492,12 @@ def build_scene_specs(
                 placement_attempt = attempt
                 break
         if not objects:
-            raise RuntimeError(
-                f"could not place non-overlapping target pair after {max_attempts} attempts "
-                f"for {set_name}_{i:05d}; loosen lateral_range or size_multiplier_range"
-            )
+            if raise_on_placement_failure:
+                raise RuntimeError(
+                    f"could not place non-overlapping target pair after {max_attempts} attempts "
+                    f"for {set_name}_{i:05d}; loosen lateral_range or size_multiplier_range"
+                )
+            continue  # DRY-RUN AUDIT: skip the un-placeable image and keep going
         distractors = _make_distractors(config, size_by_cat, color_items, rng, camera, objects)
         objects.extend(distractors)
 
