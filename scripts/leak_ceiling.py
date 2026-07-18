@@ -33,6 +33,11 @@ from sbind.utils.logging import get_logger
 
 log = get_logger("sbind.leak")
 
+# Registered expected band for the camera-frame-x POSITIVE CONTROL (advisor ruling 1, 2026-07-17).
+# Measured 0.93–0.94 across v0 + j2 sets; a projection-coupled quantity the tool must recover.
+# Outside this band ⇒ the geometry-feature extraction regressed, not that anything decorrelated.
+CAM_X_EXPECTED = (0.85, 0.98)
+
 # Everything a probe could read WITHOUT the model having represented anything.
 GEOM_NAMES = [
     "centroid_u",  # where the mask sits horizontally  <- this alone nearly solves x
@@ -68,7 +73,7 @@ def dumb_features(
     Groups are built in the SAME iteration order as the rows, so they stay aligned. A group key
     that cannot be derived for a set (e.g. camera pose on the fixed-camera v0) is dropped from the
     returned dict, so a held-out split is only offered where it is actually defined."""
-    G, x, z, shape, color = [], [], [], [], []
+    G, x_world, x_cam, z, shape, color = [], [], [], [], [], []
     g_obj, g_depth, g_pose = [], [], []
     pose_ok = True
     for a in anns:
@@ -79,7 +84,13 @@ def dumb_features(
                 [(x0 + x1) / 2, (y0 + y1) / 2, o["mask_area_px"], x1 - x0, y1 - y0,
                  o["retinal_size_px"], o["elevation_px"]]
             )
-            x.append(o["pos_cam"][0])
+            # WORLD-frame lateral x = the gate target: recoverable only by combining image
+            # position with inferred camera pose, so the mask alone cannot, once the camera moves.
+            x_world.append(o["pos_world"][0])
+            # CAMERA-frame x = a POSITIVE CONTROL, not a leak target: coupled to image position by
+            # the projection identity u ≈ f·X_cam/Z_cam + c_x, so a high score is the correct
+            # geometry (the tool reading a known-recoverable quantity), never leakage.
+            x_cam.append(o["pos_cam"][0])
             z.append(o["depth_m"])
             shape.append(o["category"])
             color.append(o["name"].split("_")[0])
@@ -89,8 +100,9 @@ def dumb_features(
             pose_ok = pose_ok and pb is not None
             g_pose.append(pb)
     targets = {
-        "x_lateral": np.asarray(x),
-        "z_depth": np.asarray(z),
+        "z_depth": np.asarray(z),  # PRIMARY axis
+        "x_world": np.asarray(x_world),  # lateral GATE target
+        "x_cam": np.asarray(x_cam),  # POSITIVE CONTROL (projection-coupled)
         "shape": np.asarray(shape),
         "color": np.asarray(color),
     }
@@ -118,12 +130,24 @@ def main() -> int:
     G, targets, groups = dumb_features(anns)
     print(f"set: {args.set}  objects={len(G)}  dumb features={GEOM_NAMES}\n")
 
-    out: dict[str, dict] = {"random": {}, "structured": {}}
+    out: dict[str, dict] = {"random": {}, "structured": {}, "positive_control": {}}
+
+    # (0) POSITIVE CONTROL — camera-frame x (advisor ruling 1, 2026-07-17). Coupled to image
+    # position by projection; the tool SHOULD recover it HIGH. A drop out of the expected band
+    # means the geometry features regressed, not that anything decorrelated (rule 11: a registered
+    # positive control). It is NOT a leak target and NOT a claim target.
+    r = ridge_probe(G, targets["x_cam"].astype(float), "x_cam")
+    lo, hi = CAM_X_EXPECTED
+    band = f"[{lo}, {hi}]"
+    flag = "" if lo <= r.value <= hi else f"  ⚠ OUT OF EXPECTED BAND {band} — tool regression?"
+    print(f"--- POSITIVE CONTROL: camera-frame x (projection-coupled; expect ~{lo}-{hi}) ---")
+    print(f"  x_cam      R2  = {r.value:+.4f}{flag}")
+    out["positive_control"]["x_cam"] = r.value
 
     # (1) RANDOM split — the historical baseline. ⚠ an OVERESTIMATE on a factorial battery: a
     # random fold leaks every factor into training. Kept only for the v0 comparison / as an
     # upper bound. The GATE reads the STRUCTURED numbers below (§2.7 / evaluation-law clause 2).
-    print("--- RANDOM-split ceiling (upper bound; NOT the gate — see structured below) ---")
+    print("\n--- RANDOM-split ceiling (upper bound; NOT the gate — see structured below) ---")
     for name, y in targets.items():
         if name in ("shape", "color"):
             r = logistic_probe(G, y, name)
@@ -133,13 +157,15 @@ def main() -> int:
             print(f"  {name:10s} R2  = {r.value:+.4f}   (shuffled ctrl {r.control:+.3f})")
         out["random"][name] = r.value
 
-    # (2) STRUCTURED held-out splits — the gate measurement. Hold out whole object identities /
-    # depth ranges / camera poses so the ceiling cannot be reached by memorising a leaked factor.
-    print("\n--- STRUCTURED held-out ceiling (THE GATE: does the leak survive decorrelation?) ---")
+    # (2) STRUCTURED held-out splits — the gate measurement. GATE TARGETS = world-frame x (lateral)
+    # and z_depth (primary). Hold out whole object identities / depth ranges / camera poses so the
+    # ceiling cannot be reached by memorising a leaked factor. (cam-x is excluded here — it is a
+    # projection identity, not a leak; see the positive control above.)
+    print("\n--- STRUCTURED held-out ceiling (THE GATE: world-x + z, does the leak survive?) ---")
     for gname, g in groups.items():
         print(f"  [{gname}]  ({len(np.unique(g))} groups)")
         out["structured"][gname] = {}
-        for name in ("x_lateral", "z_depth"):
+        for name in ("x_world", "z_depth"):
             try:
                 r = ridge_probe(G, targets[name].astype(float), name, groups=g)
                 print(f"     {name:10s} R2 = {r.value:+.4f}   (shuffled ctrl {r.control:+.3f})")
@@ -148,9 +174,10 @@ def main() -> int:
                 print(f"     {name:10s} SKIP ({e})")
                 out["structured"][gname][name] = None
 
-    print("\nThe STRUCTURED numbers are the leak floor a model probe must EXCEED to show the "
-          "quantity is in the REPRESENTATION, not the mask. If they stay near ceiling in the "
-          "counterbalanced regime, the decorrelation failed (§2.7 — fix the generator first).")
+    print("\nGATE (structured world-x + z) = the leak floor a model probe must EXCEED. ⚠ world-x "
+          "is a valid gate target ONLY if it also passes raw-pixel identifiability under held-out "
+          "pose (ruling 1: decorrelation ⊥ identifiability — a low baseline on an unidentifiable "
+          "target is a Gate-1 failure, not a win). Primary axis is z.")
     if args.out:
         write_json(out, Path(args.out))
         log.info("wrote ceiling -> %s", args.out)

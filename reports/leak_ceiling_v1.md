@@ -116,3 +116,29 @@ with zero target margins and need re-rendering under the corrected wiring regard
 3. **z policy** — z ceiling ≈ 0.82–0.88 is largely monocular cues (elevation + retinal size),
    partly irreducible; accept as the baseline the model must beat, or split position vs monocular
    features in the ceiling.
+
+---
+
+## RETARGETED per advisor ruling 1 (2026-07-17) — world-x is the gate, cam-x is a positive control
+
+`leak_ceiling.py` now targets **world-frame x** (`pos_world[0]`) as the lateral gate and reports
+**camera-frame x** (`pos_cam[0]`) as a **projection-coupled POSITIVE CONTROL** (expected band
+[0.85, 0.98]; a drop out of band = the geometry features regressed, not a decorrelation). z stays
+the primary axis. Two refuted spec sentences (M4a §2.2(b), m3 §2.4(3): "camera jitter makes
+camera-frame coordinates no longer image positions") corrected in place with visible retractions.
+
+| set | camera | **cam-x (pos. control)** | **world-x gate** (heldout pose / depth) | z (heldout depth) |
+|---|---|---:|---:|---:|
+| v0_congruent | fixed | 0.942 ✓ | 0.94 (= cam-x: un-decorrelatable) | 0.957 |
+| counterbalanced pilot | pan-only ±3° | 0.935 ✓ | 0.915 / 0.893 | 0.837 |
+| **counterbalanced j2** | **+translation ±0.3 m** | 0.923 ✓ | **0.817 / 0.791** | 0.873 |
+
+**Reading.** The positive control holds across all sets (0.92–0.94, in band) — the tool reads the
+projection identity correctly, so a *drop* in world-x is a real decorrelation, not a tool artifact.
+World-x: v0 0.94 (fixed camera, world-x = image position) → j2 0.82 with a ±0.3 m dolly. z is
+unmoved by translation (~0.84–0.88), as expected since depth is not position-coupled (image
+position fixes X/Z, not Z). **⚠ world-x's 0.82 counts as a decorrelation success ONLY if world-x
+also passes raw-pixel identifiability under held-out pose** (ruling 1) — that Gate-1 check is the
+next owed step; if world-x is not pixel-identifiable, it is descoped and the depth core is
+unaffected. **Still pending:** the B0/B1/B2 z-baseline split (ruling 3), re-render under fixed
+placement wiring, and the rejection-sampling bias check (ruling 2).

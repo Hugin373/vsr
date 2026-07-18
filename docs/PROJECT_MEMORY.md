@@ -1,4 +1,4 @@
-# Project Memory — Kaho's VSR Research (last updated 2026-07-17, fourth session)
+# Project Memory — Kaho's VSR Research (last updated 2026-07-17, fifth session — advisor rulings)
 
 *Orientation file for future sessions. Read this first, then `research_proposal_spatial_binding.md` (the plan) and `VSR_niches_critical_deep_read.md` (the literature analysis). Companion: `docs/vsr_landscape_v8.pptx` — Kaho's independent 19-paper landscape analysis (2026-07-05, predating this project), folded into these docs on 2026-07-15 (stage reframing, the S1.5 occlusion stage, the "isolated structured perception hurts" finding, the five definitions / capability levels / tensions vocabulary).*
 
@@ -1323,3 +1323,121 @@ against the ROLE it could predict, not just its own marginal.**
 - Next: **M2 — external dataset adapters** (What'sUp/CV-Bench/ReVSI/MindCube/CausalSpatial/DepthCues; skip Kang/SynSpat3D/MetricVQA). **Do not start unprompted.**
 - Dataset availability verified 2026-07-08: What'sUp/CV-Bench/VSI-Bench/ReVSI/MindCube/CausalSpatial/DepthCues all released & ungated. Kang data is script-generated (repo has NO license — reimplement, never copy; same for pittisl/vlm-latent-shaping). SynSpat3D dataset NOT released. **Metric VQA (Ill-Posed) NOT released despite abstract claim** — recheck monthly.
 - Open decisions: ~~bpy vs Apptainer vs pyrender~~ RESOLVED (bpy, M1.1); ~~wandb vs CSV~~ RESOLVED (CSV default, wandb wired, M0); human baseline yes/no (ethics timing) still open; biweekly lit-watch scheduled task not yet created.
+
+## 📌 2026-07-17 (fifth session, advisor chat) — RULINGS on the three leak-ceiling decisions; project docs synced
+
+The strengthening experiment (camera translation; see the leak-ceiling entry above and
+`reports/leak_ceiling_v1.md`) left three advisor-level calls open. Ruled this session in the
+advisor chat (Kaho present; delegated the calls to the standing recommendations). **These are
+decisions, not suggestions — sync this entry back into the repo copy next code session, then act
+on it.**
+
+1. **Lateral target → WORLD-FRAME x (`pos_world[0]`).** Retarget `leak_ceiling.py`'s lateral
+   target. Camera-frame x is coupled to image position by the projection identity
+   `u ≈ f·X_cam/Z_cam + c_x`; no camera motion can decorrelate it, so as a leak target it is
+   unfalsifiable — the same trap as v0's x. Keep cam-x as a reference ROW labeled "definitional
+   identity (projection-coupled)", never as a leak target and never as a claim target. Camera-frame
+   z REMAINS the primary depth variable — z is not projection-coupled the way x is (image position
+   fixes X/Z, not Z), which is exactly why translation moved world-x and left z alone.
+2. **Camera motion → ACCEPT ±0.3 m for now.** Freeze the j2 jitter config (pos_x ±0.3 m,
+   pos_y ±0.2 m, yaw ±4°, pitch ±3°, height ±0.16 m) and re-render the pilots under the corrected
+   placement wiring (mandatory regardless — `cf244b3`). Rationale: Aug 28 is the binding
+   constraint; world-x ≈ 0.82 and falling, plus the two leak-immune estimators (strip probes,
+   contrastive pairs) and Δ_repr|dumb, is defensible headroom. Wider FOV / pulled-back camera is
+   DEFERRED, not rejected: revisit only if M4b's headroom proves insufficient — and if taken, it
+   rides along with the §2.2(e) recalibration that blocker #9 owes anyway (derive_cue_constants
+   was never re-run), so its marginal cost is lower than it looks. Record the placement-vs-
+   decorrelation tension as a design finding in `m4a_battery.md`.
+3. **z policy → SPLIT the ceiling.** Decompose the dumb-feature set into (a) position/selection
+   features (centroid u/v, bbox position) and (b) monocular-cue features (elevation, retinal
+   height/size, area) and report BOTH group ceilings per cell alongside the combined number.
+   (b)'s ~0.85 is the honest, partly-irreducible monocular baseline the model must beat; (a) is
+   the fixable selection leak. This is the A1 leak-decomposition direction and keeps Δ_repr|dumb
+   from conflating fixable with inherent. Headline wording per DR3-r4: "nuisance baseline +
+   incremental-value analysis", not "ceiling".
+
+- **Sequencing implied by the rulings:** retarget the tool (1) → re-render pilots at frozen j2
+  jitter + fixed placement wiring (2) → re-run the split ceiling (3) → if world-x structured
+  ceiling and the split-z position group land with defensible headroom, proceed toward the 1k
+  render and the remaining blockers (contrastive pairs, textures/nuisance persistence, numeric
+  M4b bounds, decorrelation matrix, cue-constant derivation).
+- **Project docs synced this session (repo → claude.ai Project):** PROJECT_MEMORY (with this
+  entry), IMPLEMENTATION_PLAN, PITCH, research proposal, M4a_SESSION_PROMPT, REVIEW_RESPONSE.
+  Repo copies are current EXCEPT for this entry — sync it back.
+- ⚠ **Date nit, flagged not fixed:** the strengthening entry and `reports/leak_ceiling_v1.md`
+  are dated 2026-07-18; the work happened 2026-07-17 (JST). Left as-is in the repo record;
+  correct opportunistically next code session so "most recent dated entry wins" stays reliable.
+
+### 🔁 AMENDED same session — second-opinion arbitration refines rulings 1 & 3, extends 2 (ADOPTED)
+
+A second advisor-level review of the strengthening results was arbitrated in the chat session.
+**These amendments SUPERSEDE the rulings above where they differ.** Key upgrades:
+
+1. **Camera-frame x → PROJECTION-COUPLED POSITIVE CONTROL (not a passive reference row).** Its
+   EXPECTED result is HIGH R² (register the expected range, ~0.93 on current sets, so a feature
+   regression is catchable): it verifies the dumb features capture image-plane location and that
+   the tool reads a known-recoverable geometric quantity (rule-11 shape: a registered positive).
+   Never call it a leak; a high nuisance score on a projection-defined target is the correct
+   geometric relationship, not leakage.
+   **World-frame x = SECONDARY scientific target, CONDITIONAL on passing its own Gate-1 raw-pixel
+   identifiability under held-out camera pose.** Rationale — decorrelation and identifiability
+   pull in OPPOSITE directions: the VLM never sees extrinsics, so world-x is recoverable only via
+   scene cues about camera pose; the same translation that lowers the mask baseline can remove the
+   evidence a pixel model (or human) needs. A low nuisance baseline on an unidentifiable target is
+   a Gate-1 failure wearing a decorrelation success's clothes. If world-x fails its gate →
+   descope; the depth core is unaffected. The leak tool reports both; **the gate reads world-x
+   only. Primary scientific axis remains egocentric depth z.**
+   **⚠ SPEC CORRECTION OWED (visible, not quiet):** M4a prompt §2.2(b) and m3_reproduction §2.4(3)
+   say camera jitter makes "camera-frame coordinates no longer image positions" — now MEASURED
+   FALSE for x (0.94→0.93 under strong jitter; the projection identity survives any camera
+   motion). Correct both with a retraction note.
+2. **±0.3 m confirmed; post-re-render battery extended with a REJECTION-SAMPLING BIAS CHECK.**
+   The placement guard is itself a selection operator: under stronger jitter it accepts only
+   special pose × object-position combinations and can quietly re-introduce the correlation the
+   jitter removed. Measure it: log proposed vs accepted samples, compare the joint distributions.
+   Full post-re-render battery: acceptance rate · world-x structured baseline · world-x pixel
+   identifiability · depth identifiability · full decorrelation matrix · rejection-induced
+   pose↔position correlation. FOV/pull-back ablation ONLY if (baseline still high ∧ pixel-model
+   headroom exists ∧ world-x still matters to the core paper) — the paper is depth localization,
+   not world-coordinate reconstruction.
+3. **z baseline → THREE layers, not two: B0 selection (centroid, bbox location, token indices /
+   region shape / count) · B1 monocular cues (retinal size, elevation, perspective values) · B2
+   semantic priors (category, shape, colour, canonical size, template role); B3 = B0∪B1∪B2
+   combined, DESCRIPTIVE only.** Report S(B0), S(B1), S(B2), S(R), S(Bi∪R) and the Δ variants.
+   **PREREGISTERED PRIMARY CRITERION: Δ_R|B0,B2** (selection + priors controlled; legitimate
+   visual evidence not treated as a competitor). Rationale: by data-processing, a genuine depth
+   representation may BE the integration of retinal size + elevation — requiring Δ over the
+   all-cues baseline demands information the image does not contain. Δ_R|B0,B1,B2 is reported
+   descriptively, never as the sole gate (preregistering ONE primary Δ now is what prevents a
+   forking-paths objection later). The combined ~0.85 is the descriptive cue ceiling — never
+   called "leak".
+4. **M4a success criterion, reworded:** not "all mask-based prediction collapses" but
+   "selection- and prior-derived prediction is controlled, while verifiable monocular evidence is
+   preserved so depth remains image-identifiable." Measurement semantics: *mask-derived features
+   predicting a target highly → first determine whether it follows from (a) target-definition
+   geometry [cam-x], (b) legitimate monocular evidence [z's B1], (c) stimulus confounding, or
+   (d) selection-induced leakage — only (c) and (d) threaten the representation claim.*
+5. **Scope notes kept from the arbitration:** none of this softens the v0 indictment (activations
+   added +0.02–0.06 over the dumb baseline; that conclusion survives every reframing — the
+   taxonomy changes what the ceiling MEANS, not what v0 showed). The primary claim is the
+   stage-2-vs-stage-4 CONTRAST under the SAME baseline battery at both sites, so the taxonomy
+   mainly protects the absolute premise, not the contrast. Existing pilot numbers = audit history,
+   not gate evidence (re-render owed regardless via `cf244b3`).
+
+
+### ✅ EXECUTION (2026-07-17, code session) — ruling 1 DONE (tool retarget + positive control + spec retractions)
+- `leak_ceiling.py` retargeted: lateral gate = **world-frame x** (`pos_world[0]`); camera-frame x is
+  now a **registered positive control** (`CAM_X_EXPECTED = (0.85, 0.98)`), reported and range-checked,
+  never a leak/claim target. z stays primary. JSON gains a `positive_control` block.
+- **Confirmed across sets** (positive control in band everywhere → tool validated, so a world-x drop
+  is real): cam-x v0 0.942 / pilot 0.935 / j2 0.923. **world-x gate (held-out pose):** v0 0.94
+  (fixed camera = un-decorrelatable) → pilot 0.915 → **j2 0.817** with ±0.3 m translation. z unmoved
+  (~0.84–0.88), as predicted (depth not position-coupled). Report: `reports/leak_ceiling_v1.md`.
+- **Refuted spec sentences retracted in place** (visible): M4a prompt §2.2(b) and
+  `reports/m3_reproduction.md` §2.4(3) — "camera jitter makes camera-frame coordinates no longer
+  image positions" is FALSE for x (cam-x 0.94→0.93 under strong jitter; projection identity survives).
+- **STILL OWED from the rulings:** world-x raw-pixel identifiability gate (ruling 1 — descope world-x
+  if it fails) · re-render pilots under fixed placement wiring `cf244b3` (ruling 2) · rejection-
+  sampling bias check (ruling 2) · B0/B1/B2 z-baseline split + preregister Δ_R|B0,B2 (ruling 3) ·
+  decorrelation matrix (#11) · `derive_cue_constants` (#9).
+

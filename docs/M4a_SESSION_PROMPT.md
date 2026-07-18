@@ -47,7 +47,14 @@ runs before M4b. M3.2's pass bar (the W&G difficulty gradient) transfers to **M4
 - **(a) Continuous lateral positions.** `lateral_offset` becomes a continuous range (config-set),
   so `x` is a metric coordinate, not a side label. Balanced left/right by construction.
 - **(b) Camera-pose jitter (height / pitch / yaw), per image.** This kills the position leak at
-  its source: with camera jitter, camera-frame coordinates are no longer image positions.
+  its source. ⚠ **RETRACTED 2026-07-17 (measured false for x — advisor ruling 1):** the original
+  spec said *"with camera jitter, camera-frame coordinates are no longer image positions."* This is
+  FALSE for lateral x: camera-frame x is coupled to image position by the projection identity
+  `u ≈ f·X_cam/Z_cam + c_x`, which **no camera motion can break** (measured: cam-x 0.94→0.93 under
+  strong jitter). Camera-frame x is therefore a **projection-coupled POSITIVE CONTROL** (expected
+  ~0.93), never a leak target. The decorrelation lever works on **WORLD-frame x** and on **depth z**
+  (z is not projection-coupled — image position fixes the X/Z ratio, not Z), and world-x is a
+  SECONDARY target conditional on passing its own raw-pixel identifiability under held-out pose.
   Ranges in config; record exact K, R, t per image as before.
 - **(c) `size_condition` — independent per-object physical-size jitter. LOAD-BEARING.** It is the
   only thing that breaks the size↔depth shortcut. The congruent regime keeps the pair-shared

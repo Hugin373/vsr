@@ -311,12 +311,17 @@ is the single most important thing M3 produced.
    ⚠ **Correction to an earlier draft of this report: the strip variant is NOT yet cached.**
    `extract/pooling.py` implements `strip_pool()`, but M3.2's extraction saved mask-pooled
    features only. M4's cache must produce both.
-3. **Camera-pose jitter at the source.** This also explains the Wang & Gao discrepancy cleanly:
-   their scenes have varying camera paths, so camera-frame coordinates are *not* image
-   positions. Our camera is fixed, which makes x **identical** to image position — hence
-   R² = 0.997 measuring the pooling. Jittering camera height/pitch/yaw decorrelates image
-   position from 3D coordinates and shrinks the leak where it is created, rather than
-   correcting for it after the fact.
+3. **Camera-pose jitter at the source.** Our fixed camera makes x **identical** to image position,
+   hence R² = 0.997 measuring the pooling. Jittering the camera decorrelates image position from
+   3D coordinates and shrinks the leak where it is created, rather than correcting after the fact.
+   ⚠ **RETRACTED 2026-07-17 (advisor ruling 1) — the retraction stays visible.** This paragraph
+   originally added: *"their scenes have varying camera paths, so camera-frame coordinates are not
+   image positions."* **False for lateral x:** camera-frame x is coupled to image position by the
+   projection identity `u ≈ f·X_cam/Z_cam + c_x`, which no camera path can break — measured
+   directly, cam-x stays 0.94→0.93 under strong jitter (`reports/leak_ceiling_v1.md`). Camera
+   translation lowers the **WORLD-frame** x leak (0.92→0.82); it cannot touch camera-frame x, which
+   is now treated as a **projection-coupled positive control**, not a leak target. Depth z is the
+   primary axis and is not projection-coupled (image position fixes X/Z, not Z).
 
 Wang & Gao's cross-scene residualization of the semantic subspace remains a fourth, orthogonal
 control.
