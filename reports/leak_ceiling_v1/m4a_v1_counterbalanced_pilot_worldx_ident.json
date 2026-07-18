@@ -1,0 +1,9 @@
+{
+  "mask_only_r2": 0.9149297923520587,
+  "mask_pose_r2": 0.9351618001877107,
+  "headroom": 0.020232007835651933,
+  "identifiable": true,
+  "has_headroom": false,
+  "verdict": "DESCOPE",
+  "n_groups": 19
+}

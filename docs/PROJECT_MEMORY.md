@@ -1436,7 +1436,16 @@ A second advisor-level review of the strengthening results was arbitrated in the
 - **Refuted spec sentences retracted in place** (visible): M4a prompt §2.2(b) and
   `reports/m3_reproduction.md` §2.4(3) — "camera jitter makes camera-frame coordinates no longer
   image positions" is FALSE for x (cam-x 0.94→0.93 under strong jitter; projection identity survives).
-- **STILL OWED from the rulings:** world-x raw-pixel identifiability gate (ruling 1 — descope world-x
+- **✅ world-x IDENTIFIABILITY GATE DONE** (`scripts/worldx_identifiability.py`, held-out pose):
+  measures MASK-ONLY (selection baseline) vs MASK+POSE (oracle upper bound); HEADROOM = pose
+  contribution = the room where world-x needs pose inference (representation), not image position.
+  **Verdict: pan-only pilot → DESCOPE (headroom +0.02, world-x ≈ image position); j2 +translation
+  ±0.3 m → KEEP (identifiable 0.92, headroom +0.105).** So the ±0.3 m translation is precisely what
+  converts world-x from a selection-determined quantity into a viable SECONDARY target — an
+  empirical endorsement of ruling 2's ±0.3 m and ruling 1's keep-world-x-conditional logic. z
+  unaffected (primary). ⚠ MASK+POSE uses true extrinsics (upper bound); realising it from scene cues
+  is a gate-scale question. **cam-x stays the projection-coupled positive control (~0.93, in band).**
+- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ done (KEEP at ±0.3 m); descope world-x
   if it fails) · re-render pilots under fixed placement wiring `cf244b3` (ruling 2) · rejection-
   sampling bias check (ruling 2) · B0/B1/B2 z-baseline split + preregister Δ_R|B0,B2 (ruling 3) ·
   decorrelation matrix (#11) · `derive_cue_constants` (#9).

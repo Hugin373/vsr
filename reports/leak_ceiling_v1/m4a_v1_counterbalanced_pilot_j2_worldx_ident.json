@@ -1,0 +1,9 @@
+{
+  "mask_only_r2": 0.8167532836392425,
+  "mask_pose_r2": 0.9218653749742873,
+  "headroom": 0.10511209133504484,
+  "identifiable": true,
+  "has_headroom": true,
+  "verdict": "KEEP",
+  "n_groups": 42
+}

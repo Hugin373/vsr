@@ -142,3 +142,29 @@ also passes raw-pixel identifiability under held-out pose** (ruling 1) — that 
 next owed step; if world-x is not pixel-identifiable, it is descoped and the depth core is
 unaffected. **Still pending:** the B0/B1/B2 z-baseline split (ruling 3), re-render under fixed
 placement wiring, and the rejection-sampling bias check (ruling 2).
+
+---
+
+## World-x IDENTIFIABILITY gate (ruling 1's owed step) — DONE
+
+`scripts/worldx_identifiability.py`, held-out camera pose (translation in the pose key). Tests the
+decorrelation⊥identifiability trade-off directly: MASK-ONLY (selection baseline / identifiability
+lower bound) vs MASK+POSE (oracle upper bound, true extrinsics). HEADROOM = the room where
+recovering world-x *requires* pose inference (representation), not image position (selection).
+
+| set | camera | mask-only | mask+pose (oracle) | headroom | verdict |
+|---|---|---:|---:|---:|:--|
+| counterbalanced pilot | pan-only ±3° | 0.915 | 0.935 | +0.020 | **DESCOPE** |
+| **counterbalanced j2** | **+translation ±0.3 m** | 0.817 | 0.922 | **+0.105** | **KEEP** |
+
+**Verdict: the ±0.3 m translation is exactly what makes world-x a viable target.** With pan only,
+pose contributes ~nothing (world-x ≈ image position → no representation claim possible, descope
+like camera-frame x). With translation, the selection baseline drops (0.915→0.817) while the info
+ceiling barely moves (0.935→0.922), so recovering world-x now *requires* inferring camera pose —
+which is representation, not selection. world-x is **identifiable AND has ~0.10 headroom → KEEP**,
+as a SECONDARY target; the primary axis z is unaffected either way.
+
+⚠ Two honest caveats: (1) MASK+POSE uses TRUE extrinsics — an upper bound; whether a model realises
+that 0.10 from SCENE cues (not given the pose) is a gate-scale question a 60-image pilot can't
+settle. (2) The verdict endorses ruling 2's ±0.3 m: it clears world-x's gate without the
+identifiability loss that more aggressive translation risks.
