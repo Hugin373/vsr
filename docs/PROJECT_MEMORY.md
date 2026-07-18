@@ -1469,7 +1469,19 @@ A second advisor-level review of the strengthening results was arbitrated in the
   **present in the independent draws too → NOT guard-introduced → small-sample noise** (~1 false
   positive/regime expected across 18 tests). **Re-audit at gate scale** (500 imgs → band ~0.09;
   cheap, no render). Report: `reports/leak_ceiling_v1.md`.
-- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ done (KEEP at ±0.3 m); ~~re-render under fixed wiring~~ ✅ done (battery green); ~~rejection-sampling bias check~~ ✅ done (primary CLEAN); descope world-x
+- **✅ B0/B1/B2 BASELINE DECOMPOSITION DONE (ruling 3, 2026-07-18).** `scripts/baseline_decomposition.py`
+  splits the dumb baseline into **B0 selection** (centroid u/v) · **B1 monocular** (area, bbox, retinal
+  size, elevation) · **B2 semantic** (category/colour/size_m). **Preregistered M5 primary gate =
+  Δ_R|B0,B2** (control selection + priors, PRESERVE B1 — a depth representation may BE monocular
+  integration, so the model must NOT be required to beat B1); Δ over all cues is descriptive only.
+  Wired into plan §M5 (three-numbers-per-cell) + M4a success criterion reworded ("control B0+B2,
+  preserve B1", not "collapse everything"). **Battery reading (held-out camera pose):** z B1-dominated
+  (0.79–0.88), B0 moderate (0.56–0.58); world-x B0-dominated (0.81–0.82), B1≈chance — empirically
+  confirms *why* camera motion moves world-x and not z. ⚠ **REAL FINDING: B2→z = 0.26 (counterbalanced)
+  / 0.45 (conflict) / −0.01 (natural-congruent)** — identity priors predict depth in the decorrelated
+  regimes (conflict partly by design via size_condition; counterbalanced = residual coupling the gate
+  controls but **MUST re-check at gate scale** — the 55.1% shape-only lesson). Watch item, not a blocker.
+- **STILL OWED from the rulings:** ~~world-x raw-pixel identifiability gate~~ ✅ (KEEP ±0.3 m); ~~re-render under fixed wiring~~ ✅ (green); ~~rejection-sampling bias~~ ✅ (primary CLEAN); ~~B0/B1/B2 split~~ ✅ (Δ_R|B0,B2 preregistered). **ALL FOUR ADVISOR RULINGS EXECUTED.** Remaining M4a: descope world-x
   if it fails) · re-render pilots under fixed placement wiring `cf244b3` (ruling 2) · rejection-
   sampling bias check (ruling 2) · B0/B1/B2 z-baseline split + preregister Δ_R|B0,B2 (ruling 3) ·
   decorrelation matrix (#11) · `derive_cue_constants` (#9).

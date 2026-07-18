@@ -119,9 +119,14 @@ Run `scripts/leak_ceiling.py` on the rendered pilot: dumb features = {mask geome
 area, bbox, retinal size, elevation} ∪ {shape, colour} ∪ {cue values}, per target (x, z, ordinal,
 ratio; depth vs lateral axis), on **structured held-out splits** (held-out object identities,
 camera poses, depth ranges, cue combinations — never only random image splits). Report the v0 →
-v1 change: camera jitter should collapse the mask-geometry decodability of camera-frame
-coordinates. If mask geometry still predicts depth targets near ceiling in the counterbalanced
-regime, the decorrelation failed — fix the generator, do not proceed.
+v1 change: camera jitter should lower the SELECTION (B0) decodability of lateral position.
+⚠ **SUCCESS CRITERION REWORDED (ruling 3, 2026-07-17): NOT "all mask prediction collapses".** The
+dumb baseline splits into **B0 selection · B1 monocular cues · B2 semantic priors**; the target is to
+**control B0 (selection) and B2 (priors) while PRESERVING verifiable monocular evidence B1** — a
+plausible image cannot remove elevation/apparent-size, and a genuine depth representation may BE
+their integration. So a high B1→z is EXPECTED and fine; what must come down is B0 (fixed by camera
+motion — the world-x story) and B2 (the identity-prior confound). The primary M5 gate is
+`Δ_R|B0,B2`, never Δ over all cues. Tool: `scripts/baseline_decomposition.py`.
 
 ## 3. 🚦 THE GATE — image-identifiability (must pass before M4b starts)
 

@@ -1,0 +1,17 @@
+{
+  "split": "heldout_camera_pose",
+  "scores": {
+    "z_depth": {
+      "B0_selection": 0.5681302475304242,
+      "B1_monocular": 0.7853493852814448,
+      "B2_semantic": 0.4468764473403139,
+      "B0B1B2_all": 0.9426282385599849
+    },
+    "x_world": {
+      "B0_selection": 0.808222910459899,
+      "B1_monocular": 0.2038139151823711,
+      "B2_semantic": 0.35215463666485647,
+      "B0B1B2_all": 0.8559217547235962
+    }
+  }
+}

@@ -604,6 +604,26 @@ adversarial baseline.** So the ceiling is standing policy, not a one-off control
    establish that the representation adds anything the dumb features didn't already have; the
    incremental form does.
 
+**⚠⚠ THE DUMB BASELINE SPLITS INTO THREE — B0/B1/B2 (advisor ruling 3, 2026-07-17). The primary gate
+is Δ_R|B0,B2, NOT Δ over all cues.** Lumping legitimate monocular evidence in with the artifacts is a
+category error: by data-processing a genuine depth representation may **be** the integration of
+retinal size + elevation, so requiring the model to beat the all-cues baseline demands information
+the image does not contain.
+- **B0 SELECTION** (centroid u/v, bbox location, token indices / region shape / count) — the pooling
+  operator recovers this trivially; for a target that *is* an image position (lateral x) it is
+  circular. **Controlled.**
+- **B1 MONOCULAR** (retinal size, elevation, perspective values) — **legitimate** depth evidence.
+  **Preserved: neither given to the baseline nor required to be beaten.**
+- **B2 SEMANTIC** (category, shape, colour, canonical size, template role) — identity priors; if they
+  predict the target the set is confounded (the 55.1% shape-only failure). **Controlled.**
+- **PREREGISTERED PRIMARY CRITERION: `Δ_R|B0,B2 = S(B0 ∪ B2 ∪ R) − S(B0 ∪ B2)`.** Report
+  S(B0), S(B1), S(B2), S(R), S(Bi∪R) and every Δ; **`Δ_R|B0,B1,B2` (gain over all cues) is
+  DESCRIPTIVE only, never the sole gate.** Tool: `scripts/baseline_decomposition.py` (baseline-only
+  at M4a; R needs M4b activations). **M4a battery reading (2026-07-18, held-out camera pose):** z is
+  B1-dominated (0.88) with B0 moderate (0.56); world-x is B0-dominated (0.82) with B1/B2 ≈ chance —
+  which is exactly why camera motion matters for x and not z. ⚠ **B2→z ≈ 0.26 (counterbalanced) /
+  0.45 (conflict) — identity priors predict depth; the gate controls it, but re-check at gate scale.**
+
 **⚠ HELD-OUT SPLITS MUST TARGET THE CLAIMED GENERALIZATION — never only random image splits.**
 Held-out **object identities**, **camera poses**, **depth RANGES**, **cue combinations**. A random
 split over a factorial battery leaks every factor into training by construction.

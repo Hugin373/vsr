@@ -230,3 +230,34 @@ guard-introduced** — consistent with small-sample noise (18 correlations teste
 per regime expected at p<0.05, both landing on the same pair right at threshold). **Must re-audit at
 gate scale** (500 images → band ~0.09): if it's noise it vanishes; if it persists it's real and the
 frame is widened. The audit runs in seconds with no rendering, so it's cheap to repeat.
+
+---
+
+## B0/B1/B2 baseline decomposition (ruling 3) — the gate is Δ_R|B0,B2, not Δ over all cues
+
+`scripts/baseline_decomposition.py` splits the dumb baseline into **B0 selection** (centroid u/v),
+**B1 monocular** (area, bbox w/h, retinal size, elevation) and **B2 semantic** (category/colour/
+size_m one-hots), and scores z_depth + world-x per group under held-out camera pose. B1 is
+legitimate depth evidence — a genuine depth representation may BE its integration — so the model is
+NOT required to beat it. Preregistered M5 gate: **Δ_R|B0,B2** (gain over selection + priors, B1
+preserved); Δ over all cues is descriptive only.
+
+| set | target | B0 selection | B1 monocular | B2 semantic | all |
+|---|---|---:|---:|---:|---:|
+| counterbalanced (j2) | z_depth | 0.559 | **0.878** | 0.256 ⚠ | 0.963 |
+| counterbalanced (j2) | world-x | **0.821** | −0.068 | −0.019 | 0.822 |
+| conflict | z_depth | 0.568 | 0.785 | 0.447 ⚠ | 0.943 |
+| conflict | world-x | 0.808 | 0.204 | 0.352 | 0.856 |
+| natural-congruent | z_depth | 0.579 | 0.807 | −0.013 | 0.888 |
+| natural-congruent | world-x | 0.819 | 0.093 | 0.320 | 0.812 |
+
+**The decomposition confirms the ruling's framing empirically.** z is **B1-dominated** (0.79–0.88,
+legitimate monocular cues); world-x is **B0-dominated** (0.81–0.82, pure selection) with B1 ≈ chance
+— which is exactly why camera motion moves world-x and not z, and why cam-x is a positive control.
+
+⚠ **Real finding — B2→z is nonzero in counterbalanced (0.26) and conflict (0.45), but clean in
+natural-congruent (−0.01):** identity priors (category/colour/physical size) predict depth in the two
+decorrelated regimes. For conflict this is partly by design (size_condition manipulates physical size
+vs depth). For counterbalanced it is a residual identity↔depth coupling the gate CONTROLS (B2 is in
+the Δ_R|B0,B2 baseline) but that **must be re-checked at gate scale** — at n=60 it may be small-sample,
+or a real imbalance to fix in the sampler (the 55.1% shape-only lesson). Not a blocker; a watch item.
