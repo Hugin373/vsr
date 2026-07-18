@@ -623,6 +623,7 @@ the image does not contain.
   B1-dominated (0.88) with B0 moderate (0.56); world-x is B0-dominated (0.82) with B1/B2 ≈ chance —
   which is exactly why camera motion matters for x and not z. ⚠ **B2→z ≈ 0.26 (counterbalanced) /
   0.45 (conflict) — identity priors predict depth; the gate controls it, but re-check at gate scale.**
+- **Verbatim (ruling 3d): "The primary incremental test conditions on selection-derived geometry and semantic priors, while preserving monocular cues as legitimate image evidence; conditioning on monocular cues is reported separately as an integration diagnostic, not used as the primary gate."**
 
 **⚠ HELD-OUT SPLITS MUST TARGET THE CLAIMED GENERALIZATION — never only random image splits.**
 Held-out **object identities**, **camera poses**, **depth RANGES**, **cue combinations**. A random

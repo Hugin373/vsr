@@ -196,7 +196,7 @@ hand-copied. **5 conflict regions, all resolved and verified.**
   - **z_depth (PRIMARY), structured ceiling, counterbalanced:** held-out depth-range **0.837**
     (v0 was 0.957) — a real but PARTIAL improvement; headroom opened (v0's ~0.99 left none), but the
     residual ~0.84 comes from **elevation + retinal size, which are LEGITIMATE monocular depth cues a
-    plausible scene cannot remove** — partly irreducible, and the honest baseline the model must beat,
+    plausible scene cannot remove** — a **strong interpretable monocular baseline** (B1, PRESERVED under ruling 3), NOT a baseline the model must beat,
     not a bug. ⚠ v0's held-out-OBJECT z was 0.375 only because it was removing the category↔depth
     confound; counterbalanced fixed that confound, so its held-out-object z is 0.875 (geometry leaks
     depth robustly across objects). Compare sets on held-out-DEPTH-range, the clean shared axis.
@@ -207,7 +207,7 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     generator parameter (widen ranges / add camera lateral translation), then re-measure — cheap.
   - **THE CALL (advisor-level, NOT decided by me):** before the 1k render — (1) strengthen camera
     jitter and re-run the ceiling (target: x structured < 0.9); (2) decide the z policy: accept ~0.84
-    as the irreducible monocular baseline OR split the ceiling into position/selection features
+    as the strong interpretable monocular baseline (B1, preserved) OR split the ceiling into position/selection features
     (fixable) vs monocular-cue features (inherent) so Δ_repr|dumb does not conflate them; (3) proceed
     only if headroom is defensible. **The blocker did its job: caught insufficient decorrelation
     BEFORE the expensive render — which is exactly why the leak ceiling runs first.**
@@ -237,7 +237,7 @@ hand-copied. **5 conflict regions, all resolved and verified.**
     in-frame IS a position constraint that fights decorrelation. Going past ±0.3 m needs a WIDER FOV /
     pulled-back camera (→ §2.2(e) recalibration).
   - **z is unchanged** by camera motion (~0.82–0.88) — it is monocular cues (elevation + retinal
-    size), partly irreducible. Camera translation targets the lateral leak, not the depth one.
+    size), a strong interpretable monocular baseline (B1). Camera translation targets the lateral leak, not the depth one.
   - **DECISIONS ON THE TABLE (advisor-level, NOT decided):** (1) world-frame vs camera-frame lateral
     target; (2) how far to push camera motion (±0.3 m now, or wider FOV + recalibrate); (3) z policy
     (accept ~0.85 monocular baseline, or split position vs monocular features in the ceiling).
@@ -1351,7 +1351,9 @@ on it.**
 3. **z policy → SPLIT the ceiling.** Decompose the dumb-feature set into (a) position/selection
    features (centroid u/v, bbox position) and (b) monocular-cue features (elevation, retinal
    height/size, area) and report BOTH group ceilings per cell alongside the combined number.
-   (b)'s ~0.85 is the honest, partly-irreducible monocular baseline the model must beat; (a) is
+   (b)'s ~0.85 is a strong interpretable monocular baseline [⚠ this initial ruling said
+   "irreducible … the model must beat" — SUPERSEDED by the amendment below: B1 is PRESERVED, gate is
+   Δ_R|B0,B2]; (a) is
    the fixable selection leak. This is the A1 leak-decomposition direction and keeps Δ_repr|dumb
    from conflating fixable with inherent. Headline wording per DR3-r4: "nuisance baseline +
    incremental-value analysis", not "ceiling".

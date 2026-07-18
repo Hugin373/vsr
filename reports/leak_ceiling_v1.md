@@ -1,6 +1,6 @@
 # v1 Leak-Ceiling — v0 → v1 comparison (M4a blocker #10)
 
-Date: 2026-07-18. Tool: `scripts/leak_ceiling.py` (extended this session with structured
+Date: 2026-07-17 (JST; the audits that follow continued through 07-18). Tool: `scripts/leak_ceiling.py` (extended this session with structured
 held-out splits). Raw JSON per set: `reports/leak_ceiling_v1/*.json`.
 
 **What this measures.** The dumb-features ceiling: R² a probe on **mask geometry alone**
@@ -43,8 +43,9 @@ jitter genuinely fails to decorrelate image position from lateral world position
   (held-out depth-range). Headroom for the model to exceed did open (v0's 0.99 left none), but the
   residual ~0.84 is high. Its source is **elevation + retinal size**, which are *legitimate
   monocular depth cues* — a physically plausible ground-plane scene cannot remove them (that is
-  what the conflict regime is for). So part of this ceiling is **irreducible by construction** and
-  is the honest baseline the model must beat, not a bug.
+  what the conflict regime is for). So part of this ceiling is a **strong interpretable monocular
+  baseline** (distribution- and feature-set-relative) — legitimate depth evidence PRESERVED under
+  ruling 3, NOT something the model must beat.
 - **x (secondary / the position leak): did NOT improve** (≈0.94 → ≈0.94). World-frame x is still
   0.915 recoverable under held-out camera pose. **Diagnosis (hypothesis, to test — rule 13):
   camera jitter is too weak** (yaw ±3°, pitch ±2.5°, height ±0.12 m). It barely rotates the scene,
@@ -57,9 +58,9 @@ This is the §2.7 checkpoint and it reads **do not launch the 1 k render yet.** 
 insufficient as configured. Concretely, before the full battery:
 1. **Strengthen camera jitter** (bigger yaw/pitch/height; consider lateral translation) and
    re-run this ceiling — target: x structured ceiling drops materially below 0.9.
-2. **Decide the z policy:** accept ~0.84 as the (partly irreducible) monocular-cue baseline the
-   model must exceed, OR split the leak ceiling into *position/selection* features (fixable) vs
-   *monocular-cue* features (inherent) so the two are not conflated in Δ_repr\|dumb.
+2. **Decide the z policy:** ~0.84 is a **strong interpretable monocular baseline** (B1) — split
+   the ceiling into *position/selection* (B0, controlled) vs *monocular-cue* (B1, PRESERVED) vs
+   *semantic* (B2, controlled); the gate is Δ_R|B0,B2, not Δ over all cues. [DONE — ruling 3.]
 3. Re-measure, then proceed only if the structured ceiling leaves defensible headroom.
 
 **The blocker did its job:** it caught an insufficient decorrelation *before* the expensive render,
@@ -73,7 +74,7 @@ which is exactly why the leak ceiling runs first.
 
 ---
 
-## Strengthening experiment (2026-07-18) — camera translation added
+## Strengthening experiment (2026-07-17 JST) — camera translation added
 
 Added lateral/depth camera **translation** to the generator (the camera was fixed at x=0 and only
 panned). New set `m4a_v1_counterbalanced_pilot_j2`: pos_x ±0.3 m, pos_y ±0.2 m, yaw ±4°, pitch ±3°,
@@ -114,8 +115,8 @@ with zero target margins and need re-rendering under the corrected wiring regard
 2. **How far to push camera motion** — accept ±0.3 m (world-x ≈ 0.82) or widen the FOV / pull the
    camera back to allow more (and recalibrate).
 3. **z policy** — z ceiling ≈ 0.82–0.88 is largely monocular cues (elevation + retinal size),
-   partly irreducible; accept as the baseline the model must beat, or split position vs monocular
-   features in the ceiling.
+   a strong interpretable monocular baseline (B1); split position (B0) vs monocular (B1) vs
+   semantic (B2) — gate on Δ_R|B0,B2, preserve B1. [DONE — ruling 3.]
 
 ---
 
@@ -171,7 +172,7 @@ identifiability loss that more aggressive translation risks.
 
 ---
 
-## Re-render under fixed placement wiring (2026-07-18) — the margin bug WAS consequential
+## Re-render under fixed placement wiring (2026-07-17 JST) — the margin bug WAS consequential
 
 **The wiring bug (`cf244b3`) changed the rendered output — confirmed by isolation.** Rendering the
 counterbalanced config under the SAME current code + seed with `target_bbox_margin_px` 14 vs 0 gave

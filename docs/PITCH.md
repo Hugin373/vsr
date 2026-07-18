@@ -84,3 +84,4 @@ using controlled factorial and cue-conflict stimuli.
 - Rendering "enforces exact factorial control at a scale natural data rarely provides" — never
   "only rendering can decorrelate"; synthetic ≠ automatically shortcut-free.
 - Contribution = stage-wise diagnosis + foundation for occlusion/causal research (no fix promises).
+- **Baseline decomposition (ruling 3, verbatim): "The primary incremental test conditions on selection-derived geometry and semantic priors, while preserving monocular cues as legitimate image evidence; conditioning on monocular cues is reported separately as an integration diagnostic, not used as the primary gate."**
