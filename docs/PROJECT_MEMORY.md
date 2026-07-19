@@ -2022,6 +2022,14 @@ and `reports/m4a_placement_background_rate.md`.
     was pre-committed before the noise scale of R was known and does not exceed it.** Also, R is a
     worst case over unconverged extremes, so it is biased DOWNWARD: more sampling can only push it
     up, and the true r\* is likely ABOVE 1.1850.
+- **AREA VALIDITY AT 1.1900: PASS (thinly), 6 calibration seeds** — worst-case R = **1.1812**,
+  headroom **+0.0088 (+0.75%)**. Measured on 6 seeds not 2 deliberately: more samples can only raise
+  a worst case, so it makes the test harder.
+  - ⚠ **THE DOWNWARD BIAS IS NOW MEASURED, AND IT IS THE SIZE OF THE WHOLE MARGIN.** R(1.1900) from
+    seeds 8001–8002 alone = **1.1771**; from all six = **1.1812**. Four extra seeds moved the worst
+    case up **+0.0041** ≈ the entire 0.005 margin. So **the 2-seed root search understates r\***: at
+    6 seeds, 1.1850 would likely no longer be self-consistent and r\* would move up a grid step or
+    more. The +0.75% headroom is a pass, not room.
 - 🔴 **JOINT ACCEPTANCE AT 1.1900: FAIL — all six sampling quantities, not marginally.**
   r 0.6509 (bound 0.700) · retained range 1.2172 (1.230) · **weakest-stratum r 0.4391 (0.580)** ·
   weakest range 1.1340 (1.140) · clamped 0.5850 (0.550) · max stratum 0.7600 (0.690). Acceptance

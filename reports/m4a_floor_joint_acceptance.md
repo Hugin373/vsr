@@ -34,6 +34,37 @@ Two consequences, both to be weighed rather than waved through:
 
 ## 2. Joint acceptance at r_op = 1.1900 — **FAIL**
 
+### Area validity — PASS, on 6 calibration seeds
+
+Deliberately measured with **6** calibration seeds rather than the root search's 2: more samples can
+only raise a worst-case estimate, so this makes the test **harder**, never easier.
+
+| seed | R(1.1900) |
+|---|---:|
+| 8001 | 1.1771 |
+| 8002 | 1.1757 |
+| 8003 | 1.1702 |
+| 8004 | 1.1754 |
+| 8005 | 1.1777 |
+| 8006 | **1.1812** ← worst |
+
+**r_op = 1.1900 ≥ R = 1.1812 → PASS, headroom +0.0088 (+0.75%).**
+
+#### ⚠ This also measures the downward bias directly, and it is the size of the whole margin
+
+R(1.1900) from seeds 8001–8002 alone is **1.1771**; from all six it is **1.1812**. Four extra seeds
+moved the worst case up by **+0.0041** — essentially the entire 0.005 margin.
+
+The prediction that R is biased downward at small seed counts is therefore not a caveat, it is
+measured. Two consequences:
+
+1. **The root search itself understates r\*.** It used 2 seeds. Had it used 6, R at each grid point
+   would have been ~0.004 higher, and 1.1850 would likely no longer have been self-consistent —
+   r\* would have moved up a grid step or more.
+2. **The +0.75% area headroom at r_op is thin and would erode with further sampling.** It is a pass,
+   but not a comfortable one, and it should not be read as evidence that the current envelope has
+   room.
+
 ### Sampling validity — FAIL on all six quantities
 
 Calibration seeds 8001–8008, n = 1200, worst seed (a bound only the average clears is not a bound).
@@ -48,8 +79,8 @@ Calibration seeds 8001–8008, n = 1200, worst seed (a bound only the average cl
 | C.max_stratum_clamped_fraction | upper | 0.690 | **0.7600** | FAIL |
 
 Not marginal: weakest-stratum r comes in at 0.44 against a 0.58 bound, and the clamp rate overshoots
-in both aggregate and worst stratum. **The joint test fails on sampling validity regardless of the
-area leg**, since acceptance requires both.
+in both aggregate and worst stratum. **JOINT VERDICT: FAIL.** Area validity passes (thinly); sampling validity fails on every quantity.
+Acceptance requires both, so the candidate is rejected.
 
 This is the genuine test it was expected to be. The floor that area congruence demands and the floor
 that sampling semantics tolerate do not overlap on the current depth envelope.
