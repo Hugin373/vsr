@@ -1,9 +1,13 @@
 # §5 revalidation — PRE-REGISTERED criteria block (RECONCILED)
 
-**Canonical source:** `docs/M4A_S5_CRITERIA-reviewer.md`, ratified 2026-07-19. That file is the
-**received artifact and is not edited** — it is the record of what was ratified. This file is the
-operative reconciliation: canonical Check A–D content, carrying forward the C-1…C-5 numbering and
-the pre-committed bound machinery.
+**This is the single canonical §5 criteria file.** It carries the ratified Check A–D text
+(reviewer-authored, 2026-07-19) reconciled with the C-1…C-5 numbering and the pre-committed bound
+machinery. Where this file and any earlier draft differ, this file governs.
+
+**Verbatim source of the ratified A–D text:** `docs/M4A_S5_CRITERIA-reviewer.md` as committed in
+**`7a25800`**, since removed so that only one criteria file exists. Recover it with
+`git show 7a25800:docs/M4A_S5_CRITERIA-reviewer.md`. Before removal, all 46 substantive items of
+that text were mechanically checked as present here.
 
 **Reconciliation blocker: CLEARED** on this commit. The previous contents of this file were my own
 draft standing in for A–D text that had not arrived; they are superseded below.

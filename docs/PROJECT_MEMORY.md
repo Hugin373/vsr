@@ -1849,10 +1849,16 @@ All rulings final. Session accepted; the in-place retraction and R2 filing endor
 
 ### ✅ §5 CRITERIA RECONCILED (2026-07-19) — canonical A–D received; my draft's mapping was WRONG
 
-Canonical text arrived as `docs/M4A_S5_CRITERIA-reviewer.md` (ratified; **received artifact, NOT
-edited** — it is the record of what was ratified). Reconciled into `docs/M4A_S5_CRITERIA.md`,
-keeping the C-1…C-5 numbering and the pre-committed bound machinery. **Reconciliation blocker
-CLEARED.**
+Canonical text arrived as `docs/M4A_S5_CRITERIA-reviewer.md`, reconciled into
+`docs/M4A_S5_CRITERIA.md` keeping the C-1…C-5 numbering and the pre-committed bound machinery.
+**Reconciliation blocker CLEARED.**
+
+⚠ **ONE criteria file only** (2026-07-19). `M4A_S5_CRITERIA-reviewer.md` was **removed** after
+reconciliation so no second, divergable copy exists — `docs/M4A_S5_CRITERIA.md` is canonical and
+governs. The verbatim ratified A–D text remains recoverable at
+`git show 7a25800:docs/M4A_S5_CRITERIA-reviewer.md`. Before removal, **all 46 substantive items of
+the canonical text were mechanically checked as present** in the surviving file (two initial
+mismatches were line-wrapping artifacts, confirmed on whitespace-normalised re-check).
 
 - 🔴 **MY DRAFT'S A–D CONTENTS WERE SUBSTANTIALLY WRONG — recorded, not quietly overwritten:**
 
