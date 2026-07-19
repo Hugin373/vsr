@@ -166,16 +166,21 @@ def analyse(
     # ⚠ TWO DIFFERENT QUANTITIES, easy to conflate (and I did, briefly). Renamed 2026-07-19 so
     # the names carry the distinction rather than relying on a comment:
     #
-    #   clamped_fraction  — PRIMARY. Images the floor actually MOVED, = 1 - acceptance. This is
-    #                       the quantity that says how much of the target the floor manufactured,
-    #                       and the one the §5 criteria gate on.
+    #   below_base_floor_fraction — DIAGNOSTIC. Fraction of available ratios under the BASE floor.
+    #                       ⚠ RENAMED 2026-07-20 and demoted: it was called `clamped_fraction`,
+    #                       which was wrong. The canonical gating estimand is
+    #                       `clamped_fraction_drawn_floor` (scripts/s5_assignment_sweep.py) — the
+    #                       per-image DRAWN, jittered floor, measured paired within one run. The
+    #                       two differ materially: 0.328 here vs 0.484 canonical on identical
+    #                       data, the gap being entirely the floor jitter. This quantity must
+    #                       never again be called "clamped".
     #   accepted_in_floor_band_fraction — DESCRIPTIVE ONLY. Accepted ratios lying inside the floor
     #                       band. Counts clamped images AND images whose natural ratio happened to
     #                       land in the band, so it OVERSTATES the floor's influence whenever the
     #                       band is wide relative to the available range (measured: 0.673 vs a true
     #                       clamped fraction of 0.332 on the 4-set candidate). The two coincide
     #                       only when the whole available range sits below the floor.
-    clamped = 1.0 - acceptance_fraction
+    below_base_floor = 1.0 - acceptance_fraction
     accepted_in_floor_band = float((acc_r <= floor_max).mean()) if acc_r.size else float("nan")
 
     strata: dict[str, dict] = {}
@@ -205,7 +210,9 @@ def analyse(
             "available": _quantiles(a),
             "accepted": _quantiles(b),
             "acceptance_fraction": float((a >= floor).mean()) if a.size else float("nan"),
-            "clamped_fraction": (1.0 - float((a >= floor).mean())) if a.size else float("nan"),
+            "below_base_floor_fraction": (
+                (1.0 - float((a >= floor).mean())) if a.size else float("nan")
+            ),
             "accepted_in_floor_band_fraction": (
                 float((b <= floor_max).mean()) if b.size else float("nan")
             ),
@@ -239,7 +246,7 @@ def analyse(
         "available": _quantiles(avail_r),
         "accepted": _quantiles(acc_r),
         "acceptance_fraction": acceptance_fraction,
-        "clamped_fraction": clamped,
+        "below_base_floor_fraction": below_base_floor,
         "accepted_in_floor_band_fraction": accepted_in_floor_band,
         "factor_correlations_available": _factor_corr(available),
         "factor_correlations_accepted": _factor_corr(accepted),
@@ -268,8 +275,8 @@ def _print_regime(result: dict) -> None:
         f"  acceptance fraction (available >= floor) : {result['acceptance_fraction']:.3f}"
     )
     print(
-        f"  clamped_fraction (PRIMARY — images the floor actually moved) : "
-        f"{result['clamped_fraction']:.3f}"
+        f"  below_base_floor_fraction (DIAGNOSTIC — not the clamp rate; see "
+        f"clamped_fraction_drawn_floor) : {result['below_base_floor_fraction']:.3f}"
     )
     print(
         f"  accepted_in_floor_band (DESCRIPTIVE ONLY — overstates when the band is wide) : "
@@ -308,7 +315,7 @@ def _print_regime(result: dict) -> None:
     print()
     print(
         f"  {'pairing':28s} {'req':>7s} {'floor':>7s} {'mgn%':>7s} "
-        f"{'avail range':>17s} {'acc range':>17s} {'acc frac':>8s} {'clamped':>9s} {'dyn':>5s}"
+        f"{'avail range':>17s} {'acc range':>17s} {'acc frac':>8s} {'belowBase':>9s} {'dyn':>5s}"
     )
     for key in sorted(result["by_pairing"]):
         s = result["by_pairing"][key]
@@ -331,7 +338,7 @@ def _print_regime(result: dict) -> None:
         print(
             f"  {key:28s} {req_s} {s['configured_floor']:7.3f} {margin_s} "
             f"{a['min']:7.3f}..{a['max']:<8.3f} {b['min']:7.3f}..{b['max']:<8.3f} "
-            f"{s['acceptance_fraction']:8.3f} {s['clamped_fraction']:9.3f} "
+            f"{s['acceptance_fraction']:8.3f} {s['below_base_floor_fraction']:9.3f} "
             f"{b['dynamic_range']:5.2f}{flag}"
         )
     print()

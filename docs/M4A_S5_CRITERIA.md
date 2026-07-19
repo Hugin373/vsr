@@ -15,40 +15,58 @@ draft standing in for A–D text that had not arrived; they are superseded below
 **Status: bounds FILLED (2026-07-20, 8-seed sweep). Ratification BLOCKED on a new finding —
 see below.** No §5 render may run.
 
-> ## 🔴 BLOCKER — the pre-registered floor 1.1707 does not clear its own re-derived requirement
+> ## 🔴 BLOCKER — floor under root search (ruled 2026-07-20)
 >
-> Re-deriving the cue constants over natural-congruent's **own 4-set envelope** (which is what the
-> ruling required) gives a worst-case area-congruence requirement of **1.1761**. The pre-registered
-> floor is **1.1707** — short by **0.46%**. Area congruence is a HARD validator check for this
-> regime, so the currently-pre-registered design would produce violations.
+> Re-deriving the cue constants over natural-congruent's **own 4-set envelope** gives a worst-case
+> area-congruence requirement of **1.1761**, while the pre-registered floor is **1.1707** — short by
+> **0.46%**. Area congruence is a HARD validator check here.
 >
-> **Cause:** 1.1707 was computed from constants measured on the **six-category** envelope, which
-> this regime no longer generates. The constants depend on the floor (through the realized depth
-> distribution), so a floor derived at one floor is not self-consistent at another.
+> **Cause:** 1.1707 came from constants measured on the **six-category** envelope. The requirement is
+> a *function of the floor* — R = R(F), falling as F rises, because a higher floor puts far objects
+> deeper where perspective is less extreme. So a valid floor must satisfy **F ≥ R(F)**: a fixed-point
+> condition, not a one-shot derivation.
 >
-> **Fixed point, measured (not argued):** at floor **1.2320** the requirement re-measures to
-> **1.1601** — headroom **+6.20%**, self-consistent. The iteration converges *downward* because a
-> higher floor pushes far objects deeper, where their perspective is less extreme and their area
-> constants less variable.
+> **1.2320 REJECTED.** It is the fixed point plus a margin policy inherited from the dead
+> six-category envelope, and it destroys sampling semantics: r(ratio, gap) 0.73 → **0.50**,
+> weakest stratum 0.64 → **0.18**, clamp 0.48 → **0.72**.
 >
-> **The cost is real and must be weighed, not waved through:**
+> **Resolution: minimal self-consistent floor via a pre-committed root search**
+> (`scripts/floor_root_search.py`, committed before it ran). Grid 1.165–1.200 step 0.005,
+> calibration seeds 8001–8002, r* = smallest grid point with F ≥ R(F) (tolerance one step),
+> **r_op = r\* + 0.005 rounded up to 3 dp**. Interpolation predicts r* ≈ 1.175, candidate ≈ 1.181.
 >
-> | quantity (8 seeds) | floor 1.1707 (infeasible) | floor 1.2320 (self-consistent) |
-> |---|---:|---:|
-> | r(ratio, `depth_gap_bin`) | 0.728 – 0.753 | **0.471 – 0.533** |
-> | weakest-stratum r | 0.638 – 0.709 | **0.180 – 0.410** |
-> | `clamped_fraction` | 0.484 – 0.524 | **0.693 – 0.723** |
-> | retained range | 1.252 – 1.270 | 1.186 – 1.218 |
+> ### Acceptance is JOINT — both, or the candidate fails
+> **(a) Area validity** — r_op ≥ R(r_op), re-derived at r_op itself.
+> **(b) Sampling validity** — the check A–C design-selection bounds below.
 >
-> **NOT applied.** Changing a pre-registered value is a ratification decision. The configs still
-> carry 1.1707, and `tests/test_eligibility_invariants.py::
-> test_congruent_floor_clears_its_own_committed_requirement` records the violation as a
-> `strict=True` xfail — it will FAIL the moment the floor is raised, forcing the marker's removal
-> rather than leaving a stale exemption behind.
+> Expect a genuine test: interpolation puts weakest-stratum r and the clamp rate both near their
+> bounds.
 >
-> **Consequence for the bounds below:** they were computed at 1.1707. If the floor is ratified at
-> 1.2320 the sweep must be re-run and the bounds recomputed from the same pre-committed formula.
-> The tables are therefore **provisional pending the floor decision**, and are marked as such.
+> ### Pre-registered escape hatch — usable ONLY if the joint test fails
+> Before declaring the 4-set infeasible, evaluate **extending the FAR depth-bin envelope**. Deeper
+> bins place easily and raise the ratio ceiling, relaxing the squeeze *from above* rather than
+> pushing the floor up into the distribution. ⚠ This is **battery-wide** (it changes the depth
+> envelope for every regime) and **re-opens the z-identifiability checks**. Only if that also fails
+> is the 4-set dead.
+
+---
+
+## 🔒 Formal seed roles (ruled 2026-07-20)
+
+Disjoint splits, the same discipline as M5's direction protocol. **A seed used for one role may
+never be reused for another** — reusing a calibration seed to set bounds would let the design be
+selected and judged on the same draw.
+
+| role | seeds | answers | may it move a threshold? |
+|---|---|---|---|
+| **calibration** | 8001–8008 | "which floor?" — root search and design selection | yes, that is its job |
+| **bound-setting** | 9009–9016 | "how far may it drift?" — operative bounds at the ratified floor | yes |
+| **frozen pilot** | config seed | accept/reject only | **never** |
+| ~~development~~ | ~~9001–9008~~ | superseded; v1 evidence at floor 1.1707 | **no longer** |
+
+⚠ **The bounds tabulated below were computed on 9001–9008 at floor 1.1707. They are
+DESIGN-SELECTION EVIDENCE ONLY.** Operative bounds recompute on the fresh bound-setting seeds at
+the ratified floor, from the same committed formula.
 
 ---
 
@@ -229,12 +247,21 @@ intent** — η² ≈ 0.01–0.02 against a bound of 0.10 — so a trivial absol
 large CV. The reductio is the last row: placed-level role imbalance is **exactly 0.0000 on all eight
 seeds**, the best result the quantity can have, and CV = ∞ demotes it.
 
-⚠ **NOT amended, deliberately.** Rewriting a pre-committed rule after seeing the results it produced
-is the forking path the protocol exists to prevent. **Proposed amendment, requiring ratification
-before it is applied:** exempt a quantity from the spread rule when its 8-seed **maximum** is already
-far inside its bound in absolute terms (e.g. `max_s q_s < 0.25 × bound`), since relative stability is
-not meaningful for a quantity pinned near zero. Until ratified, Check B's quantities are
-**reported-only** and the structural hard failures above remain the operative gate.
+### ✅ AMENDMENT RATIFIED 2026-07-20 — near-zero exemption (protocol v2.0)
+
+> The spread rule **does not apply** when `max_s q_s ≤ 0.25 × criterion bound`.
+>
+> **Scope, deliberately narrow:** natural-zero, *lower-is-better* quantities only — η², imbalances,
+> clamp-predictability. It **never** applies to correlations or retained range, which are
+> lower-bounded and far from zero, so relative spread is meaningful there and instability is real.
+
+Implemented in `scripts/s5_assignment_sweep.py` (`NEAR_ZERO_EXEMPTION`), with each quantity
+carrying an explicit `natural_zero` flag and its criterion bound, so the exemption cannot silently
+widen to a quantity it was not ratified for.
+
+⚠ **Ratified on FRESH seeds 9009–9016.** The v1 results tabulated above (9001–9008) are development
+evidence and do not carry over: a rule amended in response to a result may not then be validated on
+that same result.
 
 **Structural results, 8 seeds:** support symmetric ✓ · placed-level P(near|c) = 0.5000 exactly for
 all four categories on every seed ✓ · no pairing near-deterministically identifies ratio
