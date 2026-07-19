@@ -1357,6 +1357,34 @@ Executing the "FREEZE the generator, then REVALIDATE" finalization prompt. Done 
   contrastive pairs, 1k render.
   ⚠ **The existing pilot renders are now STALE** (old bins, no appearance factors) → §5 re-renders anyway.
 
+### 📋 ADVISOR ADDENDUM (2026-07-18, session close) — BINDING for the next session, execute in this order
+
+1. **`derive_cue_constants` SCHEMA.** Must support all three size schemas: **shared multiplier**
+   (`size_multiplier`, v0/natural-congruent) · **per-object near/far multipliers**
+   (`size_multiplier_near` / `_far`, counterbalanced + conflict) · **explicit per-object physical
+   size**. **HARD-FAIL on missing fields — NO fallback to a shared value** (a silent fallback would
+   divide the wrong multiplier out and corrupt the constant, which is the exact class of bug this
+   project keeps catching). Ship a regression test per schema.
+2. **FLOOR-SQUEEZE measurement** (the 1.85 natural-congruent floor vs its ratio-gate failure):
+   report **available-vs-accepted ratio range, STRATIFIED by (near-category, far-category)
+   pairing** — per pairing give the **minimum required ratio**, the **configured floor**, the
+   **acceptance fraction**, **quantiles**, and the **retained worst-case dynamic range**.
+3. **BIN-DROP CONSISTENCY SWEEP.** `near_depth_bins: [0.65, 1.10, 1.55, 2.00]` **everywhere**
+   (all M4a configs, pilot AND full — currently only the three frozen pilots carry it). Re-check
+   **ordinal margins, class balance, demonstrated dynamic range**. ⚠ **Per DR3 #14 the gate is
+   VALIDITY-ONLY: "easier" is a REPORTED PROPERTY, never a failure.** Do not treat a rise in
+   decodability from the bin drop as a gate failure.
+4. **TEXTURES LATER** — scoped to **minimal procedural nuisance families**, **balanced and
+   persisted** as factors (same treatment as ground_color/sun_energy). Not a full asset pipeline.
+5. **FREEZE TAG DEAD LAST** — after every generative change lands and revalidation passes.
+6. **§5 RUNS ONCE**, against **acceptance criteria + M4b numeric bounds written in advance as ONE
+   PRE-REGISTERED BLOCK** (write the block, then run; no post-hoc threshold selection).
+7. **B2→z is CLOSED at the ASSIGNMENT level.** ⚠ Note explicitly: **100% placement at n=1200 is
+   what closes the REJECTION channel** — because assignments become realizations only if they place,
+   a 100% placement rate means the balanced assignment IS the rendered distribution (no rejection
+   re-weighting). The **rejection-bias audit remains the routine confirmation**, not the primary
+   evidence.
+
 ## 📌 2026-07-17 (fifth session, advisor chat) — RULINGS on the three leak-ceiling decisions; project docs synced
 
 The strengthening experiment (camera translation; see the leak-ceiling entry above and
