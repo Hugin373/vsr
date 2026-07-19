@@ -61,6 +61,45 @@ Before saying something works, ask: *what must be true of the output if this is 
 ### When the user doubts something, treat it as a signal, not a challenge.
 Every time a doubt was raised ("did you download all of it?", "does it all work?", "was M0/M1 also broken?"), **measuring instead of answering from memory found real bugs.** Re-derive the answer from the data every time.
 
+## CHECKPOINT BRIEFING — end of EVERY response that produced results
+
+**The user relays every result to a second, independent agent (the advisor) for confirmation before
+deciding anything.** That agent has **no repo access, no shell, and none of this conversation**. So
+every response that reaches a checkpoint — measurements produced, a decision surfaced, work
+finished or blocked — ends with a **self-contained briefing the user can paste straight into
+another chat.** Not a summary of what you did: the *scientific content needed to argue with you*.
+
+Skip it only for genuinely conversational turns (a clarifying question, a one-line lookup). When in
+doubt, include it.
+
+### Structure
+
+1. **Question** — what this checkpoint set out to answer, in one or two sentences.
+2. **Method** — only enough to judge whether the numbers are trustworthy (n, seeds, what was held
+   fixed, what the estimand is). Not enough to reproduce; that is what the repo is for.
+3. **Results** — numbers, in tables. Every number that carries an argument.
+4. **Established vs NOT established** — separate them explicitly. State what the measurement
+   licenses and what it does not.
+5. **Open decisions** — each with its trade-off. Never present a decision as taken when it is not.
+6. **Where the reasoning is weakest** — the thing you most want challenged. Mandatory, and it is
+   the most valuable section: the advisor's job is adversarial, so hand them the sharpest edge you
+   know of rather than making them find it.
+
+### Rules
+
+- **Self-contained.** Define terms on first use. No repo paths, script names, seed-role
+  bookkeeping, environment setup or tooling detail as load-bearing content — the advisor cannot see
+  any of it. A path is fine as a pointer for the *user*, never as part of an argument.
+- **Numbers, not adjectives.** "weakest-stratum r = 0.4391 against a 0.580 bound", never "somewhat
+  below target".
+- **Report failures, nulls and your own errors** with the same prominence as successes. A briefing
+  that only contains good news is worse than no briefing — it makes the advisor's confirmation
+  worthless, which is the entire point of sending it.
+- **Distinguish measured from inferred from assumed.** If a number came from interpolation, a
+  proxy, or a different estimand than the one being gated, say so at the point it is used.
+- **Keep it paste-able.** Dense, and long enough to carry the argument — but if it needs a section
+  on how the tooling works, that content does not belong in it.
+
 ## End of every session
 
 Update `docs/IMPLEMENTATION_PLAN.md` and `docs/PROJECT_MEMORY.md` with decisions made and state reached, then commit with a descriptive message.
