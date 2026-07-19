@@ -151,24 +151,62 @@ def test_scene_appearance_factors_are_persisted():
     assert len({tuple(s.factors["ground_color"]) for s in specs}) > 1
 
 
+def _m4a_configs():
+    """Every M4a stimulus config — pilot AND full. Deliberately not a `*_pilot*` glob."""
+    import glob
+
+    return sorted(f for f in glob.glob("configs/m4a_v1_*.yaml") if "size_calibration" not in f)
+
+
+# The frozen M4a generator block (2026-07-18 §4 freeze). Every M4a config must carry it, so a
+# regime differs from another ONLY in its condition/constraints, never in its camera envelope,
+# depth bins or placement budget.
+FROZEN_NEAR_DEPTH_BINS = [0.65, 1.1, 1.55, 2.0]
+FROZEN_CAMERA_JITTER = {
+    "height_m": [-0.16, 0.16],
+    "pos_x_m": [-0.3, 0.3],
+    "pos_y_m": [-0.2, 0.2],
+    "pitch_deg": [-3.0, 3.0],
+    "yaw_deg": [-4.0, 4.0],
+}
+FROZEN_PLACEMENT_ATTEMPTS = 500
+
+
 def test_frozen_m4a_configs_place_at_scale():
     """§4 freeze (2026-07-18): the closest depth bin (0.2 m) was un-placeable under +/-0.3 m camera
     translation — the near object clips the frame regardless of lateral sampling, and MORE ATTEMPTS
     never helped (500 vs 2000 gave the same failures). Fixed by dropping the closest bin. Guards it:
-    no frozen M4a translation config may reintroduce a near bin close enough to fail placement."""
-    import glob
+    no frozen M4a translation config may reintroduce a near bin close enough to fail placement.
 
+    ⚠ Widened 2026-07-19 (blocker #9 §4). This test used to glob only `*_pilot*` AND skip any
+    config without `pos_x_m`, so it passed while all five NON-pilot M4a configs still carried the
+    dropped 0.2 m bin and the pre-freeze pan-only jitter — the guard skipped exactly the configs
+    that were wrong. A guard whose scope excludes the un-migrated cases certifies nothing."""
     from sbind.utils.config import load_config
 
-    frozen = glob.glob("configs/m4a_v1_*_pilot*.yaml")
-    frozen = [f for f in frozen if "contrastive" not in f and "size_calibration" not in f]
-    assert frozen, "no frozen M4a pilot configs found"
-    for f in frozen:
+    configs = _m4a_configs()
+    assert configs, "no M4a configs found"
+    for f in configs:
         cfg = load_config(f)
-        if "pos_x_m" not in (cfg.get("camera", {}).get("jitter", {}) or {}):
-            continue  # only the translation configs have the framing limit
         b0 = min(cfg["factors"]["near_depth_bins"])
         assert b0 >= 0.5, f"{f}: closest near_depth_bin {b0} < 0.5 — un-placeable under translation"
+
+
+def test_all_m4a_configs_share_the_frozen_generator_block():
+    """Bin-drop consistency sweep (advisor addendum #3): bins, camera jitter and the placement
+    budget are properties of the FROZEN GENERATOR, not of a regime. Any divergence means two
+    regimes were rendered under different scene statistics, which silently breaks every
+    cross-regime comparison the M4a gate is built on."""
+    from sbind.utils.config import load_config
+
+    for f in _m4a_configs():
+        cfg = load_config(f)
+        assert cfg["factors"]["near_depth_bins"] == FROZEN_NEAR_DEPTH_BINS, f
+        jitter = cfg["camera"]["jitter"]
+        assert set(jitter) == set(FROZEN_CAMERA_JITTER), f"{f}: camera jitter keys diverge"
+        for key, want in FROZEN_CAMERA_JITTER.items():
+            assert [float(v) for v in jitter[key]] == want, f"{f}: camera jitter {key}"
+        assert cfg["condition"]["target_placement_attempts"] == FROZEN_PLACEMENT_ATTEMPTS, f
 
 
 def test_category_role_balanced_at_scale():

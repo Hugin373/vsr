@@ -1,0 +1,718 @@
+{
+  "derivation_version": "2.0.0",
+  "derived_at_utc": "2026-07-19T12:21:10Z",
+  "derived_at_git_hash": "ac36cd3-dirty",
+  "sources": [
+    {
+      "set": "/data3/hugin/vsr/measurements/cue_sweep_conflict",
+      "set_name": "m4a_v1_conflict_pilot",
+      "experiment": "m4a_v1_conflict_pilot",
+      "seed": 412,
+      "size_schema": "per_object",
+      "size_condition": "conflict_far_larger",
+      "n_images": 1200,
+      "n_target_objects": 2400,
+      "render_git_hash": "ac36cd3-dirty",
+      "render_git_dirty": true,
+      "near_depth_bins": [
+        0.65,
+        1.1,
+        1.55,
+        2.0
+      ],
+      "min_depth_ratio": 1.05,
+      "multiplier_worst_case": 1.6666666666666667
+    }
+  ],
+  "pooled": {
+    "n_images": 1200,
+    "n_target_objects": 2400,
+    "height_constant": {
+      "bottle_far": {
+        "n": 198,
+        "min": 398.0622742627584,
+        "max": 409.21812556138445,
+        "mean": 403.6699607711156,
+        "spread_pct": 2.802539205526955
+      },
+      "bottle_near": {
+        "n": 200,
+        "min": 397.40330027017075,
+        "max": 408.54501719617406,
+        "mean": 402.93436212147003,
+        "spread_pct": 2.8036296926645443
+      },
+      "chair_far": {
+        "n": 201,
+        "min": 389.7710730047792,
+        "max": 412.6434295555209,
+        "mean": 401.94825102314917,
+        "spread_pct": 5.868151367523677
+      },
+      "chair_near": {
+        "n": 201,
+        "min": 397.16652440801823,
+        "max": 422.50770307024317,
+        "mean": 410.21899825616987,
+        "spread_pct": 6.38049208703988
+      },
+      "cube_far": {
+        "n": 200,
+        "min": 381.01976585077404,
+        "max": 419.8705903428472,
+        "mean": 398.36923275173365,
+        "spread_pct": 10.196537810925289
+      },
+      "cube_near": {
+        "n": 201,
+        "min": 392.9196579459056,
+        "max": 443.33494991390825,
+        "mean": 415.93622454818694,
+        "spread_pct": 12.830941631060732
+      },
+      "cylinder_far": {
+        "n": 201,
+        "min": 381.5239327271415,
+        "max": 421.9051958763432,
+        "mean": 396.64529191161915,
+        "spread_pct": 10.584201850865682
+      },
+      "cylinder_near": {
+        "n": 199,
+        "min": 389.09657432014205,
+        "max": 444.1041922825811,
+        "mean": 412.52264072850767,
+        "spread_pct": 14.137266065257027
+      },
+      "mug_far": {
+        "n": 201,
+        "min": 386.31647756653376,
+        "max": 416.045452596857,
+        "mean": 400.41509008092487,
+        "spread_pct": 7.695497540666807
+      },
+      "mug_near": {
+        "n": 201,
+        "min": 401.3815744830521,
+        "max": 433.13421911720627,
+        "mean": 415.44101510132896,
+        "spread_pct": 7.910837630015544
+      },
+      "sphere_far": {
+        "n": 199,
+        "min": 400.24871156550597,
+        "max": 412.35720843405005,
+        "mean": 405.60339437581376,
+        "spread_pct": 3.0252431847147543
+      },
+      "sphere_near": {
+        "n": 198,
+        "min": 398.0810356025258,
+        "max": 409.669283764248,
+        "mean": 404.2418568997182,
+        "spread_pct": 2.911027435452307
+      }
+    },
+    "area_constant": {
+      "bottle_far": {
+        "n": 198,
+        "min": 48923.314626371204,
+        "max": 51342.60296669694,
+        "mean": 49854.57419252748,
+        "spread_pct": 4.945062203577
+      },
+      "bottle_near": {
+        "n": 200,
+        "min": 48948.70205618735,
+        "max": 52446.67371000886,
+        "mean": 50133.23948120333,
+        "spread_pct": 7.14619899380835
+      },
+      "chair_far": {
+        "n": 201,
+        "min": 77640.5211515013,
+        "max": 92262.76171888187,
+        "mean": 83667.93745080267,
+        "spread_pct": 18.83325916739782
+      },
+      "chair_near": {
+        "n": 201,
+        "min": 79016.03490072498,
+        "max": 94357.47927521315,
+        "mean": 87262.58726424038,
+        "spread_pct": 19.415608988432574
+      },
+      "cube_far": {
+        "n": 200,
+        "min": 135429.01027908383,
+        "max": 167991.80139939144,
+        "mean": 147626.96438080014,
+        "spread_pct": 24.04417713250964
+      },
+      "cube_near": {
+        "n": 201,
+        "min": 139366.74067702936,
+        "max": 175385.18056812085,
+        "mean": 154860.6110168534,
+        "spread_pct": 25.844358357035247
+      },
+      "cylinder_far": {
+        "n": 201,
+        "min": 123110.58045837044,
+        "max": 135066.32777585174,
+        "mean": 127862.79113801352,
+        "spread_pct": 9.711388958582724
+      },
+      "cylinder_near": {
+        "n": 199,
+        "min": 126142.17441212495,
+        "max": 139956.1153650667,
+        "mean": 131919.28385943564,
+        "spread_pct": 10.95108833926517
+      },
+      "mug_far": {
+        "n": 201,
+        "min": 119787.80200878618,
+        "max": 127274.21078797274,
+        "mean": 122843.74310895306,
+        "spread_pct": 6.2497254759190435
+      },
+      "mug_near": {
+        "n": 201,
+        "min": 122123.37541919747,
+        "max": 131431.55522116701,
+        "mean": 125626.68874106523,
+        "spread_pct": 7.621947698398057
+      },
+      "sphere_far": {
+        "n": 199,
+        "min": 127673.33177331561,
+        "max": 134348.06099767835,
+        "mean": 129864.1830034743,
+        "spread_pct": 5.227974496830501
+      },
+      "sphere_near": {
+        "n": 198,
+        "min": 127248.40681372846,
+        "max": 134465.23593115367,
+        "mean": 129790.91374418813,
+        "spread_pct": 5.671449488549984
+      }
+    },
+    "required_ratio_by_pairing": {
+      "near_bottle_far_bottle": {
+        "height": 1.0297300633466846,
+        "area": 1.0241612766032901,
+        "binding": 1.0297300633466846
+      },
+      "near_bottle_far_chair": {
+        "height": 1.0383492771071337,
+        "area": 1.3729117912071502,
+        "binding": 1.3729117912071502
+      },
+      "near_bottle_far_cube": {
+        "height": 1.0565352377733206,
+        "area": 1.8525649939937667,
+        "binding": 1.8525649939937667
+      },
+      "near_bottle_far_cylinder": {
+        "height": 1.0616549877404517,
+        "area": 1.6611274538007297,
+        "binding": 1.6611274538007297
+      },
+      "near_bottle_far_mug": {
+        "height": 1.0469099081814683,
+        "area": 1.6124996022235414,
+        "binding": 1.6124996022235414
+      },
+      "near_bottle_far_sphere": {
+        "height": 1.0376290487615807,
+        "area": 1.6567047262768833,
+        "binding": 1.6567047262768833
+      },
+      "near_chair_far_bottle": {
+        "height": 1.0303439499875506,
+        "area": 0.8060859009523682,
+        "binding": 1.0303439499875506
+      },
+      "near_chair_far_chair": {
+        "height": 1.03896830220163,
+        "area": 1.0805767249995537,
+        "binding": 1.0805767249995537
+      },
+      "near_chair_far_cube": {
+        "height": 1.0571651046589832,
+        "area": 1.4580970364443155,
+        "binding": 1.4580970364443155
+      },
+      "near_chair_far_cylinder": {
+        "height": 1.0622879068300086,
+        "area": 1.3074224253377449,
+        "binding": 1.3074224253377449
+      },
+      "near_chair_far_mug": {
+        "height": 1.0475340368047836,
+        "area": 1.2691489361466872,
+        "binding": 1.2691489361466872
+      },
+      "near_chair_far_sphere": {
+        "height": 1.0382476444828117,
+        "area": 1.3039414322733025,
+        "binding": 1.3039414322733025
+      },
+      "near_cube_far_bottle": {
+        "height": 1.04148040772682,
+        "area": 0.6069590197237563,
+        "binding": 1.04148040772682
+      },
+      "near_cube_far_chair": {
+        "height": 1.0501979761275542,
+        "area": 0.8136425521984059,
+        "binding": 1.0501979761275542
+      },
+      "near_cube_far_cube": {
+        "height": 1.0685914584621063,
+        "area": 1.0979042641196761,
+        "binding": 1.0979042641196761
+      },
+      "near_cube_far_cylinder": {
+        "height": 1.073769630366593,
+        "area": 0.9844507052043637,
+        "binding": 1.073769630366593
+      },
+      "near_cube_far_mug": {
+        "height": 1.0588562933497594,
+        "area": 0.9556318914112356,
+        "binding": 1.0588562933497594
+      },
+      "near_cube_far_sphere": {
+        "height": 1.0494695291901646,
+        "area": 0.9818296196158887,
+        "binding": 1.0494695291901646
+      },
+      "near_cylinder_far_bottle": {
+        "height": 1.0517135142513148,
+        "area": 0.6379825275944621,
+        "binding": 1.0517135142513148
+      },
+      "near_cylinder_far_chair": {
+        "height": 1.0605167374617,
+        "area": 0.8552302793789931,
+        "binding": 1.0605167374617
+      },
+      "near_cylinder_far_cube": {
+        "height": 1.0790909456771132,
+        "area": 1.1540214655655006,
+        "binding": 1.1540214655655006
+      },
+      "near_cylinder_far_cylinder": {
+        "height": 1.0843199959123948,
+        "area": 1.0347689527445838,
+        "binding": 1.0843199959123948
+      },
+      "near_cylinder_far_mug": {
+        "height": 1.0692601273187818,
+        "area": 1.0044771223762305,
+        "binding": 1.0692601273187818
+      },
+      "near_cylinder_far_sphere": {
+        "height": 1.0597811331404052,
+        "area": 1.0320138955587828,
+        "binding": 1.0597811331404052
+      },
+      "near_mug_far_bottle": {
+        "height": 1.0195239432413539,
+        "area": 0.6483948275036026,
+        "binding": 1.0195239432413539
+      },
+      "near_mug_far_chair": {
+        "height": 1.0280577280782588,
+        "area": 0.869188207339573,
+        "binding": 1.0280577280782588
+      },
+      "near_mug_far_cube": {
+        "height": 1.046063439468061,
+        "area": 1.1728558647556488,
+        "binding": 1.1728558647556488
+      },
+      "near_mug_far_cylinder": {
+        "height": 1.0511324452790938,
+        "area": 1.0516570714729587,
+        "binding": 1.0516570714729587
+      },
+      "near_mug_far_mug": {
+        "height": 1.0365335108685316,
+        "area": 1.0208708582509223,
+        "binding": 1.0365335108685316
+      },
+      "near_mug_far_sphere": {
+        "height": 1.0273446382413884,
+        "area": 1.0488570499183156,
+        "binding": 1.0488570499183156
+      },
+      "near_sphere_far_bottle": {
+        "height": 1.027976941785237,
+        "area": 0.6352033276915423,
+        "binding": 1.027976941785237
+      },
+      "near_sphere_far_chair": {
+        "height": 1.0365814812829601,
+        "area": 0.8515046978675588,
+        "binding": 1.0365814812829601
+      },
+      "near_sphere_far_cube": {
+        "height": 1.0547364802428765,
+        "area": 1.148994280327121,
+        "binding": 1.148994280327121
+      },
+      "near_sphere_far_cylinder": {
+        "height": 1.0598475138052175,
+        "area": 1.0302612591187796,
+        "binding": 1.0598475138052175
+      },
+      "near_sphere_far_mug": {
+        "height": 1.045127537831941,
+        "area": 1.000101386991252,
+        "binding": 1.045127537831941
+      },
+      "near_sphere_far_sphere": {
+        "height": 1.0358624791304518,
+        "area": 1.0275182036012565,
+        "binding": 1.0358624791304518
+      }
+    },
+    "worst_case_height_ratio": 1.0843199959123948,
+    "worst_case_area_ratio": 1.8525649939937667,
+    "worst_case_binding_ratio": 1.8525649939937667
+  },
+  "per_set_required_ratio_by_pairing": {
+    "m4a_v1_conflict_pilot": {
+      "near_bottle_far_bottle": {
+        "height": 1.0297300633466846,
+        "area": 1.0241612766032901,
+        "binding": 1.0297300633466846
+      },
+      "near_bottle_far_chair": {
+        "height": 1.0383492771071337,
+        "area": 1.3729117912071502,
+        "binding": 1.3729117912071502
+      },
+      "near_bottle_far_cube": {
+        "height": 1.0565352377733206,
+        "area": 1.8525649939937667,
+        "binding": 1.8525649939937667
+      },
+      "near_bottle_far_cylinder": {
+        "height": 1.0616549877404517,
+        "area": 1.6611274538007297,
+        "binding": 1.6611274538007297
+      },
+      "near_bottle_far_mug": {
+        "height": 1.0469099081814683,
+        "area": 1.6124996022235414,
+        "binding": 1.6124996022235414
+      },
+      "near_bottle_far_sphere": {
+        "height": 1.0376290487615807,
+        "area": 1.6567047262768833,
+        "binding": 1.6567047262768833
+      },
+      "near_chair_far_bottle": {
+        "height": 1.0303439499875506,
+        "area": 0.8060859009523682,
+        "binding": 1.0303439499875506
+      },
+      "near_chair_far_chair": {
+        "height": 1.03896830220163,
+        "area": 1.0805767249995537,
+        "binding": 1.0805767249995537
+      },
+      "near_chair_far_cube": {
+        "height": 1.0571651046589832,
+        "area": 1.4580970364443155,
+        "binding": 1.4580970364443155
+      },
+      "near_chair_far_cylinder": {
+        "height": 1.0622879068300086,
+        "area": 1.3074224253377449,
+        "binding": 1.3074224253377449
+      },
+      "near_chair_far_mug": {
+        "height": 1.0475340368047836,
+        "area": 1.2691489361466872,
+        "binding": 1.2691489361466872
+      },
+      "near_chair_far_sphere": {
+        "height": 1.0382476444828117,
+        "area": 1.3039414322733025,
+        "binding": 1.3039414322733025
+      },
+      "near_cube_far_bottle": {
+        "height": 1.04148040772682,
+        "area": 0.6069590197237563,
+        "binding": 1.04148040772682
+      },
+      "near_cube_far_chair": {
+        "height": 1.0501979761275542,
+        "area": 0.8136425521984059,
+        "binding": 1.0501979761275542
+      },
+      "near_cube_far_cube": {
+        "height": 1.0685914584621063,
+        "area": 1.0979042641196761,
+        "binding": 1.0979042641196761
+      },
+      "near_cube_far_cylinder": {
+        "height": 1.073769630366593,
+        "area": 0.9844507052043637,
+        "binding": 1.073769630366593
+      },
+      "near_cube_far_mug": {
+        "height": 1.0588562933497594,
+        "area": 0.9556318914112356,
+        "binding": 1.0588562933497594
+      },
+      "near_cube_far_sphere": {
+        "height": 1.0494695291901646,
+        "area": 0.9818296196158887,
+        "binding": 1.0494695291901646
+      },
+      "near_cylinder_far_bottle": {
+        "height": 1.0517135142513148,
+        "area": 0.6379825275944621,
+        "binding": 1.0517135142513148
+      },
+      "near_cylinder_far_chair": {
+        "height": 1.0605167374617,
+        "area": 0.8552302793789931,
+        "binding": 1.0605167374617
+      },
+      "near_cylinder_far_cube": {
+        "height": 1.0790909456771132,
+        "area": 1.1540214655655006,
+        "binding": 1.1540214655655006
+      },
+      "near_cylinder_far_cylinder": {
+        "height": 1.0843199959123948,
+        "area": 1.0347689527445838,
+        "binding": 1.0843199959123948
+      },
+      "near_cylinder_far_mug": {
+        "height": 1.0692601273187818,
+        "area": 1.0044771223762305,
+        "binding": 1.0692601273187818
+      },
+      "near_cylinder_far_sphere": {
+        "height": 1.0597811331404052,
+        "area": 1.0320138955587828,
+        "binding": 1.0597811331404052
+      },
+      "near_mug_far_bottle": {
+        "height": 1.0195239432413539,
+        "area": 0.6483948275036026,
+        "binding": 1.0195239432413539
+      },
+      "near_mug_far_chair": {
+        "height": 1.0280577280782588,
+        "area": 0.869188207339573,
+        "binding": 1.0280577280782588
+      },
+      "near_mug_far_cube": {
+        "height": 1.046063439468061,
+        "area": 1.1728558647556488,
+        "binding": 1.1728558647556488
+      },
+      "near_mug_far_cylinder": {
+        "height": 1.0511324452790938,
+        "area": 1.0516570714729587,
+        "binding": 1.0516570714729587
+      },
+      "near_mug_far_mug": {
+        "height": 1.0365335108685316,
+        "area": 1.0208708582509223,
+        "binding": 1.0365335108685316
+      },
+      "near_mug_far_sphere": {
+        "height": 1.0273446382413884,
+        "area": 1.0488570499183156,
+        "binding": 1.0488570499183156
+      },
+      "near_sphere_far_bottle": {
+        "height": 1.027976941785237,
+        "area": 0.6352033276915423,
+        "binding": 1.027976941785237
+      },
+      "near_sphere_far_chair": {
+        "height": 1.0365814812829601,
+        "area": 0.8515046978675588,
+        "binding": 1.0365814812829601
+      },
+      "near_sphere_far_cube": {
+        "height": 1.0547364802428765,
+        "area": 1.148994280327121,
+        "binding": 1.148994280327121
+      },
+      "near_sphere_far_cylinder": {
+        "height": 1.0598475138052175,
+        "area": 1.0302612591187796,
+        "binding": 1.0598475138052175
+      },
+      "near_sphere_far_mug": {
+        "height": 1.045127537831941,
+        "area": 1.000101386991252,
+        "binding": 1.045127537831941
+      },
+      "near_sphere_far_sphere": {
+        "height": 1.0358624791304518,
+        "area": 1.0275182036012565,
+        "binding": 1.0358624791304518
+      }
+    }
+  },
+  "pose_coverage": {
+    "height:bottle:far": {
+      "n": 198,
+      "range": 11.155851298626033,
+      "range_recovered_half_median_pct": 95.33122404998514,
+      "range_recovered_quarter_median_pct": 86.46260076424043
+    },
+    "height:bottle:near": {
+      "n": 200,
+      "range": 11.141716926003312,
+      "range_recovered_half_median_pct": 92.1460491072086,
+      "range_recovered_quarter_median_pct": 82.87898361156458
+    },
+    "height:chair:far": {
+      "n": 201,
+      "range": 22.8723565507417,
+      "range_recovered_half_median_pct": 89.55919371212077,
+      "range_recovered_quarter_median_pct": 76.50740163176376
+    },
+    "height:chair:near": {
+      "n": 201,
+      "range": 25.341178662224934,
+      "range_recovered_half_median_pct": 95.73223287915332,
+      "range_recovered_quarter_median_pct": 86.53621183937044
+    },
+    "height:cube:far": {
+      "n": 200,
+      "range": 38.85082449207317,
+      "range_recovered_half_median_pct": 96.73526127328343,
+      "range_recovered_quarter_median_pct": 89.63159629794971
+    },
+    "height:cube:near": {
+      "n": 201,
+      "range": 50.415291968002634,
+      "range_recovered_half_median_pct": 96.30408838439972,
+      "range_recovered_quarter_median_pct": 90.14846705080765
+    },
+    "height:cylinder:far": {
+      "n": 201,
+      "range": 40.381263149201686,
+      "range_recovered_half_median_pct": 87.24587724663678,
+      "range_recovered_quarter_median_pct": 80.70101436943375
+    },
+    "height:cylinder:near": {
+      "n": 199,
+      "range": 55.00761796243904,
+      "range_recovered_half_median_pct": 90.08663696003414,
+      "range_recovered_quarter_median_pct": 77.90708378710137
+    },
+    "height:mug:far": {
+      "n": 201,
+      "range": 29.728975030323227,
+      "range_recovered_half_median_pct": 95.22745451590006,
+      "range_recovered_quarter_median_pct": 87.65411649375167
+    },
+    "height:mug:near": {
+      "n": 201,
+      "range": 31.752644634154194,
+      "range_recovered_half_median_pct": 98.84210381526363,
+      "range_recovered_quarter_median_pct": 93.79901072316109
+    },
+    "height:sphere:far": {
+      "n": 199,
+      "range": 12.10849686854408,
+      "range_recovered_half_median_pct": 97.89229602727107,
+      "range_recovered_quarter_median_pct": 89.60650942997601
+    },
+    "height:sphere:near": {
+      "n": 198,
+      "range": 11.58824816172222,
+      "range_recovered_half_median_pct": 91.56924182043797,
+      "range_recovered_quarter_median_pct": 81.73978813306495
+    },
+    "area:bottle:far": {
+      "n": 198,
+      "range": 2419.2883403257365,
+      "range_recovered_half_median_pct": 94.43855632331571,
+      "range_recovered_quarter_median_pct": 86.65961507285637
+    },
+    "area:bottle:near": {
+      "n": 200,
+      "range": 3497.971653821507,
+      "range_recovered_half_median_pct": 94.93193355919402,
+      "range_recovered_quarter_median_pct": 80.72939965289399
+    },
+    "area:chair:far": {
+      "n": 201,
+      "range": 14622.240567380562,
+      "range_recovered_half_median_pct": 95.78819144648371,
+      "range_recovered_quarter_median_pct": 81.38111254126211
+    },
+    "area:chair:near": {
+      "n": 201,
+      "range": 15341.444374488172,
+      "range_recovered_half_median_pct": 95.48763708250921,
+      "range_recovered_quarter_median_pct": 85.54297836097629
+    },
+    "area:cube:far": {
+      "n": 200,
+      "range": 32562.791120307607,
+      "range_recovered_half_median_pct": 88.93690865256102,
+      "range_recovered_quarter_median_pct": 81.00554842820387
+    },
+    "area:cube:near": {
+      "n": 201,
+      "range": 36018.43989109149,
+      "range_recovered_half_median_pct": 96.70672271667848,
+      "range_recovered_quarter_median_pct": 87.2421702870982
+    },
+    "area:cylinder:far": {
+      "n": 201,
+      "range": 11955.747317481291,
+      "range_recovered_half_median_pct": 96.75951371326268,
+      "range_recovered_quarter_median_pct": 90.25354376513455
+    },
+    "area:cylinder:near": {
+      "n": 199,
+      "range": 13813.94095294176,
+      "range_recovered_half_median_pct": 97.280849156491,
+      "range_recovered_quarter_median_pct": 91.56041690453448
+    },
+    "area:mug:far": {
+      "n": 201,
+      "range": 7486.40877918656,
+      "range_recovered_half_median_pct": 90.05114553569261,
+      "range_recovered_quarter_median_pct": 84.99115034688386
+    },
+    "area:mug:near": {
+      "n": 201,
+      "range": 9308.179801969542,
+      "range_recovered_half_median_pct": 94.89318283609455,
+      "range_recovered_quarter_median_pct": 82.59468109957199
+    },
+    "area:sphere:far": {
+      "n": 199,
+      "range": 6674.729224362731,
+      "range_recovered_half_median_pct": 95.89053497590936,
+      "range_recovered_quarter_median_pct": 82.87090387281418
+    },
+    "area:sphere:near": {
+      "n": 198,
+      "range": 7216.829117425208,
+      "range_recovered_half_median_pct": 96.22346554808719,
+      "range_recovered_quarter_median_pct": 91.41508628801245
+    }
+  }
+}

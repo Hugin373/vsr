@@ -346,6 +346,18 @@ forward-compat but is outside the core matrix.)
    - **(e) Recalibrate.** Any new primitive, pose freedom, or per-object size jitter invalidates
      the M1 calibration and the 1.18 depth-ratio floor — re-derive from WORST CASE
      (`scripts/derive_cue_constants.py`).
+     - ✅ **DONE 2026-07-19 for the six-category set** (`reports/m4a_cue_constants.md`): binding
+       worst-case ratio **1.7661 / 1.8671 / 1.8526** for natural-congruent / counterbalanced /
+       conflict, derived **per regime** (pooling inflates by +5.5%) from 1200-scene dense
+       silhouette sweeps at 198–202 samples per category×role cell. Committed to every M4a config
+       with provenance. Re-derive again at §5 re-render scale — at n≈200 the extremes are still a
+       LOWER bound (worst cell's half-sample recovers 74.9% of range).
+     - 🔴 **DESIGN DECISION OWED, blocks nothing yet:** area congruence and an informative
+       depth-ratio target are **incompatible** for the current six-category height-calibrated set —
+       the minimum congruent floor (1.766) exceeds the maximum ratio the design produces (1.474),
+       so 100% of natural-congruent images are floor-clamped and its ratio target is an independent
+       uniform draw (this is what R² = −0.252 was). Options in `reports/m4a_cue_constants.md` §4;
+       take the decision with the §5 re-render, not before.
 2. ⚠ **While the generator is open, add the SOLO-OBJECT ID PASS** (M4.5's prerequisite). It is nearly
    free now — one extra tiny render per object — and expensive to retrofit once 5–10k images are
    rendered. M4.5 does not *run* until M4b's gate passes; its cheap prerequisite belongs **here**.

@@ -1549,3 +1549,97 @@ A second advisor-level review of the strengthening results was arbitrated in the
   sampling bias check (ruling 2) · B0/B1/B2 z-baseline split + preregister Δ_R|B0,B2 (ruling 3) ·
   decorrelation matrix (#11) · `derive_cue_constants` (#9).
 
+
+## 📌 2026-07-19 (seventh session) — M4a blocker #9 CLOSED: cue constants, floor squeeze, bin sweep
+
+Executed advisor addendum items 1–3 only. Textures (#4), freeze tag (#5), §5 (#6), contrastive
+pairs and the 1k render deliberately untouched. Full report: `reports/m4a_cue_constants.md`.
+
+- **✅ SCHEMA FIX (addendum #1).** Size-schema handling moved into `src/sbind/stimuli/cue_constants.py`:
+  **shared** (`size_multiplier`) · **per_object** (`size_multiplier_near/_far`) · **explicit**
+  (object's own `size_m`). Resolved from `condition.size_schema`, else `condition.size_condition`
+  via an exhaustive map **with NO default**. Missing field → `CueConstantSchemaError`. No fallback.
+  - **The real safeguard is an invariant, not a prohibition:** every object must satisfy
+    `size_norm × size_m_by_category[cat] == object.size_m`. That identity breaks the instant the
+    wrong multiplier is divided out, so a silent cross-schema fallback is structurally impossible
+    rather than merely forbidden.
+  - **Rule-11 verified:** 15 of 17 tests in `tests/test_cue_constants.py` FAIL against a shim
+    reproducing the old behaviour (the 2 that pass describe behaviour already correct for shared
+    sets). The suppressed error is quantified: the naive fallback inflates a far object's height
+    constant by **1.60×** with no exception.
+  - **🐛 TWO MORE BUGS FOUND IN THE SAME CODE.** (a) Roles were assigned by `argmin` over ALL
+    objects — distractors (world-y 2.7–4.4 m, own multiplier 0.45–0.7×) can be nearer than the far
+    target, so on every image carrying one, roles were mislabelled and a distractor's silhouette was
+    normalised by the target pair's multiplier. Roles now come from `target_object_indices` +
+    `closer_object`, distractors excluded. (b) `--check-floor` would have flagged counterbalanced
+    and conflict as violations; congruence is only a requirement where the design claims it.
+
+- **✅ NEW INSTRUMENT: `scripts/measure_silhouettes.py`** — ID-pass-only sweep, **0.17 s/scene** vs
+  ~3 s for a full render, because the constants depend on the flat-emission pass alone. **Validated
+  exactly** against two rendered sets (0.000 px / 0 px max diff on 179 objects) — it is the same
+  code path with the beauty pass removed, not an approximation. Writes to
+  `$DATA_ROOT/measurements/`, never `stimuli/`.
+  - **Why it was needed:** the pilots gave ~23 samples per (category, role) cell and a half-sample
+    subset of the worst cell recovered only **48%** of the measured range. A worst case from
+    unconverged extremes is a lower bound wearing a worst case's clothes. Swept 1200 scenes/regime
+    → **198–202 per cell**.
+
+- **✅ CONSTANTS COMMITTED (addendum #1).** `cue_constants` block in all 8 M4a configs, between
+  generated sentinel comments (TEXT surgery, not a YAML round-trip — `safe_dump` would have deleted
+  every hand-written freeze comment in the pilot configs). Provenance: source set, seed, render git
+  hash, derivation version `2.0.0`, per-cell n. Binding worst-case ratio **1.7661 / 1.8671 / 1.8526**
+  (natural-congruent / counterbalanced / conflict); **area binds in all three, always at
+  near=bottle/far=cube**. Cube area constant spreads 25.9% as near vs a sphere's 4.6% — the v0
+  means-are-unsafe lesson reproduces at six categories.
+  - **DERIVE PER REGIME, NOT POOLED.** Pooling all three inflates natural-congruent's requirement to
+    1.8640 (**+5.5%**): `C_a` is not perfectly size-invariant, so conflict's 1.12–1.30× far objects
+    import pose conditions that regime never produces.
+  - ⚠ **Extremes still not fully converged at n≈200** (worst cell's half-sample recovers 74.9%).
+    Each threshold is a LOWER BOUND; keep margin and re-derive at §5 scale before the freeze tag.
+
+- **🔴 ✅ FLOOR SQUEEZE (addendum #2) — VERDICT: the natural-congruent ratio failure IS an artifact,
+  but NOT of the number 1.85.** Measured with `scripts/floor_squeeze.py` (same seed, real floor vs a
+  non-binding 1.000001 that still consumes the jitter draw), n=1200, stratified by pairing:
+  - Natural-congruent available ratio **1.046–1.474**; floor **1.85** — above the ENTIRE range.
+    Acceptance fraction **0.000**; floor-determined fraction **1.000**. The accepted depth ratio is
+    `1.85 × (1 + U(0, 0.08))` and nothing else.
+  - **`r(ratio, depth_gap_bin)`: +0.906 without the floor → −0.017 with it.** The two regimes that
+    PASS the gate are untouched (+0.905 → +0.905, floor 1.05, acceptance 1.000). So the ratio is
+    statistically independent of every depth factor by construction, and **R² = −0.252 is exactly
+    what regressing on independent noise under a held-out split produces.**
+  - **1.85 is nevertheless justified:** derived requirement 1.7661, cleared by **+4.75%**, all 36
+    pairings clear, and `validate_stimuli.py` enforces area congruence as a HARD check for this
+    regime. The incompatibility is structural: **the minimum floor any congruent six-category design
+    can use (1.766) already exceeds the maximum ratio the design produces (1.474).** Height
+    calibration leaves area shape-dependent — a height-calibrated bottle's silhouette area is ~3×
+    smaller than a cube's, and `sqrt(151754/48653) = 1.766`.
+  - **DECISION OWED (not taken this session, belongs with the §5 re-render):** calibrate the
+    congruent regime on AREA instead of height · per-pairing floors (v0's shape-predicts-ratio
+    confound objection still stands) · restrict natural-congruent to an area-compatible category
+    subset · widen the depth range (interacts with the placement limit that forced the bin drop).
+    Meanwhile natural-congruent stays a CONTROL — but the reason is corrected: its ratio target is
+    not "narrow and shortcut-heavy", it is **not a scene property at all**.
+
+- **✅ BIN-DROP SWEEP (addendum #3) — five configs were stale AND the guard was scoped out.**
+  `natural_congruent`, `counterbalanced`, `conflict`, `contrastive_pairs`, `counterbalanced_pilot`
+  still carried the dropped 0.2 m bin, the pre-freeze pan-only jitter (no `pos_x_m`/`pos_y_m`) and
+  `target_placement_attempts: 120`. All synced to the frozen generator block.
+  - ⚠ **`test_frozen_m4a_configs_place_at_scale` passed the whole time** because it globbed only
+    `*_pilot*` AND skipped configs without `pos_x_m` — the two filters between them excluded exactly
+    the five configs that were wrong. **A guard whose scope excludes the un-migrated cases certifies
+    nothing.** Widened to all M4a configs + new `test_all_m4a_configs_share_the_frozen_generator_block`;
+    both verified to FAIL against the pre-fix configs.
+  - **Dynamic range (validity-only per DR3 #14, "easier" is REPORTED not failed):** depth span
+    2.44×→2.11× (counterbalanced) and 3.80×→3.22× (natural-congruent); ratio sd 0.100→0.089.
+    Bought: placement failures 5–6/1200 → **0**, near_depth_bin balance 0.975–0.992 → **1.000**.
+    Ordinal margin strictly positive everywhere (min 0.242 m conflict / 2.630 m natural-congruent,
+    0 non-positive over 1200 each).
+  - ⚠ **Could not reproduce the "max ratio ~3.1×, was ~10×" figure** from the session prompt.
+    Measured max far/near ratio 1.474 available / 1.998 accepted; depth dynamic range 2.08–3.22×.
+    The nearest 3.1 is conflict's shape+multiplier apparent-size requirement (3.0876). Flagged, not
+    repeated.
+
+- **STILL OWED in §4:** nuisance TEXTURE families (#4) + lighting/renderer-seed families ·
+  determinism byte-compare · TAG the freeze (#5, dead last). **§5 revalidation** (#6, runs ONCE
+  against a pre-registered block). NOT started: contrastive pairs, 1k render. New: the
+  natural-congruent congruence-vs-ratio design decision, and re-deriving the constants at §5 scale.

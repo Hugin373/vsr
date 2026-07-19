@@ -1,0 +1,53 @@
+================================================================================================
+m4a_v1_counterbalanced_pilot_j2  regime=counterbalanced  floor=1.05 (band 1.050..1.092)  n=1200
+================================================================================================
+  available ratio : n=1200 [1.055 .. 1.471] median 1.213  sd 0.089  dyn-range 1.39x
+  accepted  ratio : n=1200 [1.066 .. 1.471] median 1.213  sd 0.089  dyn-range 1.38x
+  acceptance fraction (available >= floor) : 1.000
+  floor-DETERMINED fraction (accepted within the floor band) : 0.058
+  placement failures: 0 with floor, 0 without
+  r(ratio, depth_gap_bin) : available +0.905 -> accepted +0.905
+  r(ratio, near_depth_bin): available -0.316 -> accepted -0.316
+  depth span (accepted): near 2.95..4.95 m  far 3.46..6.23 m  all 2.95..6.23 m (2.11x)
+  ordinal margin (far-near): min 0.258 m  median 0.849 m  max 1.519 m  non-positive 0
+  near_depth_bin counts {0: 300, 1: 300, 2: 300, 3: 300}  balance (min/max) 1.000  bins [0.65, 1.1, 1.55, 2.0]
+
+  pairing                          req   floor    mgn%       avail range         acc range acc frac floor-det   dyn
+  near_bottle_far_bottle        1.0256   1.050    +2.4   1.080..1.378      1.080..1.378       1.000     0.030  1.28
+  near_bottle_far_chair         1.3807   1.050   -24.0   1.081..1.404      1.081..1.404       1.000     0.061  1.30
+  near_bottle_far_cube          1.8671   1.050   -43.8   1.076..1.387      1.076..1.387       1.000     0.029  1.29
+  near_bottle_far_cylinder      1.6790   1.050   -37.5   1.081..1.392      1.081..1.392       1.000     0.029  1.29
+  near_bottle_far_mug           1.6263   1.050   -35.4   1.081..1.350      1.084..1.350       1.000     0.091  1.25
+  near_bottle_far_sphere        1.6552   1.050   -36.6   1.115..1.471      1.115..1.471       1.000     0.000  1.32
+  near_chair_far_bottle         1.0297   1.050    +2.0   1.076..1.379      1.076..1.379       1.000     0.091  1.28
+  near_chair_far_chair          1.0808   1.050    -2.8   1.109..1.371      1.109..1.371       1.000     0.000  1.24
+  near_chair_far_cube           1.4615   1.050   -28.2   1.080..1.460      1.084..1.460       1.000     0.091  1.35
+  near_chair_far_cylinder       1.3143   1.050   -20.1   1.074..1.434      1.085..1.434       1.000     0.059  1.32
+  near_chair_far_mug            1.2730   1.050   -17.5   1.079..1.338      1.086..1.338       1.000     0.061  1.23
+  near_chair_far_sphere         1.2956   1.050   -19.0   1.057..1.413      1.076..1.413       1.000     0.061  1.31
+  near_cube_far_bottle          1.0478   1.050    +0.2   1.055..1.412      1.079..1.412       1.000     0.118  1.31
+  near_cube_far_chair           1.0716   1.050    -2.0   1.085..1.382      1.085..1.382       1.000     0.088  1.27
+  near_cube_far_cube            1.1124   1.050    -5.6   1.133..1.419      1.133..1.419       1.000     0.000  1.25
+  near_cube_far_cylinder        1.0897   1.050    -3.6   1.066..1.372      1.066..1.372       1.000     0.121  1.29
+  near_cube_far_mug             1.0849   1.050    -3.2   1.063..1.323      1.073..1.323       1.000     0.147  1.23
+  near_cube_far_sphere          1.0593   1.050    -0.9   1.066..1.422      1.078..1.422       1.000     0.091  1.32
+  near_cylinder_far_bottle      1.0488   1.050    +0.1   1.071..1.432      1.071..1.432       1.000     0.030  1.34
+  near_cylinder_far_chair       1.0726   1.050    -2.1   1.074..1.438      1.074..1.438       1.000     0.091  1.34
+  near_cylinder_far_cube        1.1622   1.050    -9.7   1.062..1.358      1.090..1.358       1.000     0.059  1.25
+  near_cylinder_far_cylinder    1.0907   1.050    -3.7   1.088..1.393      1.088..1.393       1.000     0.029  1.28
+  near_cylinder_far_mug         1.0860   1.050    -3.3   1.077..1.397      1.086..1.397       1.000     0.061  1.29
+  near_cylinder_far_sphere      1.0603   1.050    -1.0   1.081..1.434      1.083..1.434       1.000     0.061  1.32
+  near_mug_far_bottle           1.0361   1.050    +1.3   1.095..1.399      1.095..1.399       1.000     0.000  1.28
+  near_mug_far_chair            1.0596   1.050    -0.9   1.086..1.393      1.090..1.393       1.000     0.030  1.28
+  near_mug_far_cube             1.1812   1.050   -11.1   1.084..1.436      1.084..1.436       1.000     0.029  1.32
+  near_mug_far_cylinder         1.0775   1.050    -2.6   1.116..1.430      1.116..1.430       1.000     0.000  1.28
+  near_mug_far_mug              1.0728   1.050    -2.1   1.069..1.332      1.074..1.332       1.000     0.152  1.24
+  near_mug_far_sphere           1.0475   1.050    +0.2   1.090..1.443      1.090..1.443       1.000     0.029  1.32
+  near_sphere_far_bottle        1.0204   1.050    +2.9   1.067..1.409      1.074..1.409       1.000     0.091  1.31
+  near_sphere_far_chair         1.0436   1.050    +0.6   1.094..1.410      1.094..1.410       1.000     0.000  1.29
+  near_sphere_far_cube          1.1541   1.050    -9.0   1.084..1.388      1.084..1.388       1.000     0.061  1.28
+  near_sphere_far_cylinder      1.0612   1.050    -1.1   1.083..1.417      1.083..1.417       1.000     0.091  1.31
+  near_sphere_far_mug           1.0565   1.050    -0.6   1.079..1.411      1.079..1.411       1.000     0.121  1.31
+  near_sphere_far_sphere        1.0316   1.050    +1.8   1.093..1.366      1.093..1.366       1.000     0.000  1.25
+
+wrote reports/m4a_floor_squeeze/counterbalanced.json

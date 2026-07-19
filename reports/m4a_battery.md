@@ -97,6 +97,26 @@ The counterbalanced pilot reduces physical-size/depth correlation to near zero b
 - No human spot-check/contact sheet has been generated for the M4a pilot.
 - The canonical new object classes are procedural stand-ins, not imported CC0 assets.
 - Natural-congruent ratio recovery fails under held-out depth-gap/object-pair/cue splits; keep it as a control, not the localization claim regime.
+  - ⚠ **REASON CORRECTED 2026-07-19** (`reports/m4a_cue_constants.md` §4, measured). The line above
+    once read that the ratio range there is "narrow and shortcut-heavy". Measured: the 1.85 floor sits
+    ABOVE the entire ratio range the design produces (available 1.046–1.474), so acceptance fraction is
+    **0.000** and **100%** of images are clamped into the floor band. The accepted depth ratio is
+    `1.85 × (1 + U(0, 0.08))` — an independent uniform draw. `r(ratio, depth_gap_bin)` collapses
+    **+0.906 → −0.017**, while the two passing regimes keep +0.905 → +0.905. A negative R² is the
+    expected signature of regressing on independent noise, so **R² = −0.252 is a design artifact, not a
+    property of depth**. It is NOT a mis-set constant: the derived worst-case congruence requirement is
+    1.7661 and 1.85 clears it by +4.75%, but 1.7661 already exceeds the maximum available ratio 1.474 —
+    area congruence and an informative ratio target are incompatible for this six-category set as
+    currently (height-)calibrated. Design options recorded, none chosen.
+
+## Cue Constants (2026-07-19, blocker #9 — CLOSED)
+
+Six-category worst-case `cue_constants` are committed to every M4a config with full provenance,
+derived per regime from 1200-scene dense silhouette sweeps (198–202 samples per category×role cell,
+up from ~23 in the pilots). Binding requirement 1.7661 / 1.8671 / 1.8526 for
+natural-congruent / counterbalanced / conflict; area binds in all three, at near=bottle/far=cube.
+Schema now supports shared · per-object · explicit sizing with hard-fail and no fallback. Full
+report: `reports/m4a_cue_constants.md`.
 
 ## Verification Commands
 
