@@ -92,7 +92,12 @@ The counterbalanced pilot reduces physical-size/depth correlation to near zero b
 ## Remaining M4a Blockers
 
 - True contrastive matched pairs are not implemented yet; only the config scaffold exists.
-- The pilot is 140 images total, not the planned ~1k gate-scale pilot or 5-10k final battery.
+- The pilot is 140 images total. ⚠ The "~1k gate-scale pilot" figure is **RETIRED**
+  (2026-07-19): it predates the three-regime matched contrast and is not derivable from the
+  criteria block. Gate-scale N is now **derived** from the per-cell requirement — minimum
+  **400 / 900 / 900 = 2 200** across natural-congruent / counterbalanced / conflict, and that
+  is a FLOOR pending Check D's held-out lighting and texture strata. Derivation:
+  `docs/M4A_S5_CRITERIA.md`.
 - Determinism has not yet been re-verified by byte-comparing M4a annotations/masks and measuring pixel tolerance on rerendered images.
 - No human spot-check/contact sheet has been generated for the M4a pilot.
 - The canonical new object classes are procedural stand-ins, not imported CC0 assets.

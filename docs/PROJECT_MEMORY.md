@@ -1846,3 +1846,49 @@ All rulings final. Session accepted; the in-place retraction and R2 filing endor
 (symmetry hard-fail; P(near|c)=0.5 at assignment AND realized levels; eligibility manifest) + the
 8-seed sweep + re-derive operative constants over the new envelopes (natural-congruent 4-set @
 1.1707; counterbalanced/conflict full six). **Textures follow.**
+
+### ✅ §5 CRITERIA RECONCILED (2026-07-19) — canonical A–D received; my draft's mapping was WRONG
+
+Canonical text arrived as `docs/M4A_S5_CRITERIA-reviewer.md` (ratified; **received artifact, NOT
+edited** — it is the record of what was ratified). Reconciled into `docs/M4A_S5_CRITERIA.md`,
+keeping the C-1…C-5 numbering and the pre-committed bound machinery. **Reconciliation blocker
+CLEARED.**
+
+- 🔴 **MY DRAFT'S A–D CONTENTS WERE SUBSTANTIALLY WRONG — recorded, not quietly overwritten:**
+
+  | | my draft | canonical | verdict |
+  |---|---|---|---|
+  | A | natural-congruent ratio validity | **Sampling semantics** | ~matches; canonical adds unclamped-subset measures, per-pairing counts, "instrument failure not model result" |
+  | B | realized-set band separation | **Category and role independence** | **wrong subject** — symmetry + P(near\|c) live in B |
+  | C | category↔depth coupling | **Clamp burden and support overlap** | partly wrong — my band-separation content belongs here |
+  | D | construction invariants | **Pixel-level ratio identifiability** | **entirely wrong** — a check my draft did not contain at all |
+  | C-5 | provenance/determinism | engineering gates **including all construction invariants** | my C-4 content belongs here |
+
+  This is why guessing at a spec's contents and labelling it with the spec's letters is dangerous:
+  the labels were right, the contents were mine, and D in particular was a whole missing check.
+- 🔴 **RETRACTION (in place, rule 13):** I wrote last session that "realized = placed" means the
+  8-seed sweep "covers more of **check D** than the scoping implies". TRUE under my draft's D
+  (construction invariants); **FALSE under canonical D (pixel-level identifiability)**. The
+  observation survives, its destination was wrong.
+- **✅ BOUNDARY WRITTEN INTO THE CRITERIA FILE (ruling 1):** "realized = PLACED, not RENDERED". The
+  assignment-level sweep establishes **Checks A, B, C** (including **placed-level P(near|c)**) and
+  the C-5 construction invariants, with no renderer. It contributes **NOTHING to Check D**, which is
+  **exclusively pixel-level on the frozen pilot**. `r(realized ratio, depth_gap_bin)` **does not
+  satisfy Check D under any circumstances** — it validates generator semantics, not visual
+  recoverability.
+- **✅ CHECK C HAS FIVE BINDING HARD FAILURES, not the three in the ruling summary.** Adds:
+  (4) clamping causes realized ratio to cease tracking the intended depth-gap design; (5) a weakest
+  pre-specified stratum violates its bound even when the aggregate passes. All five transcribed.
+- **✅ GATE-SCALE N DERIVED; "~1k" RETIRED (ruling 2).** From the pre-registered ≥25 images per
+  pairing cell and 16 eligible pairings: natural-congruent **≥400** (eligible fraction 1.000),
+  counterbalanced **≥900** and conflict **≥900** (eligible fraction 16/36 = 0.444) → **≥2 200
+  total**. Neat property: at N=900 a six-category arm gives exactly 25/cell for BOTH the tier-3
+  full-arm (900/36) and the tier-2 restricted contrast (900×0.444/16) — no arm is over- or
+  under-provisioned. ⚠ **2 200 is a FLOOR:** Check D requires per-stratum counts for held-out
+  lighting and texture families, which **do not exist yet**; N must be re-derived against the
+  weakest held-out stratum once they do, and will only go up.
+- **Bound cells remain EMPTY** (ruling 3). Single-seed numbers stay as labelled reference only.
+
+**NEXT SESSION (unchanged, now unblocked):** 4-set generator + machine-checked invariants + the
+8-seed sweep (bounds filled mechanically from the pre-committed formula) + constants re-derived over
+the new envelopes. Textures follow.
