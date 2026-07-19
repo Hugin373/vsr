@@ -26,7 +26,7 @@
 #   the ANALYSIS does not undo it: the confound is in the realized stimuli, and every other target
 #   (ordinal, absolute depth, lateral) is still read over the full generated set.
 
-version: 1
+version: 2   # v2 (2026-07-19): three analysis tiers; matched contrast is THREE-regime
 ratified_utc: '2026-07-19'
 supersedes: >
   The 2026-07-19 recommendation "subset the ANALYSIS, not the stimuli — keep 6 categories
@@ -45,6 +45,10 @@ generated:
       Largest symmetric subset whose worst-case area-congruence requirement (1.1176) leaves a
       usable ratio range below the design's available maximum (1.4737). Uniform floor keeps
       eta2(pairing -> ratio) = 0 by construction.
+      ⚠ This is an IDENTIFICATION NECESSITY, not a preference or a convenience trade. The
+      six-category congruent alternative is formally dead by measurement (4/36 pairings
+      always-clamped; disjoint ratio support 1.665-1.850 vs 1.171-1.474; eta2 = 0.865), so there
+      is no version of this regime that generates six categories and remains identifiable.
   counterbalanced:
     categories: [bottle, chair, cube, cylinder, mug, sphere]
     symmetric: true
@@ -62,29 +66,52 @@ generated:
 # ---------------------------------------------------------------------------------------------
 # ANALYSIS eligibility — which pairings each contrast is READ over
 # ---------------------------------------------------------------------------------------------
-analysis:
-  matched_arm_fusion_contrast:
-    # The conflict regime's fusion analysis read against natural-congruent as the
-    # all-cues-agree reference. Both arms must cover the same pairings or the reference is not
-    # matched.
+#
+# THREE TIERS (ruling of 2026-07-19). Every M4a analysis declares which tier it reads, and the tier
+# fixes its category set. An analysis that does not name its tier is not runnable.
+analysis_tiers:
+
+  tier_1_control_specific:
+    # Anything read on the congruent control alone — the ratio arm this whole fix restores.
+    id: control_specific
     categories: [cube, cylinder, mug, sphere]
     pairings: 16                    # C x C, symmetric
-    arms: [natural_congruent, conflict]
-    natural_congruent_coverage: 1.00   # generates exactly this set
-    conflict_coverage: 0.444           # 16 of 36 generated pairings are eligible
+    regimes: [natural_congruent]
+    coverage: {natural_congruent: 1.00}
+
+  tier_2_matched_contrast:
+    # ⚠ THREE regimes, not two (corrected 2026-07-19). The matched contrast is
+    # natural-congruent vs counterbalanced vs conflict on a common category set: the congruent
+    # arm is the all-cues-agree reference, counterbalanced the decorrelated one, conflict the
+    # inverted one. All three must cover the same pairings or the comparison is not matched.
+    id: matched_three_regime_contrast
+    categories: [cube, cylinder, mug, sphere]
+    pairings: 16
+    regimes: [natural_congruent, counterbalanced, conflict]
+    coverage:
+      natural_congruent: 1.000      # generates exactly this set
+      counterbalanced: 0.444        # 16 of 36 generated pairings are eligible
+      conflict: 0.444
     per_cell_n_check:
       # Pre-registered, checked at gate scale BEFORE the contrast is read.
       min_images_per_pairing_cell: 25
-      implied_min_conflict_n: 900     # ceil(16 * 25 / 0.444)
+      implied_min_n:
+        natural_congruent: 400      # ceil(16 * 25 / 1.000)
+        counterbalanced: 900        # ceil(16 * 25 / 0.444)
+        conflict: 900
       note: >
-        The conflict arm loses 55.6% of its images to eligibility, so its n must be sized for the
-        RESTRICTED contrast, not the full set. Failing this check means the contrast is
-        underpowered and must be reported as such, never quietly read anyway.
-  unrestricted_contrasts:
-    # Everything that does not compare against the congruent reference reads the full generated
-    # set of its own regime.
+        The six-category arms each lose 55.6% of their images to eligibility, so their n must be
+        sized for the RESTRICTED contrast, not the full set. Failing this check means the contrast
+        is underpowered and must be REPORTED as such, never quietly read anyway.
+
+  tier_3_full_arm:
+    # The full six-category set, available ONLY where no congruent reference is involved.
+    # natural-congruent is absent by construction: it does not generate six categories.
+    id: full_arm
     categories: [bottle, chair, cube, cylinder, mug, sphere]
-    applies_to: [counterbalanced, conflict]
+    pairings: 36
+    regimes: [counterbalanced, conflict]
+    coverage: {counterbalanced: 1.00, conflict: 1.00}
 
 # ---------------------------------------------------------------------------------------------
 # Machine-checked invariants — implemented as tests, not prose (2026-07-19 ruling)

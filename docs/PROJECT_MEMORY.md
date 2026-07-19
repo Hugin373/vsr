@@ -1794,3 +1794,55 @@ text, so `docs/M4A_S5_CRITERIA.md` cannot be reconciled against them yet and say
 **NEXT SESSION:** implement the 4-set fix + the machine-checked invariants (symmetry hard-fail;
 P(near|c)=0.5 at assignment AND realized level), re-derive constants over the new envelopes
 (natural-congruent 4-set @ 1.1707; counterbalanced/conflict full six), then textures.
+
+### ✅ RULINGS FINAL (2026-07-19, session accepted) — design frozen as an IDENTIFICATION NECESSITY
+
+All rulings final. Session accepted; the in-place retraction and R2 filing endorsed.
+
+1. **Six-category natural-congruent stimuli are FORMALLY DEAD BY MEASUREMENT** — 4/36 pairings
+   always-clamped, disjoint support 1.665–1.850 vs 1.171–1.474, η² = 0.865. **Final design, framed
+   as an identification necessity rather than a preference:** natural-congruent generator =
+   symmetric **{cube, cylinder, mug, sphere}** @ uniform floor **1.1707**; counterbalanced/conflict
+   stay six-category. There is no version of the congruent regime that generates six categories and
+   remains identifiable.
+2. **THREE ANALYSIS TIERS** (manifest v2, `configs/m4a_eligibility_manifest.yaml`):
+   **tier 1 control-specific** (4 cats, natural-congruent alone) · **tier 2 matched contrast**
+   (shared 4, ⚠ **THREE regimes** — natural-congruent + counterbalanced + conflict, not two as I
+   first wrote it) · **tier 3 full-arm** (6 cats, counterbalanced + conflict only; natural-congruent
+   is absent by construction). Every analysis must declare its tier. Per-cell n ≥ 25 → n ≥ 400
+   congruent arm, **n ≥ 900 each six-category arm** (they lose 55.6% of images to eligibility).
+3. **NEAR-role correction ACCEPTED as the advisor's own error.** η²(near → far depth) 0.330 vs
+   far 0.051; bottle-as-near's area constant is the mechanism. §5 bounds BOTH roles as implemented —
+   bounding only the originally-named role would have left the actual mechanism ungated.
+4. **§5 CHECK MAPPING RULED:** C-1→**A** (ratio validity) · C-2→**B** (band separation) · C-3→**C**
+   (category↔depth/clamp coupling) · C-4→**D** (construction invariants) · C-5 = engineering gates.
+   **Check C carries three BINDING HARD-FAILS:** any always-clamped pairing · disjoint
+   clamped/unclamped support · category predicts clamp.
+   - 🔴 **STILL NOT RECEIVED: the reviewer's A–D SPEC TEXT.** Said to be "pasted with this message"
+     twice now; no spec text has arrived either time. The mapping and C's hard-fails are held (they
+     are stated in the ruling itself), but A–D's CONTENTS in `docs/M4A_S5_CRITERIA.md` are MINE, not
+     the reviewer's. **Reconciliation is a ratification blocker.** Where they differ, the reviewer's
+     spec governs.
+5. **🔒 THRESHOLD-SETTING PROTOCOL (binding, now recorded as a project rule):**
+   **NEVER derive a threshold from the same results it gates.** Single-seed bounds rejected under
+   rule 7 clause 2 — correctly; they are sampled quantities.
+   - **Instrument: an ASSIGNMENT-LEVEL sweep, no rendering.** All gated quantities are **pre-pixel**
+     (fixed once placement runs, and placement is in the sampler). ⚠ Note this includes the
+     **realized** level: "realized" = PLACED, not rendered, so realized-level role balance is also
+     measurable without the renderer.
+   - **Pre-specified and COMMITTED BEFORE the sweep runs** (git history is the ordering proof):
+     `SEEDS = [9001..9008]` (none reused elsewhere; config seed 410 reported as a reference but
+     EXCLUDED from the bound, being the seed the design was developed against);
+     **k = 2.0**; `bound = min − k·SD` (lower-bounded) / `max + k·SD` (upper-bounded), rounded
+     outward to 2 dp; weakest-stratum clause applies the formula to the worst pairing per seed.
+   - **Pre-committed spread rule:** any quantity whose seed-to-seed SD exceeds 25% of its mean is
+     declared too unstable to gate and demoted to reported-only — recorded before the render. This
+     blocks the opposite failure: a noisy quantity given a tight bound and failing for reasons
+     unrelated to the design.
+   - Sequence: state k ✅ (committed here) → run sweep → write pre-registration → **only then**
+     render the frozen pilot.
+
+**NEXT SESSION SCOPE (ruled):** implement the 4-set generator + machine-checked invariants
+(symmetry hard-fail; P(near|c)=0.5 at assignment AND realized levels; eligibility manifest) + the
+8-seed sweep + re-derive operative constants over the new envelopes (natural-congruent 4-set @
+1.1707; counterbalanced/conflict full six). **Textures follow.**
