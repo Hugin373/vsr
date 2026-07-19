@@ -68,8 +68,16 @@ deciding anything.** That agent has **no repo access, no shell, and none of this
 every **result-producing** response — measurements produced, a decision surfaced, work finished or
 blocked — ends with a **self-contained briefing the user can paste straight into another chat.** Not a summary of what you did: the *scientific content needed to argue with you*.
 
-Skip it only for genuinely conversational turns (a clarifying question, a one-line lookup). When in
-doubt, include it.
+**Emit it only when the work is FINISHED — never while a sweep, render or background job is still
+running.** A briefing whose results section says "in progress" cannot be acted on: the advisor's
+job is to confirm or challenge a result, and there is no result yet. If a response has to be made
+mid-flight, give a one-line status ("sweep running, ~25 min, will brief on completion") and defer
+the whole briefing to the response that carries the completed numbers. Partial results are worse
+than none here — they invite a decision on evidence that is still moving.
+
+Skip it entirely for genuinely conversational turns (a clarifying question, a one-line lookup).
+When in doubt about whether a turn qualifies, include it; when in doubt about whether the work is
+finished, wait.
 
 ### Structure
 
