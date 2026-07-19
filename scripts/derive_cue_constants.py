@@ -255,6 +255,7 @@ def main() -> int:
                 "render_git_patch_sha": meta.get("git_patch_sha"),
                 "measurement_only": bool(meta.get("measurement_only", False)),
                 "near_depth_bins": config["factors"].get("near_depth_bins"),
+                "depth_gaps": config["factors"].get("depth_gaps"),
                 "min_depth_ratio": (config.get("constraints") or {}).get("min_depth_ratio"),
                 "multiplier_worst_case": multiplier_worst_case(config),
             }
@@ -463,6 +464,7 @@ def _yaml_block(report: dict) -> dict:
                     "size_schema": s["size_schema"],
                     "n_images": s["n_images"],
                     "near_depth_bins": s["near_depth_bins"],
+                    "depth_gaps": s["depth_gaps"],
                 }
                 for s in report["sources"]
             ],

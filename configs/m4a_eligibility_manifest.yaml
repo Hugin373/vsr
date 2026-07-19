@@ -26,7 +26,29 @@
 #   the ANALYSIS does not undo it: the confound is in the realized stimuli, and every other target
 #   (ordinal, absolute depth, lateral) is still read over the full generated set.
 
-version: 2   # v2 (2026-07-19): three analysis tiers; matched contrast is THREE-regime
+version: 3   # v3 (2026-07-20): depth-gap envelope extended to 1.95 battery-wide
+
+# ---------------------------------------------------------------------------------------------
+# DEPTH ENVELOPE — battery-wide, all three regimes move together or the matched contrast is void
+# ---------------------------------------------------------------------------------------------
+depth_envelope:
+  near_depth_bins: [0.65, 1.1, 1.55, 2.0]
+  depth_gaps: [0.45, 0.75, 1.05, 1.35, 1.65, 1.95]
+  extended_utc: '2026-07-20'
+  rationale: >
+    Extending the FAR bins raises the ratio CEILING (1.464 -> 1.665) so the congruence floor
+    squeezes less from below, instead of pushing the floor up into the distribution. Adopted after
+    the 4-set FAILED joint acceptance at its own minimal self-consistent floor (r_op = 1.1900:
+    area PASS thinly, sampling FAIL on all six quantities).
+  escalation_to_2_55:
+    status: PRE-REGISTERED, not triggered
+    triggers: [
+      "expanded assignment-sweep failure at 1.95",
+      "no joint feasible margin under the deterministic derivation",
+      "frozen-pilot Check D weakest-stratum failure",
+    ]
+  # ⚠ EVERY regime's cue_constants and the natural-congruent floor are ENVELOPE-STALE until
+  # re-derived here. Ruling 5 makes that ATOMIC with the envelope change.
 ratified_utc: '2026-07-19'
 supersedes: >
   The 2026-07-19 recommendation "subset the ANALYSIS, not the stimuli — keep 6 categories

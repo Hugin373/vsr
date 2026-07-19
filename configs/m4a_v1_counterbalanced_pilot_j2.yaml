@@ -106,11 +106,14 @@ factors:
   - 1.1
   - 1.55
   - 2.0
-  depth_gaps:
+  depth_gaps:   # extended to 1.95 (2026-07-20, battery-wide): raises the ratio
+                # CEILING so the congruence floor squeezes less from below
   - 0.45
   - 0.75
   - 1.05
   - 1.35
+  - 1.65
+  - 1.95
   depth_jitter: 0.12
   min_gap: 0.28
   lateral_range:

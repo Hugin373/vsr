@@ -236,3 +236,29 @@ def test_congruent_floor_clears_its_own_committed_requirement():
         f"floor {floor} does not clear the derived worst-case requirement {required} — area "
         f"congruence is a HARD validator check for this regime"
     )
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "ATOMIC WORK ITEM IN PROGRESS 2026-07-20. The depth-gap envelope was extended to 1.95 "
+        "battery-wide, which invalidates every regime's cue constants: the constants are a "
+        "function of the depth distribution. Ruling 5 makes envelope change + re-derivation ONE "
+        "work item, but they cannot land in one commit — the natural-congruent floor must first "
+        "come from the deterministic envelope derivation, and constants can only be derived once "
+        "the floor is fixed. This records the incomplete state as a machine check rather than a "
+        "comment. strict=True: it FAILS as soon as all constants are re-derived, forcing removal."
+    ),
+)
+@pytest.mark.parametrize(
+    "config_path", [p for paths in CONFIG_FOR_REGIME.values() for p in paths]
+)
+def test_cue_constants_are_not_envelope_stale(config_path):
+    """Committed constants must have been derived over the config's CURRENT depth envelope."""
+    cfg = load_config(config_path)
+    live = cfg["factors"]["depth_gaps"]
+    for src in cfg["cue_constants"]["provenance"]["sources"]:
+        assert src.get("depth_gaps") == live, (
+            f"{config_path}: constants derived over depth_gaps={src.get('depth_gaps')} but the "
+            f"config now uses {live} — envelope-stale"
+        )

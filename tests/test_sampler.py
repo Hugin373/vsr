@@ -181,6 +181,9 @@ M4A_NON_STIMULUS_CONFIGS = ("configs/m4a_v1_size_calibration.yaml",)
 # carry it, so a regime differs from another ONLY in its condition/constraints, never in its
 # camera envelope, depth bins or placement budget.
 FROZEN_NEAR_DEPTH_BINS = [0.65, 1.1, 1.55, 2.0]
+# Extended to 1.95 battery-wide (2026-07-20). depth_gaps is SHARED design surface: the three arms
+# must span the same depth envelope or the matched three-regime contrast is not depth-matched.
+FROZEN_DEPTH_GAPS = [0.45, 0.75, 1.05, 1.35, 1.65, 1.95]
 FROZEN_CAMERA_JITTER = {
     "height_m": [-0.16, 0.16],
     "pos_x_m": [-0.3, 0.3],
@@ -257,6 +260,10 @@ def test_frozen_generator_block_per_config(config_path):
 
     assert cfg["factors"]["near_depth_bins"] == FROZEN_NEAR_DEPTH_BINS, (
         f"{config_path}: near_depth_bins diverge from the frozen block"
+    )
+    assert cfg["factors"]["depth_gaps"] == FROZEN_DEPTH_GAPS, (
+        f"{config_path}: depth_gaps diverge from the frozen block — the envelope is battery-wide, "
+        f"so one regime drifting breaks the matched three-regime contrast"
     )
 
     jitter = cfg["camera"]["jitter"]
