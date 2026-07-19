@@ -1,6 +1,6 @@
 experiment: m4a_v1_conflict
 seed: 412
-n_images: 180
+n_images: 900
 output:
   set_name: m4a_v1_conflict
   root: ${DATA_ROOT}/stimuli

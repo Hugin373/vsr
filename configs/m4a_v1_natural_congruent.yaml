@@ -1,6 +1,6 @@
 experiment: m4a_v1_natural_congruent
 seed: 410
-n_images: 180
+n_images: 400
 output:
   set_name: m4a_v1_natural_congruent
   root: ${DATA_ROOT}/stimuli
@@ -63,20 +63,16 @@ scene:
   - 8.0
   sun_direction_jitter: 0.6
 objects:
-  categories:
+  categories:   # 4-SET (2026-07-19): symmetric, identification necessity
   - cube
-  - sphere
   - cylinder
-  - chair
   - mug
-  - bottle
+  - sphere
   size_m_by_category:
     cube: 0.666
     sphere: 0.809
     cylinder: 0.666
-    chair: 0.7353
     mug: 0.9913
-    bottle: 0.8378
   colors:
     red:
     - 0.8
@@ -117,7 +113,7 @@ factors:
 constraints:
   unambiguous_ordinal: true
   ordinal_margin_m: 0.15
-  min_depth_ratio: 1.85
+  min_depth_ratio: 1.1707
   min_depth_ratio_jitter: 0.08
 condition:
   target_bbox_margin_px: 14.0
@@ -149,16 +145,16 @@ cue_constants:
   provenance:
     derivation_script: scripts/derive_cue_constants.py
     derivation_version: 2.0.0
-    derived_at_utc: '2026-07-19T14:01:40Z'
-    derived_at_git_hash: b43b881-dirty
+    derived_at_utc: '2026-07-19T14:58:11Z'
+    derived_at_git_hash: 101cdf0-dirty
     derivation_source_sha: e3c93dd64fc72540
     provenance_claim: reproducible under corrected HEAD; not a proof that the original
       run was correct
     sources:
     - set_name: m4a_v1_natural_congruent_pilot
       seed: 410
-      render_git_hash: ac36cd3-dirty
-      render_git_patch_sha: 0ea852fe0fe2
+      render_git_hash: 101cdf0-dirty
+      render_git_patch_sha: c780c21292bc
       measurement_only: true
       size_schema: shared
       n_images: 1200
@@ -170,119 +166,75 @@ cue_constants:
     n_images_pooled: 1200
     n_target_objects_pooled: 2400
   height_constant_near:
-    bottle:
-    - 398.7
-    - 408.1
-    chair:
-    - 397.0
-    - 421.3
     cube:
-    - 391.3
-    - 446.3
+    - 391.0
+    - 449.8
     cylinder:
-    - 389.8
-    - 437.2
+    - 387.3
+    - 440.8
     mug:
-    - 396.7
-    - 431.2
+    - 396.3
+    - 431.6
     sphere:
-    - 400.0
-    - 408.8
+    - 399.4
+    - 409.7
   height_constant_far:
-    bottle:
-    - 393.5
+    cube:
+    - 378.9
+    - 427.3
+    cylinder:
+    - 377.8
+    - 420.4
+    mug:
+    - 388.1
+    - 419.0
+    sphere:
+    - 398.9
     - 412.4
-    chair:
-    - 382.5
-    - 405.4
-    cube:
-    - 367.0
-    - 397.5
-    cylinder:
-    - 362.1
-    - 393.6
-    mug:
-    - 378.0
-    - 402.3
-    sphere:
-    - 397.2
-    - 417.1
   area_constant_near:
-    bottle:
-    - 48653
-    - 52741
-    chair:
-    - 80047
-    - 94484
     cube:
-    - 140690
-    - 177093
+    - 140116
+    - 176336
     cylinder:
-    - 125638
-    - 142034
+    - 125730
+    - 140271
     mug:
-    - 121496
-    - 130053
+    - 121049
+    - 130455
     sphere:
-    - 127792
-    - 133677
+    - 127251
+    - 133531
   area_constant_far:
-    bottle:
-    - 46995
-    - 50866
-    chair:
-    - 72753
-    - 85805
     cube:
-    - 126252
-    - 151754
+    - 132636
+    - 167442
     cylinder:
-    - 118085
-    - 126849
+    - 123510
+    - 135452
     mug:
-    - 117734
-    - 122923
+    - 119675
+    - 127012
     sphere:
-    - 126730
-    - 131469
+    - 127186
+    - 133151
   required_ratio_by_pairing:
-    near_bottle_far_cube: 1.7661
-    near_bottle_far_sphere: 1.6438
-    near_bottle_far_cylinder: 1.6147
-    near_bottle_far_mug: 1.5895
-    near_chair_far_cube: 1.3769
-    near_bottle_far_chair: 1.328
-    near_chair_far_sphere: 1.2816
-    near_chair_far_cylinder: 1.2588
-    near_chair_far_mug: 1.2392
-    near_mug_far_cube: 1.1176
-    near_cylinder_far_cube: 1.099
-    near_sphere_far_cube: 1.0897
-    near_cylinder_far_sphere: 1.07
-    near_cube_far_sphere: 1.0659
-    near_cylinder_far_bottle: 1.0579
-    near_cube_far_bottle: 1.0538
-    near_mug_far_sphere: 1.0513
-    near_sphere_far_sphere: 1.0427
-    near_cylinder_far_chair: 1.0401
-    near_mug_far_bottle: 1.0394
-    near_chair_far_bottle: 1.0386
-    near_cube_far_cube: 1.0386
-    near_cube_far_chair: 1.0361
-    near_chair_far_chair: 1.0353
-    near_bottle_far_bottle: 1.0344
-    near_cylinder_far_mug: 1.032
-    near_sphere_far_bottle: 1.0309
-    near_cube_far_mug: 1.028
-    near_mug_far_chair: 1.0219
-    near_mug_far_cylinder: 1.0218
-    near_mug_far_mug: 1.014
-    near_sphere_far_chair: 1.0136
-    near_cylinder_far_cylinder: 1.0097
-    near_cube_far_cylinder: 1.0058
-    near_sphere_far_mug: 1.0057
-    near_sphere_far_cylinder: 0.9963
-  height_ratio_threshold: 1.07
-  area_ratio_threshold: 1.7661
-  binding_ratio_threshold: 1.7661
+    near_mug_far_cube: 1.1761
+    near_cylinder_far_cube: 1.154
+    near_sphere_far_cube: 1.1471
+    near_cube_far_cube: 1.0932
+    near_cylinder_far_cylinder: 1.0854
+    near_cylinder_far_mug: 1.0818
+    near_cube_far_cylinder: 1.0751
+    near_cube_far_mug: 1.0716
+    near_cylinder_far_sphere: 1.0646
+    near_mug_far_cylinder: 1.0607
+    near_mug_far_mug: 1.0572
+    near_cube_far_sphere: 1.0546
+    near_sphere_far_cylinder: 1.0526
+    near_sphere_far_mug: 1.0492
+    near_mug_far_sphere: 1.0488
+    near_sphere_far_sphere: 1.0325
+  height_ratio_threshold: 1.1031
+  area_ratio_threshold: 1.1761
+  binding_ratio_threshold: 1.1761
 # <<< cue_constants <<<

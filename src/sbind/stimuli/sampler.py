@@ -55,6 +55,31 @@ def factorial_assignments(
     return [{name: columns[name][i] for name in columns} for i in range(n)]
 
 
+def assert_symmetric_pairings(pairs: list[tuple[str, str]]) -> None:
+    """Hard-fail unless the generated (near, far) category support is symmetric.
+
+    §5 check B structural requirement: (a, b) ∈ S ⟹ (b, a) ∈ S. This is not an aesthetic
+    constraint. `cat_pair` balancing is what gives every category an exact P(near | c) = 0.5
+    split, and that split is what closes B2→z (identity priors predicting depth). An asymmetric
+    support makes some category preferentially NEAR, rebuilding the confound the balancing exists
+    to eliminate.
+
+    Currently the support is built as C × C and is symmetric by construction, so this guard costs
+    nothing — it exists because the moment anyone introduces an explicit allowed-pairings list
+    (the obvious way to implement a per-pairing restriction) the property stops being automatic
+    and starts being an assumption. Assumptions in this project get checked.
+    """
+    support = {(a, b) for a, b in pairs}
+    missing = sorted({(b, a) for a, b in support} - support)
+    if missing:
+        raise ValueError(
+            f"asymmetric category-pair support: {len(missing)} reversed pairing(s) absent, "
+            f"e.g. {missing[:3]}. This breaks exact per-category near/far role balance "
+            f"(§5 check B). Retained supports must be symmetric — restrict CATEGORIES, not "
+            f"individual pairings."
+        )
+
+
 def _rest_height(category: str, size_m: float) -> float:
     """Z of the object centre so it rests on the ground plane (z=0)."""
     return geometry.rest_height(category, size_m)
@@ -324,6 +349,7 @@ def build_scene_specs(
     proposal_log: list[dict] | None = None,
     raise_on_placement_failure: bool = True,
     placement_failures: list[dict] | None = None,
+    ratio_log: list[dict] | None = None,
 ) -> list[SceneSpec]:
     """Turn a stimulus-set config dict into a deterministic list of SceneSpec.
 
@@ -335,6 +361,11 @@ def build_scene_specs(
     factor balance is broken). Set False for a DRY-RUN AUDIT: an un-placeable image is skipped and
     omitted from the result (the RNG has already consumed its attempts, so the remaining images are
     unaffected), letting an audit measure the placement-failure RATE instead of crashing.
+
+    If ``ratio_log`` is given, the ACCEPTED placement of each image appends its pre-floor and
+    post-floor depth ratio, the floor value drawn, and whether the floor moved it. This is what
+    §5 check C's ``clamped_fraction`` is computed from. Like ``proposal_log`` it only records:
+    no RNG draw, no change to the output.
     """
     rng = np.random.default_rng(seed)
     n = int(config["n_images"])
@@ -353,6 +384,7 @@ def build_scene_specs(
     color_items = list(obj_cfg["colors"].items())
 
     cat_pairs = [(a, b) for a in categories for b in categories]
+    assert_symmetric_pairings(cat_pairs)
     color_pairs = [(a, b) for a in range(len(color_items)) for b in range(len(color_items))]
     factors = {
         "near_depth_bin": list(range(len(fcfg["near_depth_bins"]))),
@@ -450,6 +482,12 @@ def build_scene_specs(
                 h_near = geometry.half_extent_along(cats[closer], obj_size[closer], axis)
                 h_far = geometry.half_extent_along(cats[farther], obj_size[farther], axis)
                 required_d_far = max(required_d_far, d_near + abs(h_near - h_far) + ordinal_margin)
+            # Pre-floor state, captured for the §5 clamp audit (check C). `clamped_fraction` is
+            # defined as #{r_raw < r_floor} / N, so the RAW ratio has to be observed per image —
+            # it cannot be recovered afterwards from the output, and re-running with a
+            # non-binding floor produces different placements rather than a paired comparison.
+            d_far_pre_floor = required_d_far
+            floor = float("nan")
             if min_depth_ratio > 1.0:
                 floor = min_depth_ratio * (1.0 + rng.uniform(0.0, ratio_floor_jitter))
                 required_d_far = max(required_d_far, floor * d_near)
@@ -491,6 +529,23 @@ def build_scene_specs(
             if ok:
                 objects = candidate
                 placement_attempt = attempt
+                if ratio_log is not None:
+                    ratio_log.append(
+                        {
+                            "image": i,
+                            "near_category": cats[closer],
+                            "far_category": cats[farther],
+                            "depth_gap_bin": a["depth_gap_bin"],
+                            "near_depth_bin": a["near_depth_bin"],
+                            "depth_near": d_near,
+                            "ratio_raw": d_far_pre_floor / d_near,
+                            "ratio_realized": required_d_far / d_near,
+                            "floor": floor,
+                            "clamped": bool(
+                                floor == floor and floor * d_near > d_far_pre_floor
+                            ),
+                        }
+                    )
                 break
         if not objects:
             if raise_on_placement_failure:

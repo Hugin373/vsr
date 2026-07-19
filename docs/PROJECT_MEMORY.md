@@ -1898,3 +1898,68 @@ mismatches were line-wrapping artifacts, confirmed on whitespace-normalised re-c
 **NEXT SESSION (unchanged, now unblocked):** 4-set generator + machine-checked invariants + the
 8-seed sweep (bounds filled mechanically from the pre-committed formula) + constants re-derived over
 the new envelopes. Textures follow.
+
+## 📌 2026-07-20 (eighth session) — 4-set generator + invariants + 8-seed sweep; a NEW BLOCKER found
+
+Scoped work executed. **Textures NOT started** (they follow, per the standing sequence).
+
+- **✅ 4-SET GENERATOR IMPLEMENTED.** natural-congruent now generates `{cube, cylinder, mug, sphere}`
+  at floor 1.1707; `size_m_by_category` trimmed to exactly those four (a leftover entry for a
+  dropped category is dead config that looks set). n_images set from the DERIVED gate scale:
+  natural-congruent 400, counterbalanced 900, conflict 900 (was 180/420/180 — stale, predating the
+  criteria block).
+- **✅ MACHINE-CHECKED INVARIANTS** (`tests/test_eligibility_invariants.py`, 15 tests):
+  `sampler.assert_symmetric_pairings` hard-fails on an asymmetric support and is called inside
+  `build_scene_specs` · placed-level P(near|c) = 0.5 ± 0.02 · manifest↔config agreement (categories,
+  size map, floor) · natural-congruent-is-not-six · clamp-audit correctness. Manifest invariant
+  statuses flipped `owed` → `IMPLEMENTED`.
+- **✅ CLAMP AUDIT HOOK** — `build_scene_specs(ratio_log=...)` records per placed image the pre-floor
+  ratio, the drawn floor and whether the floor moved it. **Necessary because check C's
+  `clamped_fraction = #{r_raw < r_floor}/N` cannot be recovered after the fact**, and re-running with
+  a non-binding floor changes placement rather than giving a paired comparison. Records only — no RNG
+  draw, verified not to perturb output.
+- **✅ 8-SEED SWEEP RUN** (`scripts/s5_assignment_sweep.py`, seeds 9001–9008, n=1200, sampler only).
+  Bounds computed mechanically from the pre-committed formula.
+  - **Check A (floor 1.1707):** r(ratio,gap) 0.728–0.753 → **bound ≥ 0.70**; retained range
+    1.252–1.270 → **≥ 1.23**; weakest-stratum r 0.638–0.709 → **≥ 0.58**. Reference seed 410 inside
+    the envelope (not anomalous).
+  - **Check C:** clamped 0.484–0.524 → **≤ 0.55**; max stratum 0.587–0.640 → **≤ 0.69**. **All five
+    binding hard failures PASS**: 0/16 always-clamped, clamped/unclamped support overlap 0.338,
+    category does not predict clamp (η² ≤ 0.021), ratio still tracks the gap.
+  - **Placed-level P(near|c) = 0.5000 EXACTLY on every seed, all four categories** — placement
+    introduces no role bias whatsoever.
+- 🔴 **`clamped_fraction` CORRECTED: ~0.50, not 0.332.** The 0.332 was a DIFFERENT ESTIMAND —
+  `floor_squeeze.py` compared the **base** floor 1.1707 against ratios from a **separate**
+  non-binding-floor run. Canonical check C uses the **per-image drawn (jittered)** floor
+  [1.1707, 1.2642], mean 1.2181, paired within one run. Measured both ways on identical data:
+  **0.4842 canonical vs 0.3283 base-floor proxy**; the 0.156 gap is fully accounted for by the
+  jitter. Corrected in the criteria file.
+- ⚠ **THE SPREAD RULE IS DEFECTIVE FOR NEAR-ZERO QUANTITIES — applied anyway, not amended.** All
+  seven check-B quantities were DEMOTED to reported-only: they are bounded near zero by intent
+  (η² ≈ 0.01–0.02 against a 0.10 bound), so a trivial absolute spread of 0.005 yields CV > 0.25. The
+  reductio: placed-level role imbalance is **exactly 0.0000 on all 8 seeds** — the best attainable
+  value — and CV = ∞ demotes it. **Not amended, deliberately**: rewriting a pre-committed rule after
+  seeing its output is the forking path the protocol exists to prevent. **Proposed for ratification:**
+  exempt a quantity when its 8-seed maximum is already far inside its bound absolutely
+  (e.g. `max_s q_s < 0.25 × bound`). Until then check B is reported-only and its structural hard
+  failures remain the operative gate.
+- 🔴🔴 **NEW BLOCKER — THE PRE-REGISTERED FLOOR 1.1707 DOES NOT CLEAR ITS OWN RE-DERIVED
+  REQUIREMENT.** Re-deriving over natural-congruent's **own 4-set envelope** gives **1.1761**; the
+  floor is short by **0.46%**, and area congruence is a HARD validator check for this regime.
+  - **Cause:** 1.1707 came from constants measured on the **six-category** envelope, which this
+    regime no longer generates. **The constants depend on the floor** (via the realized depth
+    distribution), so a floor derived at one floor is not self-consistent at another — a fixed-point
+    problem that was not visible until the generator actually changed.
+  - **Fixed point measured:** at floor **1.2320** the requirement re-measures to **1.1601**,
+    headroom **+6.20%**. Converges DOWNWARD — a higher floor puts far objects deeper, where
+    perspective is less extreme and area constants less variable.
+  - **Cost, 8 seeds, 1.1707 → 1.2320:** r(ratio,gap) 0.73–0.75 → **0.47–0.53**; weakest-stratum r
+    0.64–0.71 → **0.18–0.41**; clamped 0.48–0.52 → **0.69–0.72**; retained range 1.25 → 1.19.
+  - **NOT APPLIED.** Changing a pre-registered value is a ratification decision. Configs still carry
+    1.1707; the violation is recorded as a **`strict=True` xfail** which FAILS the moment the floor
+    is raised, forcing the marker's removal instead of leaving a stale exemption.
+  - **The filled bounds are PROVISIONAL** — computed at 1.1707. If 1.2320 is ratified the sweep
+    re-runs and bounds recompute from the same formula.
+
+**OWED / NEXT:** ratify the floor (and with it, re-run the sweep + re-fill bounds) · ratify or reject
+the spread-rule amendment · then textures → determinism → freeze tag → §5 one-shot.

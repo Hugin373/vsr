@@ -122,17 +122,26 @@ invariants:
       Every generated category set is symmetric: if (a, b) is a legal pairing then so is (b, a).
       An asymmetric set makes some category preferentially NEAR, which breaks the exact 0.500
       per-category role balance that closes B2->z.
-    status: owed          # implement with the 4-set fix
+    status: IMPLEMENTED   # sampler.assert_symmetric_pairings, called in build_scene_specs;
+                          # tests/test_eligibility_invariants.py (guard + negative case)
   - id: role_balance_assignment_level
     statement: "P(near | category) == 0.5 exactly, over factorial_assignments, at n >= 2000."
-    status: partially_covered   # test_category_role_balanced_at_scale covers assignment level
+    status: IMPLEMENTED   # tests/test_sampler.py::test_category_role_balanced_at_scale
   - id: role_balance_realized_level
     statement: >
-      P(near | category) == 0.5 within tolerance over the REALIZED (placed and rendered) set, not
-      only over assignments. Placement is a selection operator, so assignment-level balance does
-      not imply realized balance.
-    status: owed          # implement with the 4-set fix
+      P(near | category) == 0.5 within tolerance over the REALIZED (PLACED) set, not only over
+      assignments. Placement is a selection operator, so assignment-level balance does not imply
+      realized balance. ⚠ "Realized" means PLACED, not RENDERED — measurable without the renderer.
+    status: IMPLEMENTED   # tests/test_eligibility_invariants.py::test_role_balance_at_placed_level
+    measured: >
+      8-seed sweep 2026-07-20: P(near|c) = 0.5000 EXACTLY for all four categories on every seed.
+      Placement introduces no role bias at all.
   - id: eligibility_manifest_precedes_render
     statement: >
       This file exists, is committed, and its `ratified_utc` predates the §5 frozen render.
-    status: satisfied_on_commit
+    status: IMPLEMENTED   # tests/test_eligibility_invariants.py::test_config_matches_the_eligibility_manifest
+  - id: clamp_audit_available
+    statement: >
+      The sampler records, per placed image, the pre-floor ratio, the drawn floor and whether the
+      floor moved it — the quantities §5 check C is defined on. Cannot be recovered after the fact.
+    status: IMPLEMENTED   # sampler build_scene_specs(ratio_log=...)

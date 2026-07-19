@@ -12,8 +12,43 @@ that text were mechanically checked as present here.
 **Reconciliation blocker: CLEARED** on this commit. The previous contents of this file were my own
 draft standing in for A–D text that had not arrived; they are superseded below.
 
-**Status: bound cells still EMPTY.** Ratification remains blocked on the 8-seed sweep. No §5 render
-may run until check A's bounds are filled mechanically from the pre-committed formula.
+**Status: bounds FILLED (2026-07-20, 8-seed sweep). Ratification BLOCKED on a new finding —
+see below.** No §5 render may run.
+
+> ## 🔴 BLOCKER — the pre-registered floor 1.1707 does not clear its own re-derived requirement
+>
+> Re-deriving the cue constants over natural-congruent's **own 4-set envelope** (which is what the
+> ruling required) gives a worst-case area-congruence requirement of **1.1761**. The pre-registered
+> floor is **1.1707** — short by **0.46%**. Area congruence is a HARD validator check for this
+> regime, so the currently-pre-registered design would produce violations.
+>
+> **Cause:** 1.1707 was computed from constants measured on the **six-category** envelope, which
+> this regime no longer generates. The constants depend on the floor (through the realized depth
+> distribution), so a floor derived at one floor is not self-consistent at another.
+>
+> **Fixed point, measured (not argued):** at floor **1.2320** the requirement re-measures to
+> **1.1601** — headroom **+6.20%**, self-consistent. The iteration converges *downward* because a
+> higher floor pushes far objects deeper, where their perspective is less extreme and their area
+> constants less variable.
+>
+> **The cost is real and must be weighed, not waved through:**
+>
+> | quantity (8 seeds) | floor 1.1707 (infeasible) | floor 1.2320 (self-consistent) |
+> |---|---:|---:|
+> | r(ratio, `depth_gap_bin`) | 0.728 – 0.753 | **0.471 – 0.533** |
+> | weakest-stratum r | 0.638 – 0.709 | **0.180 – 0.410** |
+> | `clamped_fraction` | 0.484 – 0.524 | **0.693 – 0.723** |
+> | retained range | 1.252 – 1.270 | 1.186 – 1.218 |
+>
+> **NOT applied.** Changing a pre-registered value is a ratification decision. The configs still
+> carry 1.1707, and `tests/test_eligibility_invariants.py::
+> test_congruent_floor_clears_its_own_committed_requirement` records the violation as a
+> `strict=True` xfail — it will FAIL the moment the floor is raised, forcing the marker's removal
+> rather than leaving a stale exemption behind.
+>
+> **Consequence for the bounds below:** they were computed at 1.1707. If the floor is ratified at
+> 1.2320 the sweep must be re-run and the bounds recomputed from the same pre-committed formula.
+> The tables are therefore **provisional pending the floor decision**, and are marked as such.
 
 ---
 
@@ -125,15 +160,27 @@ rather than being replaced by floor clamping, floor-band jitter, or another samp
 **Primary lower-bound quantities:** correlation with `depth_gap_bin`; retained realized-ratio range;
 any separately pre-registered acceptance fraction.
 
-| quantity | direction | single-seed REFERENCE (n = 1200, seed 410) | bound |
-|---|---|---:|---|
-| r(realized ratio, `depth_gap_bin`) | lower | +0.751 | *pending sweep* |
-| retained realized-ratio range | lower | 1.25× | *pending sweep* |
-| `clamped_fraction` (gated under C) | upper | 0.332 | *pending sweep* |
-| weakest-stratum variants of the above | — | not yet measured per-cell | *pending sweep* |
+**BOUNDS — filled mechanically 2026-07-20** from `reports/m4a_s5_sweep_natural_congruent.json`
+(8 seeds × n = 1200, sampler only). No judgement was applied after seeing the values.
 
-⚠ The reference column is **not** a bound. Bounds proposed from a single seed were rejected under
-AGENTS.md rule 7 clause 2, correctly.
+| quantity | direction | 8-seed min … max | SD | CV | **BOUND** |
+|---|---|---|---:|---:|---:|
+| r(realized ratio, `depth_gap_bin`) | lower | 0.7282 … 0.7533 | 0.0097 | 0.013 | **≥ 0.70** |
+| retained realized-ratio range | lower | 1.2524 … 1.2698 | 0.0063 | 0.005 | **≥ 1.23** |
+| weakest-stratum r(ratio, gap) | lower | 0.6375 … 0.7094 | 0.0247 | 0.037 | **≥ 0.58** |
+| weakest-stratum retained range | lower | 1.1660 … 1.1972 | 0.0111 | 0.009 | **≥ 1.14** |
+
+Reference seed 410 (excluded from the bounds): r = 0.7515, range = 1.246 — inside the 8-seed
+envelope, so the design seed was not anomalous.
+
+🔴 **CORRECTION to a number previously recorded here.** This table used to carry
+`clamped_fraction = 0.332` as its single-seed reference. **That was the wrong estimand.** Canonical
+Check C defines `clamped_fraction = #{r_raw < r_floor} / N`, where `r_floor` is the **per-image
+drawn floor**, which is jittered over [1.1707, 1.2642] (mean 1.2181). The 0.332 came from
+`floor_squeeze.py`, which compared the **base** floor 1.1707 against a ratio distribution taken from
+a **separate** non-binding-floor run — a different denominator and an unpaired comparison. Measured
+both ways on the same data: canonical **0.4842** vs base-floor proxy **0.3283**, a gap of 0.156
+fully accounted for by the jitter. The canonical value is ~**0.50**, not 0.33.
 
 **Failure interpretation:** the generator does not express the intended ratio variable reliably.
 **This is an instrument failure, not a model result.**
@@ -161,6 +208,37 @@ far object deeper — but *the criterion must not depend on that mechanism being
 **Structural hard failures:** asymmetric retained support · assignment- or placed-level category-role
 imbalance beyond tolerance · pairing deterministically or near-deterministically identifies realized
 ratio · category or role deterministically identifies clamp status.
+
+### 8-seed result — every Check B quantity was DEMOTED by the pre-committed spread rule
+
+| quantity | 8-seed min … max | SD | CV | status |
+|---|---|---:|---:|---|
+| η²(pairing → ratio) | 0.0112 … 0.0255 | 0.0050 | 0.255 | demoted |
+| η²(near cat → ratio) | 0.0005 … 0.0122 | 0.0045 | 0.649 | demoted |
+| η²(far cat → ratio) | 0.0014 … 0.0122 | 0.0035 | 0.506 | demoted |
+| η²(near cat → far depth) | 0.0004 … 0.0062 | 0.0020 | 0.606 | demoted |
+| η²(far cat → far depth) | 0.0008 … 0.0030 | 0.0008 | 0.448 | demoted |
+| η²(pairing → clamp) | 0.0082 … 0.0211 | 0.0046 | 0.294 | demoted |
+| max abs role imbalance | 0.0000 … 0.0000 | 0.0000 | **inf** | demoted |
+
+Applied mechanically, as the protocol requires. **Reported honestly: this leaves Check B with no
+gated quantity at all, which is a defect in the pre-committed rule, not a property of the design.**
+
+The rule tests *relative* spread (CV = SD / mean). Every Check B quantity is bounded **near zero by
+intent** — η² ≈ 0.01–0.02 against a bound of 0.10 — so a trivial absolute spread of 0.005 produces a
+large CV. The reductio is the last row: placed-level role imbalance is **exactly 0.0000 on all eight
+seeds**, the best result the quantity can have, and CV = ∞ demotes it.
+
+⚠ **NOT amended, deliberately.** Rewriting a pre-committed rule after seeing the results it produced
+is the forking path the protocol exists to prevent. **Proposed amendment, requiring ratification
+before it is applied:** exempt a quantity from the spread rule when its 8-seed **maximum** is already
+far inside its bound in absolute terms (e.g. `max_s q_s < 0.25 × bound`), since relative stability is
+not meaningful for a quantity pinned near zero. Until ratified, Check B's quantities are
+**reported-only** and the structural hard failures above remain the operative gate.
+
+**Structural results, 8 seeds:** support symmetric ✓ · placed-level P(near|c) = 0.5000 exactly for
+all four categories on every seed ✓ · no pairing near-deterministically identifies ratio
+(max η² = 0.0255) ✓ · no category or role identifies clamp status (max η² = 0.0211) ✓.
 
 ## Check C (C-3) — Clamp burden and support overlap
 
@@ -193,6 +271,23 @@ descriptive only.
 
 **Failure cannot be repaired analytically after rendering.** It requires changing the generator or the
 retained support.
+
+### 8-seed result
+
+| quantity | 8-seed min … max | SD | CV | **BOUND** |
+|---|---|---:|---:|---:|
+| `clamped_fraction` | 0.4842 … 0.5242 | 0.0114 | 0.023 | **≤ 0.55** |
+| max stratum `clamped_fraction` | 0.5867 … 0.6400 | 0.0213 | 0.034 | **≤ 0.69** |
+
+**All five binding hard failures: PASS on every seed.** No always-clamped pairing (0/16) ·
+clamped/unclamped realized-ratio support overlaps at 0.338, far above the 0.05 separation threshold ·
+category does not predict clamp (η² ≤ 0.0211) · realized ratio still tracks the depth-gap design
+(r = 0.73–0.75) · no weakest stratum violates its bound while the aggregate passes.
+
+⚠ **Clamp burden is ~0.50, higher than the 0.33 previously recorded** — see the correction under
+Check A. Half of all images have their far object moved by the floor. The arm still works
+(r = 0.73–0.75, retained range 1.25×), but this is the honest figure and it is the one the bound is
+set on.
 
 ## Check D (C-4) — Pixel-level ratio identifiability
 

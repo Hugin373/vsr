@@ -1,6 +1,6 @@
 experiment: m4a_v1_counterbalanced
 seed: 411
-n_images: 420
+n_images: 900
 output:
   set_name: m4a_v1_counterbalanced
   root: ${DATA_ROOT}/stimuli
