@@ -365,8 +365,22 @@ forward-compat but is outside the core matrix.)
        (η²(pairing→ratio) = 0.823, worst overlap 0.000). Retained sets must be **symmetric** or the
        0.500 near/far category balance that closes B2→z breaks. Full table:
        `reports/m4a_natural_congruent_decision.md`.
-     - **BINDING SEQUENCE:** decision table ✅ → implement the chosen fix (freeze work) → textures →
-       determinism byte-compare → freeze tag → §5 one-shot against a pre-registered block.
+     - ⚖️ **SETTLED 2026-07-19 (binding):** natural-congruent's **GENERATOR** is the symmetric 4-set
+       {cube, cylinder, mug, sphere} at uniform floor 1.1707 — it does **not** generate six
+       categories. "Six categories everywhere" applies to counterbalanced/conflict only. A
+       six-category congruent arm is realizable only via per-pairing clamping, which measurably
+       rebuilds the B15 confound in the reference arm (always-clamped band 1.665–1.850 vs
+       1.171–1.474, **overlap 0.000**; η²(pairing→ratio) **0.865**) — restricting the *analysis*
+       does not undo a confound that lives in the *realized stimuli*. Filed as
+       `docs/REJECTED_DESIGNS.md` R2, with my earlier contrary recommendation retracted in place.
+       Matched-arm fusion contrast reads the shared four via
+       `configs/m4a_eligibility_manifest.yaml` (pre-registered before §5, carries the per-cell n
+       check).
+     - **BINDING SEQUENCE:** decision table ✅ → implement the 4-set fix + machine-checked
+       invariants (symmetry hard-fail; P(near|category)=0.5 at assignment **and realized** level) +
+       re-derive constants over the new envelopes → textures → determinism byte-compare → freeze
+       tag → §5 one-shot against the pre-registered block (`docs/M4A_S5_CRITERIA.md`, draft — needs
+       the review's items 1–8 / checks A–D and ≥8-seed bounds before ratification).
 2. ⚠ **While the generator is open, add the SOLO-OBJECT ID PASS** (M4.5's prerequisite). It is nearly
    free now — one extra tiny render per object — and expensive to retrofit once 5–10k images are
    rendered. M4.5 does not *run* until M4b's gate passes; its cheap prerequisite belongs **here**.

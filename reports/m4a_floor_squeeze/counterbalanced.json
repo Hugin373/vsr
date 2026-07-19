@@ -91,7 +91,8 @@
       "sd": 0.08897852211689082
     },
     "acceptance_fraction": 1.0,
-    "floor_determined_fraction": 0.058333333333333334,
+    "clamped_fraction": 0.0,
+    "accepted_in_floor_band_fraction": 0.058333333333333334,
     "factor_correlations_available": {
       "ratio_vs_depth_gap_bin": 0.9051607578512717,
       "ratio_vs_near_depth_bin": -0.3164633886960563,
@@ -129,7 +130,8 @@
           "sd": 0.07512781287422134
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.030303030303030304
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.030303030303030304
       },
       "near_bottle_far_chair": {
         "required_ratio_worst_case": 1.3807018360779049,
@@ -157,7 +159,8 @@
           "sd": 0.08934716670484867
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.06060606060606061
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.06060606060606061
       },
       "near_bottle_far_cube": {
         "required_ratio_worst_case": 1.8671233360319806,
@@ -185,7 +188,8 @@
           "sd": 0.08927285949634328
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.029411764705882353
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.029411764705882353
       },
       "near_bottle_far_cylinder": {
         "required_ratio_worst_case": 1.6790239373942766,
@@ -213,7 +217,8 @@
           "sd": 0.0914958531898775
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.029411764705882353
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.029411764705882353
       },
       "near_bottle_far_mug": {
         "required_ratio_worst_case": 1.6263327409586341,
@@ -241,7 +246,8 @@
           "sd": 0.07969200118513857
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_bottle_far_sphere": {
         "required_ratio_worst_case": 1.6552156859259402,
@@ -269,7 +275,8 @@
           "sd": 0.08087259012196205
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       },
       "near_chair_far_bottle": {
         "required_ratio_worst_case": 1.029742150137438,
@@ -297,7 +304,8 @@
           "sd": 0.08309129680731049
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_chair_far_chair": {
         "required_ratio_worst_case": 1.0807559856505327,
@@ -325,7 +333,8 @@
           "sd": 0.0757937997401137
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       },
       "near_chair_far_cube": {
         "required_ratio_worst_case": 1.4615065096867847,
@@ -353,7 +362,8 @@
           "sd": 0.10120392900125559
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_chair_far_cylinder": {
         "required_ratio_worst_case": 1.3142701218853174,
@@ -381,7 +391,8 @@
           "sd": 0.10308099045288313
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.058823529411764705
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.058823529411764705
       },
       "near_chair_far_mug": {
         "required_ratio_worst_case": 1.273025644293636,
@@ -409,7 +420,8 @@
           "sd": 0.08051474630776692
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.06060606060606061
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.06060606060606061
       },
       "near_chair_far_sphere": {
         "required_ratio_worst_case": 1.2956340126183303,
@@ -437,7 +449,8 @@
           "sd": 0.08854480040551388
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.06060606060606061
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.06060606060606061
       },
       "near_cube_far_bottle": {
         "required_ratio_worst_case": 1.0478131213951496,
@@ -465,7 +478,8 @@
           "sd": 0.07962349252753882
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.11764705882352941
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.11764705882352941
       },
       "near_cube_far_chair": {
         "required_ratio_worst_case": 1.0716093306582881,
@@ -493,7 +507,8 @@
           "sd": 0.08643467348558898
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.08823529411764706
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.08823529411764706
       },
       "near_cube_far_cube": {
         "required_ratio_worst_case": 1.1124386496755398,
@@ -521,7 +536,8 @@
           "sd": 0.07750222737851636
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       },
       "near_cube_far_cylinder": {
         "required_ratio_worst_case": 1.089655868489173,
@@ -549,7 +565,8 @@
           "sd": 0.0949554210017868
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.12121212121212122
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.12121212121212122
       },
       "near_cube_far_mug": {
         "required_ratio_worst_case": 1.0849087844651006,
@@ -577,7 +594,8 @@
           "sd": 0.07854010975645329
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.14705882352941177
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.14705882352941177
       },
       "near_cube_far_sphere": {
         "required_ratio_worst_case": 1.0593121679300281,
@@ -605,7 +623,8 @@
           "sd": 0.10905719596522494
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_cylinder_far_bottle": {
         "required_ratio_worst_case": 1.0488188359345536,
@@ -633,7 +652,8 @@
           "sd": 0.08814400326289704
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.030303030303030304
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.030303030303030304
       },
       "near_cylinder_far_chair": {
         "required_ratio_worst_case": 1.0726378853331608,
@@ -661,7 +681,8 @@
           "sd": 0.08852822520327049
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_cylinder_far_cube": {
         "required_ratio_worst_case": 1.162210168484844,
@@ -689,7 +710,8 @@
           "sd": 0.08044703541094961
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.058823529411764705
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.058823529411764705
       },
       "near_cylinder_far_cylinder": {
         "required_ratio_worst_case": 1.0907017446358922,
@@ -717,7 +739,8 @@
           "sd": 0.08898523892181244
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.029411764705882353
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.029411764705882353
       },
       "near_cylinder_far_mug": {
         "required_ratio_worst_case": 1.0859501042540827,
@@ -745,7 +768,8 @@
           "sd": 0.08454507627881265
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.06060606060606061
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.06060606060606061
       },
       "near_cylinder_far_sphere": {
         "required_ratio_worst_case": 1.0603289195122532,
@@ -773,7 +797,8 @@
           "sd": 0.1080741104892434
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.06060606060606061
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.06060606060606061
       },
       "near_mug_far_bottle": {
         "required_ratio_worst_case": 1.036118732568616,
@@ -801,7 +826,8 @@
           "sd": 0.08186940355532017
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       },
       "near_mug_far_chair": {
         "required_ratio_worst_case": 1.0596493580954578,
@@ -829,7 +855,8 @@
           "sd": 0.09186225261492226
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.030303030303030304
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.030303030303030304
       },
       "near_mug_far_cube": {
         "required_ratio_worst_case": 1.1812337498277954,
@@ -857,7 +884,8 @@
           "sd": 0.08578834565545208
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.029411764705882353
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.029411764705882353
       },
       "near_mug_far_cylinder": {
         "required_ratio_worst_case": 1.077494482882301,
@@ -885,7 +913,8 @@
           "sd": 0.0820438844877767
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       },
       "near_mug_far_mug": {
         "required_ratio_worst_case": 1.072800379914904,
@@ -913,7 +942,8 @@
           "sd": 0.07937179035985616
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.15151515151515152
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.15151515151515152
       },
       "near_mug_far_sphere": {
         "required_ratio_worst_case": 1.047489441026248,
@@ -941,7 +971,8 @@
           "sd": 0.10327639428716703
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.029411764705882353
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.029411764705882353
       },
       "near_sphere_far_bottle": {
         "required_ratio_worst_case": 1.0204144800466866,
@@ -969,7 +1000,8 @@
           "sd": 0.10254275217067069
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_sphere_far_chair": {
         "required_ratio_worst_case": 1.0435884564042228,
@@ -997,7 +1029,8 @@
           "sd": 0.08266222558864338
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       },
       "near_sphere_far_cube": {
         "required_ratio_worst_case": 1.154087402797005,
@@ -1025,7 +1058,8 @@
           "sd": 0.09029209665941286
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.06060606060606061
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.06060606060606061
       },
       "near_sphere_far_cylinder": {
         "required_ratio_worst_case": 1.0611631060639122,
@@ -1053,7 +1087,8 @@
           "sd": 0.09725030395024689
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.09090909090909091
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.09090909090909091
       },
       "near_sphere_far_mug": {
         "required_ratio_worst_case": 1.0565401507131413,
@@ -1081,7 +1116,8 @@
           "sd": 0.09174224868754603
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.12121212121212122
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.12121212121212122
       },
       "near_sphere_far_sphere": {
         "required_ratio_worst_case": 1.031612844861299,
@@ -1109,7 +1145,8 @@
           "sd": 0.08326338992159747
         },
         "acceptance_fraction": 1.0,
-        "floor_determined_fraction": 0.0
+        "clamped_fraction": 0.0,
+        "accepted_in_floor_band_fraction": 0.0
       }
     },
     "config": "configs/m4a_v1_counterbalanced_pilot_j2.yaml"

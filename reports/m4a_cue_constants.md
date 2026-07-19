@@ -337,12 +337,27 @@ it, so it was settled by reproduction instead.
 - **Derivation reproduces byte-identically at HEAD.** Re-deriving all seven per-regime configs
   reproduces every committed `cue_constants` value exactly (only the timestamp and git hash differ).
 
-**Verdict: all committed constants derive from post-role-fix code.** Nothing needed re-running.
+**Verdict: the committed constants are REPRODUCIBLE UNDER THE CORRECTED HEAD.** Nothing needed
+re-running.
 
-**Provenance hardened so this is answerable without reproduction next time:** every block now
-records `derivation_source_sha`, a content hash of `cue_constants.py` + `derive_cue_constants.py`.
-Unlike `<commit>-dirty`, it stays meaningful for runs made from a working tree — which is most runs
-during active development.
+⚠ **Wording is load-bearing (advisor, 2026-07-19).** This is *not* the claim that "historical runs
+are proven corrected" — no stamp recorded at the time can support that, because `-dirty` erased the
+distinction. What is established is that re-running the current code over the same inputs yields
+the committed values byte-for-byte. The report now records this as a
+`provenance_claim` field rather than leaving the reader to infer the stronger claim.
+
+**Provenance hardened so this is answerable without reproduction next time.** Every block now
+records `derivation_source_sha` (content hash of `cue_constants.py` + `derive_cue_constants.py`),
+`render_git_patch_sha`, `measurement_only`, and an explicit `provenance_claim` string.
+
+**Meta-lesson, recorded because this is the SECOND hardening of the same subsystem.** The first
+(2026-07-17) added `-dirty` after `git_hash()` was found to record a commit that could not have
+produced the output. That fix was right and insufficient: **`-dirty` flags impurity but destroys
+resolution.** It says "something was uncommitted" and thereby makes every dirty run
+indistinguishable from every other dirty run of the same commit — which is exactly the question
+that got asked two days later. The general rule: **a stamp must answer the questions that will
+later be asked of it, not merely record that a hazard existed.** A flag that collapses distinctions
+is not neutral; it forecloses the audit it appears to enable.
 
 ## 8. Still owed
 

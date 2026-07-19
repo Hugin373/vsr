@@ -149,13 +149,17 @@ cue_constants:
   provenance:
     derivation_script: scripts/derive_cue_constants.py
     derivation_version: 2.0.0
-    derived_at_utc: '2026-07-19T13:16:49Z'
-    derived_at_git_hash: da0b83c-dirty
-    derivation_source_sha: 957dbef540f7c3ce
+    derived_at_utc: '2026-07-19T14:01:40Z'
+    derived_at_git_hash: b43b881-dirty
+    derivation_source_sha: e3c93dd64fc72540
+    provenance_claim: reproducible under corrected HEAD; not a proof that the original
+      run was correct
     sources:
     - set_name: m4a_v1_natural_congruent_pilot
       seed: 410
       render_git_hash: ac36cd3-dirty
+      render_git_patch_sha: 0ea852fe0fe2
+      measurement_only: true
       size_schema: shared
       n_images: 1200
       near_depth_bins:

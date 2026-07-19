@@ -67,20 +67,112 @@ here.
 ## The cross-regime consideration the table surfaces
 
 If natural-congruent runs 4 categories while counterbalanced and conflict run 6, the control is no
-longer category-matched to the arm it anchors. Two ways out, and this is a real choice, not a
-detail:
+longer category-matched to the arm it anchors.
 
-1. **Subset the ANALYSIS, not the stimuli** — keep 6 categories in conflict/counterbalanced and
-   restrict the *fusion comparison* to the 4 shared ones. Costs nothing in stimuli, keeps bottle and
-   chair available for every analysis that does not need the congruent reference.
-2. **Restrict all regimes to the 4 categories** — perfectly matched, but drops bottle and chair from
-   the whole battery, reducing the category diversity that B2 (semantic priors) is measured over.
+> ### 🔴 RETRACTED 2026-07-19 — my recommendation here was wrong
+>
+> This section originally recommended **"subset the ANALYSIS, not the stimuli — keep 6 categories
+> everywhere and restrict the fusion comparison to the 4 shared ones"**, on the reasoning that the
+> category set is a property of the analysis contrast rather than of the generator.
+>
+> That reasoning holds for **counterbalanced and conflict**, which do not clamp (measured
+> `clamped_fraction` 0.001 and 0.000). It **fails for natural-congruent**, which does clamp,
+> because area congruence is a hard validator check there. A six-category congruent set is only
+> realizable by giving each pairing its own floor, and four pairings then clamp on every image:
+>
+> | quantity | value |
+> |---|---:|
+> | always-clamped ratio band | 1.665 – 1.850 |
+> | all other pairings | 1.171 – 1.474 |
+> | **overlap** | **0.000** |
+> | η²(pairing → realized ratio) | **0.865** |
+> | η²(near category → realized far depth) | 0.330 |
+>
+> That is the B15 confound rebuilt inside the reference arm, by the exact mechanism just diagnosed
+> as the reason the ratio target was invalid. **Restricting the analysis does not undo it** — the
+> confound is in the realized stimuli, and ordinal / absolute-depth / lateral targets are still
+> read over all six generated categories.
+>
+> Filed with full evidence in `docs/REJECTED_DESIGNS.md` → **R2**.
 
-Recommendation: **(1)**. The category set is a property of the analysis contrast, not of the
-generator, and B2 coverage is worth keeping.
+**Binding resolution (advisor, 2026-07-19).** Natural-congruent's **generator** is the symmetric
+4-set {cube, cylinder, mug, sphere} at uniform floor 1.1707 — it does not generate six categories.
+"Six categories everywhere" applies to counterbalanced and conflict. The matched-arm fusion
+contrast runs on the shared four via the pre-registered eligibility manifest
+(`configs/m4a_eligibility_manifest.yaml`), which also carries the per-cell n check for the
+restricted contrast at gate scale.
+
+## The symmetry principle (recorded explicitly, as ruled)
+
+> **A pairing restriction must preserve exact per-category role balance.** Legal pairings must form
+> a symmetric set: if (a, b) is generated then (b, a) must be too. This is not an aesthetic
+> preference — `cat_pair` balancing is what gives each category an exact P(near | category) = 0.500
+> split, and that split is what closes B2→z (identity priors predicting depth). Retaining
+> (bottle, cube) without (cube, bottle) would make bottle preferentially NEAR and rebuild the
+> confound the balancing exists to kill.
+
+Enforced as machine-checked invariants rather than prose: symmetry hard-fail, and
+P(near | category) = 0.5 at **both** the assignment level and the **realized** level — placement is
+a selection operator, so assignment-level balance does not imply realized balance.
 
 ## What is NOT decided here
 
 The choice itself. This table is the numbers the ruling asked to be confirmed against; per the
 sequence, implementing the chosen fix is freeze work that comes next, and the constants must be
 re-derived over whichever envelope is chosen before anything is rendered at scale.
+## Appendix A — the exclusion table
+
+### A.1 Why each category is or is not retained
+
+`C_a` = area constant (`mask_area_px × depth²`, size normalised out), from the natural-congruent dense sweep (n ≈ 200 per cell).
+
+| category | C_a as near (min) | C_a as far (max) | worst req **as near** | worst req **as far** | retained |
+|---|---:|---:|---:|---:|:--:|
+| bottle | 48,653 | 50,866 | 1.7661 | 1.0579 | ❌ |
+| chair | 80,047 | 85,805 | 1.3769 | 1.3280 | ❌ |
+| cube | 140,690 | 151,754 | 1.0659 | 1.7661 | ✅ |
+| cylinder | 125,638 | 126,849 | 1.0990 | 1.6147 | ✅ |
+| mug | 121,496 | 122,923 | 1.1176 | 1.5895 | ✅ |
+| sphere | 127,792 | 131,469 | 1.0897 | 1.6438 | ✅ |
+
+The asymmetry is the whole story: **a category is excluded for what it forces when it is NEAR**, not when it is far. A bottle's silhouette area is ~3× smaller than a cube's at the height-calibrated size, so a near bottle against a far cube needs a depth ratio of 1.7661 — above the design's maximum of 1.4737. As the FAR object a bottle needs only 1.0579 and is entirely unproblematic.
+
+### A.2 What each successive exclusion buys
+
+Greedy removal, always dropping the category whose removal most reduces the worst-case requirement. Floor = worst requirement × 1.0475 (the +4.75% margin the 1.85 floor carries). Feasible means floor < available max 1.4737.
+
+| categories retained | worst req | uniform floor | feasible | retained ratio range |
+|---|---:|---:|:--:|---:|
+| 6: bottle, chair, cube, cylinder, mug, sphere | 1.7661 | 1.8500 | ❌ | 1.000× |
+| 5: chair, cube, cylinder, mug, sphere | 1.3769 | 1.4423 | ✅ | 1.022× |
+| 4: cube, cylinder, mug, sphere ← **adopted** | 1.1176 | 1.1707 | ✅ | 1.259× |
+| 3: cylinder, mug, sphere | 1.0700 | 1.1208 | ✅ | 1.315× |
+
+Five categories is technically feasible but useless: a floor of 1.4423 against an available maximum of 1.4737 leaves a **1.022× retained range** — a target with essentially no spread, i.e. the same failure as today in milder form. Four categories is the first genuinely usable point, and three buys only a further 0.056× at the cost of another category.
+
+### A.3 Excluded pairings
+
+All 20 pairings involving bottle or chair are excluded from the natural-congruent **generator**. Note that most of them are individually harmless — e.g. `near_cube_far_bottle` requires only 1.0538. They are excluded because the retained set must be **symmetric** (§ symmetry principle): admitting `near_cube_far_bottle` without `near_bottle_far_cube` would make bottle preferentially FAR and break the exact 0.500 role balance that closes B2→z.
+
+| excluded pairing | required ratio | individually feasible? |
+|---|---:|:--:|
+| bottle → cube | 1.7661 | **no** |
+| bottle → sphere | 1.6438 | **no** |
+| bottle → cylinder | 1.6147 | **no** |
+| bottle → mug | 1.5895 | **no** |
+| chair → cube | 1.3769 | yes |
+| bottle → chair | 1.3280 | yes |
+| chair → sphere | 1.2816 | yes |
+| chair → cylinder | 1.2588 | yes |
+| chair → mug | 1.2392 | yes |
+| cylinder → bottle | 1.0579 | yes |
+| cube → bottle | 1.0538 | yes |
+| cylinder → chair | 1.0401 | yes |
+| mug → bottle | 1.0394 | yes |
+| chair → bottle | 1.0386 | yes |
+| cube → chair | 1.0361 | yes |
+| chair → chair | 1.0353 | yes |
+| bottle → bottle | 1.0344 | yes |
+| sphere → bottle | 1.0309 | yes |
+| mug → chair | 1.0219 | yes |
+| sphere → chair | 1.0136 | yes |

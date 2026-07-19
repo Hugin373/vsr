@@ -73,6 +73,8 @@ def _available_ratios(config: dict, n: int) -> list[dict]:
             {
                 "near_category": spec.factors["near_category"],
                 "far_category": spec.factors["far_category"],
+                "depth_near": depths[near_i],
+                "depth_far": depths[1 - near_i],
                 "ratio": depths[1 - near_i] / depths[near_i],
             }
         )
@@ -117,6 +119,142 @@ def _coupling(rows: list[dict], floors: dict[str, float]) -> dict:
         "min_pairwise_overlap": float(np.min(overlaps)),
         "median_pairwise_overlap": float(np.median(overlaps)),
         "n_pairings": len(groups),
+    }
+
+
+def _six_category_control(
+    rows: list[dict], required: dict[str, float], margin: float, avail_max: float
+) -> dict:
+    """Can natural-congruent keep all six categories if only four are analysis-ELIGIBLE?
+
+    The tempting arrangement: generate six categories, apply each pairing's own derived floor, and
+    restrict only the ANALYSIS to the feasible four. This measures what that actually produces.
+
+    The failure mode it is testing for: a pairing whose floor exceeds the available maximum is
+    clamped for EVERY image, so its ratios collapse into a band around its own floor, disjoint from
+    the band of the feasible pairings. Ratio then reveals the pairing deterministically, and the
+    depth pushed into the far object is a function of the category pair — which is the category
+    <-> depth coupling the whole battery is built to eliminate.
+    """
+    floors = {k: max(required[k] * margin, 1.1707) for k in required}
+    eligible = {"cube", "cylinder", "mug", "sphere"}
+
+    realized: dict[str, np.ndarray] = {}
+    far_depth_proxy: dict[str, list[float]] = {}
+    for r in rows:
+        key = f"near_{r['near_category']}_far_{r['far_category']}"
+        if key not in floors:
+            continue
+        realized.setdefault(key, [])
+        realized[key].append(max(r["ratio"], floors[key]))
+        far_depth_proxy.setdefault(r["far_category"], []).append(max(r["ratio"], floors[key]))
+    realized = {k: np.asarray(v) for k, v in realized.items()}
+
+    clamped_always = [k for k in realized if floors[k] >= avail_max]
+
+    # ⚠ TWO DIFFERENT SPLITS, and only the second separates. Reporting the first alone would
+    # understate the confound; reporting only the second would overstate which pairings are
+    # affected. Both are printed.
+    #   eligible/ineligible — the 16 analysis-eligible pairings vs the other 20. This does NOT
+    #     separate cleanly, because most bottle/chair pairings (e.g. near_cube_far_bottle,
+    #     required 1.054) have LOW requirements and sit in the same band as the eligible four.
+    #   clamped-always/rest — the pairings whose floor exceeds the available maximum, so every
+    #     image is pushed to the floor. THIS is the disjoint band.
+    inside = [k for k in realized if set(k[len("near_") :].split("_far_")) <= eligible]
+    outside = [k for k in realized if k not in inside]
+    inside_v = np.concatenate([realized[k] for k in inside])
+    outside_v = np.concatenate([realized[k] for k in outside])
+    bins = np.linspace(
+        min(inside_v.min(), outside_v.min()), max(inside_v.max(), outside_v.max()), 60
+    )
+    band_overlap = _overlap(inside_v, outside_v, bins)
+
+    clamped_v = np.concatenate([realized[k] for k in clamped_always])
+    rest_v = np.concatenate([realized[k] for k in realized if k not in clamped_always])
+    cbins = np.linspace(
+        min(clamped_v.min(), rest_v.min()), max(clamped_v.max(), rest_v.max()), 60
+    )
+    clamped_band_overlap = _overlap(clamped_v, rest_v, cbins)
+
+    allv = np.concatenate(list(realized.values()))
+    grand = allv.mean()
+    ss_between = sum(g.size * (g.mean() - grand) ** 2 for g in realized.values())
+    eta2_pairing = float(ss_between / ((allv - grand) ** 2).sum())
+
+    # role-category -> realized depth-ratio coupling (the B15-shaped confound)
+    def _eta2_by(groups: dict[str, list[float]]) -> float:
+        g = {k: np.asarray(v) for k, v in groups.items()}
+        allv = np.concatenate(list(g.values()))
+        return float(
+            sum(x.size * (x.mean() - allv.mean()) ** 2 for x in g.values())
+            / ((allv - allv.mean()) ** 2).sum()
+        )
+
+    near_groups: dict[str, list[float]] = {}
+    for r in rows:
+        key = f"near_{r['near_category']}_far_{r['far_category']}"
+        if key in floors:
+            near_groups.setdefault(r["near_category"], []).append(max(r["ratio"], floors[key]))
+    eta2_far_cat = _eta2_by(far_depth_proxy)
+    eta2_near_cat = _eta2_by(near_groups)
+
+    # ⚠ The ratio is a PROXY. The claim under test is category <-> DEPTH coupling, and depth is
+    # the primary target variable, so measure the realized far-object depth itself: clamping the
+    # ratio pushes the far object back to depth_near * clamped_ratio.
+    far_depth_by_far: dict[str, list[float]] = {}
+    far_depth_by_near: dict[str, list[float]] = {}
+    for r in rows:
+        key = f"near_{r['near_category']}_far_{r['far_category']}"
+        if key not in floors:
+            continue
+        realized_far_depth = r["depth_near"] * max(r["ratio"], floors[key])
+        far_depth_by_far.setdefault(r["far_category"], []).append(realized_far_depth)
+        far_depth_by_near.setdefault(r["near_category"], []).append(realized_far_depth)
+    eta2_fardepth_far_cat = _eta2_by(far_depth_by_far)
+    eta2_fardepth_near_cat = _eta2_by(far_depth_by_near)
+
+    print(
+        f"  pairings clamped on EVERY image (floor >= available max): "
+        f"{len(clamped_always)}/{len(realized)}"
+    )
+    print(
+        f"  eligible-4 band {inside_v.min():.3f}..{inside_v.max():.3f}  vs other-20 "
+        f"{outside_v.min():.3f}..{outside_v.max():.3f}   overlap {band_overlap:.3f}  "
+        f"(does NOT separate — most bottle/chair pairings have LOW requirements)"
+    )
+    print(
+        f"  ALWAYS-CLAMPED band {clamped_v.min():.3f}..{clamped_v.max():.3f}  vs rest "
+        f"{rest_v.min():.3f}..{rest_v.max():.3f}   overlap {clamped_band_overlap:.3f}"
+        f"   <-- the split"
+    )
+    print(f"  eta2(pairing  -> realized ratio)     : {eta2_pairing:.3f}")
+    print(f"  eta2(NEAR category -> realized ratio): {eta2_near_cat:.3f}")
+    print(f"  eta2(FAR  category -> realized ratio): {eta2_far_cat:.3f}")
+    print(
+        f"  eta2(NEAR category -> realized FAR DEPTH m): {eta2_fardepth_near_cat:.3f}   "
+        f"eta2(FAR category -> realized FAR DEPTH m): {eta2_fardepth_far_cat:.3f}"
+    )
+    verdict = (
+        "NOT REALIZABLE — the always-clamped pairings occupy a disjoint ratio band and the "
+        "pairing determines the ratio"
+        if clamped_band_overlap < 0.05 or eta2_pairing > 0.5
+        else "no separation detected"
+    )
+    print(f"  => {verdict}")
+    return {
+        "n_pairings_clamped_on_every_image": len(clamped_always),
+        "pairings_clamped_on_every_image": sorted(clamped_always),
+        "eligible_band": [float(inside_v.min()), float(inside_v.max())],
+        "ineligible_band": [float(outside_v.min()), float(outside_v.max())],
+        "eligible_vs_other_band_overlap": band_overlap,
+        "always_clamped_band": [float(clamped_v.min()), float(clamped_v.max())],
+        "always_clamped_vs_rest_band_overlap": clamped_band_overlap,
+        "eta2_near_category_explains_ratio": eta2_near_cat,
+        "eta2_near_category_explains_far_depth": eta2_fardepth_near_cat,
+        "eta2_far_category_explains_far_depth": eta2_fardepth_far_cat,
+        "eta2_pairing_explains_ratio": eta2_pairing,
+        "eta2_far_category_explains_ratio": eta2_far_cat,
+        "verdict": verdict,
     }
 
 
@@ -253,7 +391,12 @@ def main() -> int:
             "no longer depends on the pairing)"
         )
 
+    # ---- is a SIX-category control realizable at all? (binding disambiguation, 2026-07-19) ----
+    print("\n--- SIX-CATEGORY CONTROL: realizable, or does it rebuild the confound? ---")
+    six_cat = _six_category_control(rows, required, margin, avail_max)
+
     out = {
+        "six_category_control": six_cat,
         "available_ratio_min": float(available.min()),
         "available_ratio_max": avail_max,
         "margin_pct": args.margin_pct,

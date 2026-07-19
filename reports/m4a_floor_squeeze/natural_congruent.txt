@@ -4,7 +4,8 @@ m4a_v1_natural_congruent_pilot  regime=natural_congruent  floor=1.85 (band 1.850
   available ratio : n=1200 [1.046 .. 1.474] median 1.214  sd 0.090  dyn-range 1.41x
   accepted  ratio : n=1200 [1.850 .. 1.998] median 1.924  sd 0.043  dyn-range 1.08x
   acceptance fraction (available >= floor) : 0.000
-  floor-DETERMINED fraction (accepted within the floor band) : 1.000
+  clamped_fraction (PRIMARY — images the floor actually moved) : 1.000
+  accepted_in_floor_band (DESCRIPTIVE ONLY — overstates when the band is wide) : 1.000
   placement failures: 0 with floor, 0 without
   r(ratio, depth_gap_bin) : available +0.906 -> accepted -0.017
   r(ratio, near_depth_bin): available -0.322 -> accepted -0.013
@@ -12,7 +13,7 @@ m4a_v1_natural_congruent_pilot  regime=natural_congruent  floor=1.85 (band 1.850
   ordinal margin (far-near): min 2.630 m  median 3.657 m  max 4.789 m  non-positive 0
   near_depth_bin counts {0: 300, 1: 300, 2: 300, 3: 300}  balance (min/max) 1.000  bins [0.65, 1.1, 1.55, 2.0]
 
-  pairing                          req   floor    mgn%       avail range         acc range acc frac floor-det   dyn
+  pairing                          req   floor    mgn%       avail range         acc range acc frac   clamped   dyn
   near_bottle_far_bottle        1.0344   1.850   +78.9   1.067..1.374      1.856..1.988       0.000     1.000  1.07
   near_bottle_far_chair         1.3280   1.850   +39.3   1.071..1.426      1.855..1.998       0.000     1.000  1.08
   near_bottle_far_cube          1.7661   1.850    +4.8   1.107..1.413      1.858..1.996       0.000     1.000  1.07

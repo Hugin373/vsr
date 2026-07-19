@@ -247,6 +247,13 @@ def main() -> int:
                 "n_target_objects": part["n_objects"],
                 "render_git_hash": meta.get("git_hash"),
                 "render_git_dirty": meta.get("git_dirty"),
+                # Extended stamp fields (2026-07-19). `<commit>-dirty` flags impurity but destroys
+                # RESOLUTION: it cannot distinguish a pre-fix from a post-fix run of the same
+                # commit, which is exactly what gets asked later. The patch sha pins the working
+                # tree, and measurement_only marks a set that is an instrument output rather than
+                # stimuli.
+                "render_git_patch_sha": meta.get("git_patch_sha"),
+                "measurement_only": bool(meta.get("measurement_only", False)),
                 "near_depth_bins": config["factors"].get("near_depth_bins"),
                 "min_depth_ratio": (config.get("constraints") or {}).get("min_depth_ratio"),
                 "multiplier_worst_case": multiplier_worst_case(config),
@@ -356,6 +363,14 @@ def main() -> int:
         "derived_at_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "derived_at_git_hash": git_hash(),
         "derivation_source_sha": _derivation_source_sha(),
+        # ⚠ WORDING IS LOAD-BEARING (advisor, 2026-07-19). A byte-identical re-run establishes
+        # that the committed values are REPRODUCIBLE UNDER THE CORRECTED HEAD. It does NOT prove
+        # that the original historical run was itself correct — no stamp recorded at the time can
+        # support that claim, because `-dirty` erased the distinction. Never write "historical
+        # runs proven corrected".
+        "provenance_claim": (
+            "reproducible under corrected HEAD; not a proof that the original run was correct"
+        ),
         "sources": sources,
         "pooled": {
             "n_images": pooled["n_records"],
@@ -437,11 +452,14 @@ def _yaml_block(report: dict) -> dict:
             "derived_at_utc": report["derived_at_utc"],
             "derived_at_git_hash": report["derived_at_git_hash"],
             "derivation_source_sha": report["derivation_source_sha"],
+            "provenance_claim": report["provenance_claim"],
             "sources": [
                 {
                     "set_name": s["set_name"],
                     "seed": s["seed"],
                     "render_git_hash": s["render_git_hash"],
+                    "render_git_patch_sha": s["render_git_patch_sha"],
+                    "measurement_only": s["measurement_only"],
                     "size_schema": s["size_schema"],
                     "n_images": s["n_images"],
                     "near_depth_bins": s["near_depth_bins"],

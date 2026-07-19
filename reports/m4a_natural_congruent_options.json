@@ -1,4 +1,33 @@
 {
+  "six_category_control": {
+    "n_pairings_clamped_on_every_image": 4,
+    "pairings_clamped_on_every_image": [
+      "near_bottle_far_cube",
+      "near_bottle_far_cylinder",
+      "near_bottle_far_mug",
+      "near_bottle_far_sphere"
+    ],
+    "eligible_band": [
+      1.1707,
+      1.452461269637593
+    ],
+    "ineligible_band": [
+      1.1707,
+      1.8499839033959302
+    ],
+    "eligible_vs_other_band_overlap": 0.6022916572869299,
+    "always_clamped_band": [
+      1.66500190130801,
+      1.8499839033959302
+    ],
+    "always_clamped_vs_rest_band_overlap": 0.0,
+    "eta2_near_category_explains_ratio": 0.577828747819966,
+    "eta2_near_category_explains_far_depth": 0.3300132647669773,
+    "eta2_far_category_explains_far_depth": 0.05119578618084223,
+    "eta2_pairing_explains_ratio": 0.865435123879763,
+    "eta2_far_category_explains_ratio": 0.07930069708333397,
+    "verdict": "NOT REALIZABLE \u2014 the always-clamped pairings occupy a disjoint ratio band and the pairing determines the ratio"
+  },
   "available_ratio_min": 1.0463765791411344,
   "available_ratio_max": 1.4737326828512378,
   "margin_pct": 4.75,

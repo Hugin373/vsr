@@ -163,16 +163,20 @@ def analyse(
 
     # How much of the design's natural ratio range does the floor keep?
     acceptance_fraction = float((avail_r >= floor).mean()) if avail_r.size else float("nan")
-    # ⚠ TWO DIFFERENT QUANTITIES, easy to conflate (and I did, briefly):
-    #   clamped_fraction   — images the floor actually MOVED. 1 - acceptance. Unambiguous.
-    #   floor_determined   — accepted ratios lying inside the floor band. This counts clamped
-    #                        images AND images whose natural ratio happened to land in the band,
-    #                        so it OVERSTATES the floor's influence whenever the band is wide
-    #                        relative to the available range. It is exact only when the whole
-    #                        available range sits below the floor (the current natural-congruent
-    #                        case, where both read 1.000).
+    # ⚠ TWO DIFFERENT QUANTITIES, easy to conflate (and I did, briefly). Renamed 2026-07-19 so
+    # the names carry the distinction rather than relying on a comment:
+    #
+    #   clamped_fraction  — PRIMARY. Images the floor actually MOVED, = 1 - acceptance. This is
+    #                       the quantity that says how much of the target the floor manufactured,
+    #                       and the one the §5 criteria gate on.
+    #   accepted_in_floor_band_fraction — DESCRIPTIVE ONLY. Accepted ratios lying inside the floor
+    #                       band. Counts clamped images AND images whose natural ratio happened to
+    #                       land in the band, so it OVERSTATES the floor's influence whenever the
+    #                       band is wide relative to the available range (measured: 0.673 vs a true
+    #                       clamped fraction of 0.332 on the 4-set candidate). The two coincide
+    #                       only when the whole available range sits below the floor.
     clamped = 1.0 - acceptance_fraction
-    floor_determined = float((acc_r <= floor_max).mean()) if acc_r.size else float("nan")
+    accepted_in_floor_band = float((acc_r <= floor_max).mean()) if acc_r.size else float("nan")
 
     strata: dict[str, dict] = {}
     pairings = sorted({(r["near_category"], r["far_category"]) for r in available})
@@ -202,7 +206,9 @@ def analyse(
             "accepted": _quantiles(b),
             "acceptance_fraction": float((a >= floor).mean()) if a.size else float("nan"),
             "clamped_fraction": (1.0 - float((a >= floor).mean())) if a.size else float("nan"),
-            "floor_determined_fraction": float((b <= floor_max).mean()) if b.size else float("nan"),
+            "accepted_in_floor_band_fraction": (
+                float((b <= floor_max).mean()) if b.size else float("nan")
+            ),
         }
 
     def _factor_corr(rows: list[dict]) -> dict[str, float]:
@@ -234,7 +240,7 @@ def analyse(
         "accepted": _quantiles(acc_r),
         "acceptance_fraction": acceptance_fraction,
         "clamped_fraction": clamped,
-        "floor_determined_fraction": floor_determined,
+        "accepted_in_floor_band_fraction": accepted_in_floor_band,
         "factor_correlations_available": _factor_corr(available),
         "factor_correlations_accepted": _factor_corr(accepted),
         "by_pairing": strata,
@@ -262,11 +268,12 @@ def _print_regime(result: dict) -> None:
         f"  acceptance fraction (available >= floor) : {result['acceptance_fraction']:.3f}"
     )
     print(
-        f"  CLAMPED fraction (images the floor actually moved) : {result['clamped_fraction']:.3f}"
+        f"  clamped_fraction (PRIMARY — images the floor actually moved) : "
+        f"{result['clamped_fraction']:.3f}"
     )
     print(
-        f"  floor-determined fraction (accepted inside the floor band; overstates when the band "
-        f"is wide) : {result['floor_determined_fraction']:.3f}"
+        f"  accepted_in_floor_band (DESCRIPTIVE ONLY — overstates when the band is wide) : "
+        f"{result['accepted_in_floor_band_fraction']:.3f}"
     )
     print(f"  placement failures: {result['placement_failures_with_floor']} with floor, "
           f"{result['placement_failures_without_floor']} without")
@@ -301,7 +308,7 @@ def _print_regime(result: dict) -> None:
     print()
     print(
         f"  {'pairing':28s} {'req':>7s} {'floor':>7s} {'mgn%':>7s} "
-        f"{'avail range':>17s} {'acc range':>17s} {'acc frac':>8s} {'floor-det':>9s} {'dyn':>5s}"
+        f"{'avail range':>17s} {'acc range':>17s} {'acc frac':>8s} {'clamped':>9s} {'dyn':>5s}"
     )
     for key in sorted(result["by_pairing"]):
         s = result["by_pairing"][key]
@@ -324,7 +331,7 @@ def _print_regime(result: dict) -> None:
         print(
             f"  {key:28s} {req_s} {s['configured_floor']:7.3f} {margin_s} "
             f"{a['min']:7.3f}..{a['max']:<8.3f} {b['min']:7.3f}..{b['max']:<8.3f} "
-            f"{s['acceptance_fraction']:8.3f} {s['floor_determined_fraction']:9.3f} "
+            f"{s['acceptance_fraction']:8.3f} {s['clamped_fraction']:9.3f} "
             f"{b['dynamic_range']:5.2f}{flag}"
         )
     print()

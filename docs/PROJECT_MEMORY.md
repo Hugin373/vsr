@@ -1722,3 +1722,75 @@ Adopted with one supersession of the advisor's earlier descope lean. Reports:
    fix (freeze work)** → textures → determinism byte-compare → freeze tag → **§5 one-shot** against a
    pre-registered block. NEXT SESSION starts at "implement the chosen fix", which also requires
    re-deriving the constants over whichever envelope is selected.
+
+### ⚖️ BINDING DISAMBIGUATION (2026-07-19) — natural-congruent GENERATES the 4-set; my "subset the analysis" recommendation RETRACTED
+
+Advisor adopted the review (items 1–8 + acceptance checks A–D) with one binding disambiguation.
+⚠ **The review's items 1–8 and checks A–D are NOT in the repo record** — they were not supplied in
+text, so `docs/M4A_S5_CRITERIA.md` cannot be reconciled against them yet and says so explicitly.
+**Supply them before the §5 block is ratified.**
+
+- **🔴 RETRACTION (rule 13, left visible).** I recommended "subset the ANALYSIS, not the stimuli —
+  keep 6 categories everywhere and restrict the fusion comparison to the 4 shared ones". **That was
+  WRONG for natural-congruent.** It holds for counterbalanced/conflict, which do not clamp (measured
+  clamped_fraction 0.001 / 0.000). Natural-congruent DOES clamp, because area congruence is a hard
+  validator check there.
+- **MEASURED CONFIRMATION of the ruling** (`reports/m4a_natural_congruent_options.json` →
+  `six_category_control`): a six-category congruent set is realizable only by per-pairing floors,
+  and then 4/36 pairings clamp on EVERY image →
+  **always-clamped band 1.665–1.850 vs the rest 1.171–1.474, OVERLAP 0.000**;
+  **η²(pairing → realized ratio) = 0.865**. The ratio reveals the pairing deterministically and
+  category predicts depth — **the B15 confound rebuilt inside the reference arm, by the very
+  mechanism just diagnosed**. Restricting the ANALYSIS does not undo it: the confound is in the
+  REALIZED stimuli, and ordinal / absolute-depth / lateral targets are still read over all six.
+- ⚠ **ONE CORRECTION TO THE RULING'S WORDING, on evidence.** It said "far-role category↔depth
+  coupling". Measured, the coupling is **NEAR-role dominant**: η²(near → realized far depth) =
+  **0.330** vs η²(far → far depth) = **0.051** (and η²(near → ratio) 0.578 vs far 0.079). Mechanism:
+  bottle-as-NEAR has the smallest area constant (48,653 vs cube-as-far 151,754), forcing the far
+  object deep; a far category is diluted because e.g. cube-as-far appears in both clamped and
+  unclamped pairings. Conclusion unaffected; attribution corrected so the mechanism is not
+  misremembered. §5 criteria bound BOTH roles rather than only the named one.
+- **ADOPTED SETTLEMENT:** natural-congruent GENERATOR = symmetric **{cube, cylinder, mug, sphere}**
+  at uniform floor **1.1707**. "Six categories everywhere" applies to counterbalanced/conflict.
+  Matched-arm fusion contrast reads the shared four via a pre-registered eligibility manifest.
+  Constants: natural-congruent re-derived over the 4-set envelope; counterbalanced/conflict over the
+  full six.
+- **✅ SYMMETRY PRINCIPLE recorded explicitly:** a pairing restriction must preserve exact
+  per-category role balance — legal pairings form a symmetric set, because `cat_pair` balancing is
+  what gives P(near|category) = 0.500 and that split is what closes B2→z.
+- **✅ EXCLUSION TABLE published** as Appendix A of `reports/m4a_natural_congruent_decision.md`.
+  Key reading: **a category is excluded for what it forces as NEAR, not as FAR** (bottle needs
+  1.7661 as near, only 1.0579 as far). 5 categories is technically feasible but useless (floor
+  1.4423 vs available max 1.4737 → **1.022× retained range**); 4 is the first usable point (1.259×);
+  3 buys only 0.056× more at the cost of a category.
+- **✅ ELIGIBILITY MANIFEST written BEFORE §5:** `configs/m4a_eligibility_manifest.yaml` — generated
+  sets, analysis eligibility, and a **per-cell n check** (≥25 per pairing cell → conflict arm needs
+  n ≥ 900, since it loses 55.6% of images to eligibility).
+- **✅ REJECTED-DESIGN RECORD created:** `docs/REJECTED_DESIGNS.md` — R1 per-pair floors (η² 0.823,
+  worst overlap 0.000, 4/36 still infeasible) and R2 six-category-with-analysis-restriction, each
+  with the evidence that killed it and what would have to change to reconsider.
+- **✅ METRIC RENAMED:** `clamped_fraction` is PRIMARY; `floor_determined_fraction` →
+  `accepted_in_floor_band_fraction`, DESCRIPTIVE ONLY. The rename immediately earned itself: the
+  conflict regime reads clamped **0.000** but accepted-in-band **0.058**, so the old name implied
+  5.8% of images were floor-determined when zero were moved.
+- **✅ PROVENANCE WORDING CORRECTED + STAMPS EXTENDED.** The claim is **"reproducible under corrected
+  HEAD"**, never "historical runs proven corrected" — no stamp taken at the time can support the
+  stronger claim. Now recorded as a `provenance_claim` field, plus `render_git_patch_sha` and
+  `measurement_only`.
+  - 🔑 **META-LESSON (second hardening of the SAME subsystem).** The 2026-07-17 fix added `-dirty`
+    because `git_hash()` recorded a commit that could not have produced the output. Right, and
+    insufficient: **`-dirty` flags impurity but destroys RESOLUTION** — it makes every dirty run of a
+    commit indistinguishable, which is exactly the question asked two days later. **A stamp must
+    answer the questions that will later be asked of it, not merely record that a hazard existed.**
+    A flag that collapses distinctions forecloses the audit it appears to enable.
+- **✅ §5 CRITERIA BLOCK DRAFTED** (`docs/M4A_S5_CRITERIA.md`, NOT ratified): eligibility + per-cell
+  n · natural-congruent ratio-validity bounds proposed from measurement with margins
+  (r ≥ +0.60, clamped ≤ 0.45, dyn ≥ 1.18×; weakest-stratum clamp burden ≤ 0.60) · realized-set band
+  separation · category↔depth coupling · the four hard-fail invariants.
+  ⚠ **Owed before ratification:** C-1's margins are off a SINGLE seed. Rule 7 clause 2 makes these
+  sampled quantities → re-measure at ≥8 seeds and set each bound below the observed minimum, BEFORE
+  the render.
+
+**NEXT SESSION:** implement the 4-set fix + the machine-checked invariants (symmetry hard-fail;
+P(near|c)=0.5 at assignment AND realized level), re-derive constants over the new envelopes
+(natural-congruent 4-set @ 1.1707; counterbalanced/conflict full six), then textures.

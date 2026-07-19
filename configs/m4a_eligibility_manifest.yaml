@@ -1,0 +1,111 @@
+# M4a ELIGIBILITY MANIFEST — pre-registered before §5, ratified 2026-07-19
+#
+# Written BEFORE the frozen render, deliberately. This file fixes which category pairings each
+# regime GENERATES and which pairings the matched-arm fusion contrast is READ over. Both are
+# pre-registration commitments: choosing either after seeing §5 results would be a forking path.
+#
+# The two are NOT the same set, and the difference is the whole point of the 2026-07-19
+# disambiguation:
+#
+#   * natural-congruent GENERATES the symmetric 4-set. It does not generate six categories.
+#   * counterbalanced / conflict GENERATE all six.
+#   * the matched-arm fusion contrast is READ over the shared four.
+#
+# WHY natural-congruent cannot simply generate six and be analysed on four
+# (measured, `reports/m4a_natural_congruent_options.json` -> six_category_control):
+#   Area congruence is a hard validator check for this regime, so a six-category congruent set is
+#   only realizable by giving each pairing its own floor. Four pairings (bottle-as-near against
+#   cube, sphere, cylinder, mug) then have floors ABOVE the maximum ratio the design produces, so
+#   every one of their images is clamped. Result:
+#       always-clamped band 1.665..1.850  vs  the rest 1.171..1.474   OVERLAP 0.000
+#       eta2(pairing        -> realized ratio)     = 0.865
+#       eta2(NEAR category  -> realized ratio)     = 0.578
+#       eta2(NEAR category  -> realized far depth) = 0.330
+#   i.e. the ratio reveals the pairing deterministically and category predicts depth — the B15
+#   confound rebuilt inside the reference arm, by the very mechanism just diagnosed. Restricting
+#   the ANALYSIS does not undo it: the confound is in the realized stimuli, and every other target
+#   (ordinal, absolute depth, lateral) is still read over the full generated set.
+
+version: 1
+ratified_utc: '2026-07-19'
+supersedes: >
+  The 2026-07-19 recommendation "subset the ANALYSIS, not the stimuli — keep 6 categories
+  everywhere". That was correct for counterbalanced/conflict and WRONG for natural-congruent,
+  which clamps. Retained here as a visible retraction (AGENTS.md rule 13).
+
+# ---------------------------------------------------------------------------------------------
+# GENERATED category sets — what each regime's sampler is allowed to draw
+# ---------------------------------------------------------------------------------------------
+generated:
+  natural_congruent:
+    categories: [cube, cylinder, mug, sphere]
+    symmetric: true                 # pairings = C x C, all 16
+    min_depth_ratio: 1.1707         # UNIFORM over the retained set; per-pair floors are rejected
+    rationale: >
+      Largest symmetric subset whose worst-case area-congruence requirement (1.1176) leaves a
+      usable ratio range below the design's available maximum (1.4737). Uniform floor keeps
+      eta2(pairing -> ratio) = 0 by construction.
+  counterbalanced:
+    categories: [bottle, chair, cube, cylinder, mug, sphere]
+    symmetric: true
+    min_depth_ratio: 1.05
+    rationale: >
+      Does not claim size congruence, so no congruence floor applies and nothing clamps
+      (measured clamped_fraction 0.001). All six categories are generated.
+  conflict:
+    categories: [bottle, chair, cube, cylinder, mug, sphere]
+    symmetric: true
+    min_depth_ratio: 1.05
+    rationale: >
+      Inverts the size cue on purpose; congruence is not claimed. Measured clamped_fraction 0.000.
+
+# ---------------------------------------------------------------------------------------------
+# ANALYSIS eligibility — which pairings each contrast is READ over
+# ---------------------------------------------------------------------------------------------
+analysis:
+  matched_arm_fusion_contrast:
+    # The conflict regime's fusion analysis read against natural-congruent as the
+    # all-cues-agree reference. Both arms must cover the same pairings or the reference is not
+    # matched.
+    categories: [cube, cylinder, mug, sphere]
+    pairings: 16                    # C x C, symmetric
+    arms: [natural_congruent, conflict]
+    natural_congruent_coverage: 1.00   # generates exactly this set
+    conflict_coverage: 0.444           # 16 of 36 generated pairings are eligible
+    per_cell_n_check:
+      # Pre-registered, checked at gate scale BEFORE the contrast is read.
+      min_images_per_pairing_cell: 25
+      implied_min_conflict_n: 900     # ceil(16 * 25 / 0.444)
+      note: >
+        The conflict arm loses 55.6% of its images to eligibility, so its n must be sized for the
+        RESTRICTED contrast, not the full set. Failing this check means the contrast is
+        underpowered and must be reported as such, never quietly read anyway.
+  unrestricted_contrasts:
+    # Everything that does not compare against the congruent reference reads the full generated
+    # set of its own regime.
+    categories: [bottle, chair, cube, cylinder, mug, sphere]
+    applies_to: [counterbalanced, conflict]
+
+# ---------------------------------------------------------------------------------------------
+# Machine-checked invariants — implemented as tests, not prose (2026-07-19 ruling)
+# ---------------------------------------------------------------------------------------------
+invariants:
+  - id: symmetry_hard_fail
+    statement: >
+      Every generated category set is symmetric: if (a, b) is a legal pairing then so is (b, a).
+      An asymmetric set makes some category preferentially NEAR, which breaks the exact 0.500
+      per-category role balance that closes B2->z.
+    status: owed          # implement with the 4-set fix
+  - id: role_balance_assignment_level
+    statement: "P(near | category) == 0.5 exactly, over factorial_assignments, at n >= 2000."
+    status: partially_covered   # test_category_role_balanced_at_scale covers assignment level
+  - id: role_balance_realized_level
+    statement: >
+      P(near | category) == 0.5 within tolerance over the REALIZED (placed and rendered) set, not
+      only over assignments. Placement is a selection operator, so assignment-level balance does
+      not imply realized balance.
+    status: owed          # implement with the 4-set fix
+  - id: eligibility_manifest_precedes_render
+    statement: >
+      This file exists, is committed, and its `ratified_utc` predates the §5 frozen render.
+    status: satisfied_on_commit
