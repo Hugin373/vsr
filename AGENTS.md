@@ -65,9 +65,8 @@ Every time a doubt was raised ("did you download all of it?", "does it all work?
 
 **The user relays every result to a second, independent agent (the advisor) for confirmation before
 deciding anything.** That agent has **no repo access, no shell, and none of this conversation**. So
-every response that reaches a checkpoint — measurements produced, a decision surfaced, work
-finished or blocked — ends with a **self-contained briefing the user can paste straight into
-another chat.** Not a summary of what you did: the *scientific content needed to argue with you*.
+every **result-producing** response — measurements produced, a decision surfaced, work finished or
+blocked — ends with a **self-contained briefing the user can paste straight into another chat.** Not a summary of what you did: the *scientific content needed to argue with you*.
 
 Skip it only for genuinely conversational turns (a clarifying question, a one-line lookup). When in
 doubt, include it.
@@ -84,6 +83,12 @@ doubt, include it.
 6. **Where the reasoning is weakest** — the thing you most want challenged. Mandatory, and it is
    the most valuable section: the advisor's job is adversarial, so hand them the sharpest edge you
    know of rather than making them find it.
+7. **Next step** — what you would do next, as a **proposal to confirm or redirect**, never as a
+   statement of what will happen. Say explicitly which parts are blocked on a decision above and
+   which can proceed regardless, and give the rough cost of each (a 20-minute sweep and a
+   battery-wide re-render are not the same commitment). If the next step is "nothing until this is
+   ruled on", say that — an empty next step is a real answer and is more useful than inventing
+   work to fill the section.
 
 ### Rules
 
