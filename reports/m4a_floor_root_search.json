@@ -1,0 +1,92 @@
+{
+  "r_star": 1.185,
+  "r_operating": 1.19,
+  "evaluations": [
+    {
+      "floor": 1.165,
+      "requirement": 1.191462660255204,
+      "per_seed": {
+        "8001": 1.1792935157168458,
+        "8002": 1.191462660255204
+      },
+      "self_consistent": false,
+      "placement_failures": {
+        "8001": 0,
+        "8002": 2
+      },
+      "infeasible_reason": null
+    },
+    {
+      "floor": 1.17,
+      "requirement": 1.1785528416911646,
+      "per_seed": {
+        "8001": 1.1775641337012324,
+        "8002": 1.1785528416911646
+      },
+      "self_consistent": false,
+      "placement_failures": {
+        "8001": 0,
+        "8002": 0
+      },
+      "infeasible_reason": null
+    },
+    {
+      "floor": 1.175,
+      "requirement": 1.1769178580181774,
+      "per_seed": {
+        "8001": 1.1769178580181774,
+        "8002": 1.1769062135412436
+      },
+      "self_consistent": false,
+      "placement_failures": {
+        "8001": 1,
+        "8002": 0
+      },
+      "infeasible_reason": null
+    },
+    {
+      "floor": 1.18,
+      "requirement": 1.1828317701988487,
+      "per_seed": {
+        "8001": 1.17966683032165,
+        "8002": 1.1828317701988487
+      },
+      "self_consistent": false,
+      "placement_failures": {
+        "8001": 0,
+        "8002": 0
+      },
+      "infeasible_reason": null
+    },
+    {
+      "floor": 1.185,
+      "requirement": 1.1797400700414016,
+      "per_seed": {
+        "8001": 1.1747601744976541,
+        "8002": 1.1797400700414016
+      },
+      "self_consistent": true,
+      "placement_failures": {
+        "8001": 1,
+        "8002": 0
+      },
+      "infeasible_reason": null
+    }
+  ],
+  "protocol": {
+    "version": "1.2",
+    "calibration_seeds": [
+      8001,
+      8002
+    ],
+    "grid": [
+      1.165,
+      1.2,
+      0.005
+    ],
+    "tolerance": 0.005,
+    "n_per_evaluation": 1200,
+    "margin_abs": 0.005,
+    "margin_round_dp": 3
+  }
+}

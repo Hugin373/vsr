@@ -1,0 +1,8 @@
+{
+  "A.r_ratio_gap": 0.70,
+  "A.retained_range": 1.23,
+  "A.weakest_stratum_r_gap": 0.58,
+  "A.weakest_stratum_range": 1.14,
+  "C.clamped_fraction_drawn_floor": 0.55,
+  "C.max_stratum_clamped_fraction": 0.69
+}

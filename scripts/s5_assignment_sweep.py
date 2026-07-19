@@ -297,14 +297,32 @@ def main() -> int:
     ap.add_argument("--config", required=True)
     ap.add_argument("--n", type=int, default=1200)
     ap.add_argument("--json")
+    ap.add_argument(
+        "--seed-role",
+        choices=("calibration", "bound_setting", "development"),
+        default="bound_setting",
+        help="which pre-committed seed block to use; roles are DISJOINT by design",
+    )
+    ap.add_argument(
+        "--check-against",
+        help="JSON of {quantity: bound} to TEST against (design-selection bounds). Reports "
+             "pass/fail per quantity instead of only setting new bounds.",
+    )
     args = ap.parse_args()
+
+    seeds = {
+        "calibration": CALIBRATION_SEEDS,
+        "bound_setting": BOUND_SETTING_SEEDS,
+        "development": DEVELOPMENT_SEEDS,
+    }[args.seed_role]
 
     config = load_config(args.config)
     print(f"config: {args.config}   n={args.n} per seed")
-    print(f"PRE-COMMITTED: seeds={SEEDS}  k={K}  round={ROUND_DP}dp outward  "
-          f"spread-rule CV>{SPREAD_RULE_MAX_CV}\n")
+    print(f"PROTOCOL v{PROTOCOL_VERSION}  role={args.seed_role}  seeds={seeds}")
+    print(f"  k={K}  round={ROUND_DP}dp outward  spread-rule CV>{SPREAD_RULE_MAX_CV}  "
+          f"near-zero exemption <= {NEAR_ZERO_EXEMPTION} x criterion\n")
 
-    per_seed = [measure_one_seed(config, args.n, s) for s in SEEDS]
+    per_seed = [measure_one_seed(config, args.n, s) for s in seeds]
     reference = measure_one_seed(config, args.n, REFERENCE_SEED)
 
     print(f"  {'seed':>6s} {'r(ratio,gap)':>13s} {'range':>7s} {'clamped':>8s} "
@@ -359,9 +377,33 @@ def main() -> int:
     print("\n--- CHECK C STRUCTURAL HARD FAILURES ---")
     print("  " + ("NONE" if not hard else "\n  ".join(hard)))
 
+    verdict = None
+    if args.check_against:
+        targets = json.loads(Path(args.check_against).read_text(encoding="utf-8"))
+        print("\n--- JOINT ACCEPTANCE: sampling validity vs design-selection bounds ---")
+        rows, all_pass = [], True
+        for name, target in targets.items():
+            path, direction = GATED[name][0], GATED[name][1]
+            values = np.array([s[path[0]][path[1]] for s in per_seed], dtype=float)
+            # Test the WORST seed, not the mean: a bound that only the average clears is not a
+            # bound. Direction "lower" = higher-is-better, so its worst case is the minimum.
+            worst = float(values.min() if direction == "lower" else values.max())
+            ok = worst >= target if direction == "lower" else worst <= target
+            all_pass &= ok
+            rows.append((name, direction, target, worst, ok))
+            print(
+                f"  {name:34s} {direction:>5s}  bound {target:8.3f}  worst seed {worst:8.4f}  "
+                f"{'PASS' if ok else 'FAIL'}"
+            )
+        verdict = {"all_pass": bool(all_pass), "rows": [list(r) for r in rows]}
+        print(f"\n  SAMPLING VALIDITY: {'PASS' if all_pass else 'FAIL'}")
+
     report = {
         "protocol": {
-            "seeds": list(SEEDS),
+            "version": PROTOCOL_VERSION,
+            "seed_role": args.seed_role,
+            "seeds": list(seeds),
+            "near_zero_exemption": NEAR_ZERO_EXEMPTION,
             "reference_seed_excluded": REFERENCE_SEED,
             "k": K,
             "round_dp": ROUND_DP,
@@ -374,6 +416,7 @@ def main() -> int:
         "reference_seed": reference,
         "bounds": bounds,
         "check_c_hard_failures": hard,
+        "acceptance_vs_selection_bounds": verdict,
     }
     if args.json:
         Path(args.json).write_text(json.dumps(report, indent=2), encoding="utf-8")

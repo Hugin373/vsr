@@ -1,0 +1,1812 @@
+{
+  "protocol": {
+    "version": "2.0",
+    "seed_role": "calibration",
+    "seeds": [
+      8001,
+      8002,
+      8003,
+      8004,
+      8005,
+      8006,
+      8007,
+      8008
+    ],
+    "near_zero_exemption": 0.25,
+    "reference_seed_excluded": 410,
+    "k": 2.0,
+    "round_dp": 2,
+    "spread_rule_max_cv": 0.25,
+    "committed_in": "a6a4f7f"
+  },
+  "config": "/tmp/claude-1100/-home-hugin-vsr/7cd1440d-69fe-4f53-95ae-79ae098dc458/scratchpad/hatch_2.55.yaml",
+  "n_per_seed": 1200,
+  "per_seed": [
+    {
+      "seed": 8001,
+      "check_a": {
+        "r_ratio_gap": 0.9048080139809382,
+        "retained_range": 1.522598929918449,
+        "r_ratio_gap_unclamped": 0.8797250864030418,
+        "retained_range_unclamped": 1.506012976067452,
+        "acceptance_fraction": 0.7080900750625522,
+        "weakest_stratum_r_gap": 0.8890748802947195,
+        "weakest_stratum_range": 1.3946991202494896,
+        "n_total": 1199,
+        "n_per_pairing_min": 74,
+        "n_per_pairing_max": 75,
+        "placement_failures": 1
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.008274023936448622,
+        "eta2_near_cat_ratio": 0.002826294266227803,
+        "eta2_far_cat_ratio": 0.0003979352264905945,
+        "eta2_near_cat_far_depth": 0.00231211025638011,
+        "eta2_far_cat_far_depth": 0.002766385749505454,
+        "eta2_pairing_clamp": 0.012973773369533089,
+        "eta2_near_cat_clamp": 0.003234697631962957,
+        "eta2_far_cat_clamp": 0.004814375061786337,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5008347245409015,
+          "sphere": 0.4991652754590985
+        },
+        "max_abs_role_imbalance": 0.0008347245409014992
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.2919099249374479,
+        "accepted_in_floor_band_fraction": 0.371976647206005,
+        "max_stratum_clamped_fraction": 0.4,
+        "clamped_per_near_category": {
+          "cube": 0.25666666666666665,
+          "cylinder": 0.31666666666666665,
+          "mug": 0.31666666666666665,
+          "sphere": 0.27759197324414714
+        },
+        "clamped_per_far_category": {
+          "cube": 0.3433333333333333,
+          "cylinder": 0.29,
+          "mug": 0.27424749163879597,
+          "sphere": 0.26
+        },
+        "raw_ratio_range": [
+          1.0480031142515338,
+          1.812644079719102
+        ],
+        "realized_ratio_range": [
+          1.190493467518848,
+          1.812644079719102
+        ],
+        "clamped_unclamped_overlap": 0.11307420494699646,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.9153663891978586,
+          "range": 1.4751898604650995,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.8890748802947195,
+          "range": 1.4924198610219463,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.8905525630150943,
+          "range": 1.447304162331177,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.9026927188317597,
+          "range": 1.4487712846606058,
+          "clamped_fraction": 0.2
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.9008713907722053,
+          "range": 1.4715183204409386,
+          "clamped_fraction": 0.4
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.9119345082197671,
+          "range": 1.4729170565406597,
+          "clamped_fraction": 0.32
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.8931079917176781,
+          "range": 1.4034706534631864,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.9118773045629927,
+          "range": 1.4877477047530885,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9305322153710515,
+          "range": 1.4881695591135,
+          "clamped_fraction": 0.36
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.9487788145168055,
+          "range": 1.5116113455585225,
+          "clamped_fraction": 0.36
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9070801309798386,
+          "range": 1.485750253488332,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.8966397465186389,
+          "range": 1.4391292734543848,
+          "clamped_fraction": 0.28
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9037740274848574,
+          "range": 1.4796338785780458,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.898846671217105,
+          "range": 1.5163558603026621,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "sphere->mug": {
+          "n": 74,
+          "r_gap": 0.9116741987446738,
+          "range": 1.3946991202494896,
+          "clamped_fraction": 0.32432432432432434
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.8942166820075441,
+          "range": 1.5147194989561146,
+          "clamped_fraction": 0.26666666666666666
+        }
+      }
+    },
+    {
+      "seed": 8002,
+      "check_a": {
+        "r_ratio_gap": 0.9077276770416377,
+        "retained_range": 1.5263427953867517,
+        "r_ratio_gap_unclamped": 0.8825435801588221,
+        "retained_range_unclamped": 1.5108471927290341,
+        "acceptance_fraction": 0.7291666666666666,
+        "weakest_stratum_r_gap": 0.8819743770301205,
+        "weakest_stratum_range": 1.4338937782309968,
+        "n_total": 1200,
+        "n_per_pairing_min": 75,
+        "n_per_pairing_max": 75,
+        "placement_failures": 0
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.00774219943298648,
+        "eta2_near_cat_ratio": 0.0030105211387834725,
+        "eta2_far_cat_ratio": 0.0028361571378839874,
+        "eta2_near_cat_far_depth": 0.0005380619795358871,
+        "eta2_far_cat_far_depth": 0.003562757238377309,
+        "eta2_pairing_clamp": 0.00818285714285714,
+        "eta2_near_cat_clamp": 0.0014734065934065923,
+        "eta2_far_cat_clamp": 0.0025424175824175837,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.2708333333333333,
+        "accepted_in_floor_band_fraction": 0.365,
+        "max_stratum_clamped_fraction": 0.3466666666666667,
+        "clamped_per_near_category": {
+          "cube": 0.29,
+          "cylinder": 0.2833333333333333,
+          "mug": 0.24666666666666667,
+          "sphere": 0.2633333333333333
+        },
+        "clamped_per_far_category": {
+          "cube": 0.23666666666666666,
+          "cylinder": 0.2966666666666667,
+          "mug": 0.2833333333333333,
+          "sphere": 0.26666666666666666
+        },
+        "raw_ratio_range": [
+          1.0527201430097597,
+          1.8164160558407936
+        ],
+        "realized_ratio_range": [
+          1.19004463566819,
+          1.8164160558407936
+        ],
+        "clamped_unclamped_overlap": 0.12914285714285714,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.8916679777862385,
+          "range": 1.4358735602597015,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.8819743770301205,
+          "range": 1.5196438387272444,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.9117795080947984,
+          "range": 1.493587271503747,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.9041731573118322,
+          "range": 1.4543692550839644,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.9218223548047603,
+          "range": 1.4960484773934903,
+          "clamped_fraction": 0.28
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.9157339025872341,
+          "range": 1.5196079414990398,
+          "clamped_fraction": 0.3466666666666667
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.9083288993622037,
+          "range": 1.5164042162132725,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.8864183406639331,
+          "range": 1.4595263896568667,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9050895781869431,
+          "range": 1.4901992491728298,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.9137722311790022,
+          "range": 1.5047421029035788,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9303890700962573,
+          "range": 1.4354187087073458,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.9201025696799982,
+          "range": 1.4360980190823247,
+          "clamped_fraction": 0.2
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9206203018177608,
+          "range": 1.521548552749405,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.9185771165506569,
+          "range": 1.460419599413726,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.8943144770224841,
+          "range": 1.4338937782309968,
+          "clamped_fraction": 0.28
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.9043381391419364,
+          "range": 1.5173613852670598,
+          "clamped_fraction": 0.28
+        }
+      }
+    },
+    {
+      "seed": 8003,
+      "check_a": {
+        "r_ratio_gap": 0.90872884257165,
+        "retained_range": 1.5574442781815094,
+        "r_ratio_gap_unclamped": 0.8753392369636,
+        "retained_range_unclamped": 1.538324250988874,
+        "acceptance_fraction": 0.7141666666666666,
+        "weakest_stratum_r_gap": 0.884266116217174,
+        "weakest_stratum_range": 1.4184186210999599,
+        "n_total": 1200,
+        "n_per_pairing_min": 75,
+        "n_per_pairing_max": 75,
+        "placement_failures": 0
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.00827347107306247,
+        "eta2_near_cat_ratio": 0.002723378416786572,
+        "eta2_far_cat_ratio": 0.0009723793907266585,
+        "eta2_near_cat_far_depth": 0.0012001302620029066,
+        "eta2_far_cat_far_depth": 0.0018621182503435816,
+        "eta2_pairing_clamp": 0.011862521304571168,
+        "eta2_near_cat_clamp": 0.0012621151144238338,
+        "eta2_far_cat_clamp": 0.0013437613751951863,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.28583333333333333,
+        "accepted_in_floor_band_fraction": 0.36333333333333334,
+        "max_stratum_clamped_fraction": 0.38666666666666666,
+        "clamped_per_near_category": {
+          "cube": 0.27666666666666667,
+          "cylinder": 0.28,
+          "mug": 0.2733333333333333,
+          "sphere": 0.31333333333333335
+        },
+        "clamped_per_far_category": {
+          "cube": 0.2833333333333333,
+          "cylinder": 0.30333333333333334,
+          "mug": 0.2966666666666667,
+          "sphere": 0.26
+        },
+        "raw_ratio_range": [
+          1.067163977368982,
+          1.8535113398095984
+        ],
+        "realized_ratio_range": [
+          1.190098012349938,
+          1.8535113398095984
+        ],
+        "clamped_unclamped_overlap": 0.12135355892648775,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.8917805377385633,
+          "range": 1.554375482349957,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.8937378664346809,
+          "range": 1.457025569081114,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.9039164725903271,
+          "range": 1.4785222248904137,
+          "clamped_fraction": 0.36
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.9113170937814926,
+          "range": 1.4862487345791506,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.9095604992176686,
+          "range": 1.4545003586869283,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.9152423347163738,
+          "range": 1.4196730168274598,
+          "clamped_fraction": 0.28
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.9163340689875447,
+          "range": 1.4659997349110674,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.884266116217174,
+          "range": 1.4320780049885915,
+          "clamped_fraction": 0.28
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9019518090921872,
+          "range": 1.4921301070670672,
+          "clamped_fraction": 0.32
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.925383624055645,
+          "range": 1.4652520773995243,
+          "clamped_fraction": 0.28
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9251839246454353,
+          "range": 1.5171975808605593,
+          "clamped_fraction": 0.28
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.9130051466394348,
+          "range": 1.5394447314217414,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9154593272252287,
+          "range": 1.496978542132464,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.9356828240231889,
+          "range": 1.440077520459306,
+          "clamped_fraction": 0.38666666666666666
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.9247085044046297,
+          "range": 1.4184186210999599,
+          "clamped_fraction": 0.32
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.9170191117675072,
+          "range": 1.5112187116654388,
+          "clamped_fraction": 0.32
+        }
+      }
+    },
+    {
+      "seed": 8004,
+      "check_a": {
+        "r_ratio_gap": 0.9051072253391589,
+        "retained_range": 1.577985439096366,
+        "r_ratio_gap_unclamped": 0.8704247481728914,
+        "retained_range_unclamped": 1.556187083972626,
+        "acceptance_fraction": 0.7275,
+        "weakest_stratum_r_gap": 0.8875630438310572,
+        "weakest_stratum_range": 1.4327038063907631,
+        "n_total": 1200,
+        "n_per_pairing_min": 75,
+        "n_per_pairing_max": 75,
+        "placement_failures": 0
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.016668559750783372,
+        "eta2_near_cat_ratio": 0.00373115269037348,
+        "eta2_far_cat_ratio": 0.004561365707336757,
+        "eta2_near_cat_far_depth": 0.0025355632909407058,
+        "eta2_far_cat_far_depth": 0.002196163427380246,
+        "eta2_pairing_clamp": 0.011766519191091214,
+        "eta2_near_cat_clamp": 0.0035695394628526187,
+        "eta2_far_cat_clamp": 0.0012996066150326986,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.2725,
+        "accepted_in_floor_band_fraction": 0.34833333333333333,
+        "max_stratum_clamped_fraction": 0.32,
+        "clamped_per_near_category": {
+          "cube": 0.2966666666666667,
+          "cylinder": 0.27,
+          "mug": 0.23,
+          "sphere": 0.29333333333333333
+        },
+        "clamped_per_far_category": {
+          "cube": 0.2866666666666667,
+          "cylinder": 0.25333333333333335,
+          "mug": 0.29,
+          "sphere": 0.26
+        },
+        "raw_ratio_range": [
+          1.052502076282695,
+          1.8784988905293016
+        ],
+        "realized_ratio_range": [
+          1.1904412068624821,
+          1.8784988905293016
+        ],
+        "clamped_unclamped_overlap": 0.11494687726599201,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.923201624945757,
+          "range": 1.5022624649776115,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.8941910387521033,
+          "range": 1.4896498276728976,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.895128815313798,
+          "range": 1.4642596007043054,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.887923713753561,
+          "range": 1.5200264366670468,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.8948769521769429,
+          "range": 1.474979298994944,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.9246240273630023,
+          "range": 1.4649180520153098,
+          "clamped_fraction": 0.2
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.9042997112239186,
+          "range": 1.504317287749904,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.9141491558507548,
+          "range": 1.5053414848715083,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.8939129193331997,
+          "range": 1.5633542989969242,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.9172963261905583,
+          "range": 1.4964993700171156,
+          "clamped_fraction": 0.24
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9138640844680972,
+          "range": 1.4883252685586001,
+          "clamped_fraction": 0.32
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.8920521080599014,
+          "range": 1.5417440895694339,
+          "clamped_fraction": 0.13333333333333333
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9188180974079126,
+          "range": 1.4398715852505894,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.8875630438310572,
+          "range": 1.4327038063907631,
+          "clamped_fraction": 0.28
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.9248004058657491,
+          "range": 1.4880986845820414,
+          "clamped_fraction": 0.28
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.9070682340702075,
+          "range": 1.4751587107444775,
+          "clamped_fraction": 0.30666666666666664
+        }
+      }
+    },
+    {
+      "seed": 8005,
+      "check_a": {
+        "r_ratio_gap": 0.910866497159755,
+        "retained_range": 1.5322585143732577,
+        "r_ratio_gap_unclamped": 0.8829032833609604,
+        "retained_range_unclamped": 1.5147835832989547,
+        "acceptance_fraction": 0.7241666666666666,
+        "weakest_stratum_r_gap": 0.8883530741687149,
+        "weakest_stratum_range": 1.4142223115483659,
+        "n_total": 1200,
+        "n_per_pairing_min": 75,
+        "n_per_pairing_max": 75,
+        "placement_failures": 0
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.02598894120926718,
+        "eta2_near_cat_ratio": 0.009851752259920339,
+        "eta2_far_cat_ratio": 0.005527015841956991,
+        "eta2_near_cat_far_depth": 0.001699803995616489,
+        "eta2_far_cat_far_depth": 0.005037351005283527,
+        "eta2_pairing_clamp": 0.019771310566369656,
+        "eta2_near_cat_clamp": 0.01388893717472248,
+        "eta2_far_cat_clamp": 0.002040752470979247,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.2758333333333333,
+        "accepted_in_floor_band_fraction": 0.35333333333333333,
+        "max_stratum_clamped_fraction": 0.4,
+        "clamped_per_near_category": {
+          "cube": 0.3333333333333333,
+          "cylinder": 0.22,
+          "mug": 0.22666666666666666,
+          "sphere": 0.3233333333333333
+        },
+        "clamped_per_far_category": {
+          "cube": 0.25,
+          "cylinder": 0.2733333333333333,
+          "mug": 0.2733333333333333,
+          "sphere": 0.30666666666666664
+        },
+        "raw_ratio_range": [
+          1.061074637547779,
+          1.8234644752929965
+        ],
+        "realized_ratio_range": [
+          1.1900501502769272,
+          1.8234644752929965
+        ],
+        "clamped_unclamped_overlap": 0.11162255466052934,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.9316290559590116,
+          "range": 1.4810664021594404,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.9274256256712825,
+          "range": 1.4229969142129653,
+          "clamped_fraction": 0.37333333333333335
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.9075643585817054,
+          "range": 1.4403211201268622,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.8899054473401581,
+          "range": 1.4409477386490788,
+          "clamped_fraction": 0.36
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.8883530741687149,
+          "range": 1.4890895033004243,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.919158108496865,
+          "range": 1.4735645519746798,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.9082609187880787,
+          "range": 1.443908032690238,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.8976243229058337,
+          "range": 1.479457469016516,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9125349034499292,
+          "range": 1.5157913522670519,
+          "clamped_fraction": 0.24
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.8979691094130874,
+          "range": 1.5063819771804556,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9079171457316478,
+          "range": 1.4867895706042873,
+          "clamped_fraction": 0.2
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.9214439884606711,
+          "range": 1.4142223115483659,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9262062038181839,
+          "range": 1.485084118237813,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.927617343019038,
+          "range": 1.4988585743979514,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.9249834837681195,
+          "range": 1.4340131173362733,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.9150293643497268,
+          "range": 1.4693533802222112,
+          "clamped_fraction": 0.4
+        }
+      }
+    },
+    {
+      "seed": 8006,
+      "check_a": {
+        "r_ratio_gap": 0.9089290771741754,
+        "retained_range": 1.5113642578478204,
+        "r_ratio_gap_unclamped": 0.8784685029919046,
+        "retained_range_unclamped": 1.5027481349198664,
+        "acceptance_fraction": 0.7083333333333334,
+        "weakest_stratum_r_gap": 0.8962246301156844,
+        "weakest_stratum_range": 1.383808193273763,
+        "n_total": 1200,
+        "n_per_pairing_min": 75,
+        "n_per_pairing_max": 75,
+        "placement_failures": 0
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.02146336602187758,
+        "eta2_near_cat_ratio": 0.009026260614270603,
+        "eta2_far_cat_ratio": 0.004305807046887846,
+        "eta2_near_cat_far_depth": 0.006146036349283599,
+        "eta2_far_cat_far_depth": 0.0003663435779075132,
+        "eta2_pairing_clamp": 0.014507563025210085,
+        "eta2_near_cat_clamp": 0.003078991596638654,
+        "eta2_far_cat_clamp": 0.002003361344537814,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.2916666666666667,
+        "accepted_in_floor_band_fraction": 0.37416666666666665,
+        "max_stratum_clamped_fraction": 0.38666666666666666,
+        "clamped_per_near_category": {
+          "cube": 0.27,
+          "cylinder": 0.3333333333333333,
+          "mug": 0.2733333333333333,
+          "sphere": 0.29
+        },
+        "clamped_per_far_category": {
+          "cube": 0.26,
+          "cylinder": 0.29333333333333333,
+          "mug": 0.2966666666666667,
+          "sphere": 0.31666666666666665
+        },
+        "raw_ratio_range": [
+          1.0535804516278533,
+          1.7988417366050782
+        ],
+        "realized_ratio_range": [
+          1.190210584420347,
+          1.7988417366050782
+        ],
+        "clamped_unclamped_overlap": 0.13529411764705881,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.9189069292535229,
+          "range": 1.472653796416027,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.9127461406331905,
+          "range": 1.4506985558630803,
+          "clamped_fraction": 0.28
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.9204931371125662,
+          "range": 1.447973430570145,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.8962246301156844,
+          "range": 1.5036424273605484,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.896677768569175,
+          "range": 1.5060093996196213,
+          "clamped_fraction": 0.3466666666666667
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.8994238440967476,
+          "range": 1.4784747716859952,
+          "clamped_fraction": 0.38666666666666666
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.9125586668986129,
+          "range": 1.4092190401728655,
+          "clamped_fraction": 0.36
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.9111286506194302,
+          "range": 1.383808193273763,
+          "clamped_fraction": 0.24
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9224856075961472,
+          "range": 1.4940325392708276,
+          "clamped_fraction": 0.24
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.9300285174116178,
+          "range": 1.422934373046461,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9048002195760835,
+          "range": 1.4763319696656636,
+          "clamped_fraction": 0.24
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.9180084760499589,
+          "range": 1.415209808351096,
+          "clamped_fraction": 0.3466666666666667
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9016425222210591,
+          "range": 1.5090116774189382,
+          "clamped_fraction": 0.24
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.9262133588545826,
+          "range": 1.4445663582935446,
+          "clamped_fraction": 0.24
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.9001826093993035,
+          "range": 1.4612082852410089,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.9109083286540869,
+          "range": 1.4343474218128844,
+          "clamped_fraction": 0.3466666666666667
+        }
+      }
+    },
+    {
+      "seed": 8007,
+      "check_a": {
+        "r_ratio_gap": 0.9079854283066953,
+        "retained_range": 1.5624734794778283,
+        "r_ratio_gap_unclamped": 0.8799109711006026,
+        "retained_range_unclamped": 1.5579596800357942,
+        "acceptance_fraction": 0.7075,
+        "weakest_stratum_r_gap": 0.90120642307387,
+        "weakest_stratum_range": 1.3935347995290421,
+        "n_total": 1200,
+        "n_per_pairing_min": 75,
+        "n_per_pairing_max": 75,
+        "placement_failures": 0
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.01393035780649705,
+        "eta2_near_cat_ratio": 0.0013767731999325707,
+        "eta2_far_cat_ratio": 0.003988194359587269,
+        "eta2_near_cat_far_depth": 0.0013130646544500153,
+        "eta2_far_cat_far_depth": 0.005025470894884315,
+        "eta2_pairing_clamp": 0.01637253816287974,
+        "eta2_near_cat_clamp": 0.005030218222208801,
+        "eta2_far_cat_clamp": 0.0035805489280165354,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.2925,
+        "accepted_in_floor_band_fraction": 0.37833333333333335,
+        "max_stratum_clamped_fraction": 0.4,
+        "clamped_per_near_category": {
+          "cube": 0.33,
+          "cylinder": 0.31666666666666665,
+          "mug": 0.2733333333333333,
+          "sphere": 0.25
+        },
+        "clamped_per_far_category": {
+          "cube": 0.29333333333333333,
+          "cylinder": 0.33666666666666667,
+          "mug": 0.27,
+          "sphere": 0.27
+        },
+        "raw_ratio_range": [
+          1.053411903915078,
+          1.85973692577499
+        ],
+        "realized_ratio_range": [
+          1.1902518348001054,
+          1.85973692577499
+        ],
+        "clamped_unclamped_overlap": 0.14605418138987042,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.9170907038395943,
+          "range": 1.5159704144583652,
+          "clamped_fraction": 0.37333333333333335
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.9095070674024424,
+          "range": 1.5075491599186588,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.90268691194697,
+          "range": 1.4379600678489708,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.9201947179130967,
+          "range": 1.429663842340162,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.9196605496329038,
+          "range": 1.4231268930958016,
+          "clamped_fraction": 0.36
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.9039055331809089,
+          "range": 1.4880742116325572,
+          "clamped_fraction": 0.4
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.90120642307387,
+          "range": 1.3935347995290421,
+          "clamped_fraction": 0.28
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.9027469930469327,
+          "range": 1.4562608469056806,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9073117316520427,
+          "range": 1.5575429369878402,
+          "clamped_fraction": 0.24
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.9118701263849971,
+          "range": 1.496305862044131,
+          "clamped_fraction": 0.29333333333333333
+        },
+        "mug->mug": {
+          "n": 75,
+          "r_gap": 0.9146308057382828,
+          "range": 1.5224653396459045,
+          "clamped_fraction": 0.25333333333333335
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.9166932627588205,
+          "range": 1.5189446277501715,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9109418925211831,
+          "range": 1.50207060690929,
+          "clamped_fraction": 0.2
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.9069137891093363,
+          "range": 1.4400704449933361,
+          "clamped_fraction": 0.3466666666666667
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.9112856559316683,
+          "range": 1.4856242709924967,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.902099695643934,
+          "range": 1.4737196730625033,
+          "clamped_fraction": 0.24
+        }
+      }
+    },
+    {
+      "seed": 8008,
+      "check_a": {
+        "r_ratio_gap": 0.9055668844719531,
+        "retained_range": 1.5163493005232955,
+        "r_ratio_gap_unclamped": 0.8775962028921043,
+        "retained_range_unclamped": 1.505363169876592,
+        "acceptance_fraction": 0.707256046705588,
+        "weakest_stratum_r_gap": 0.87731740011566,
+        "weakest_stratum_range": 1.4084446564469262,
+        "n_total": 1199,
+        "n_per_pairing_min": 74,
+        "n_per_pairing_max": 75,
+        "placement_failures": 1
+      },
+      "check_b": {
+        "eta2_pairing_ratio": 0.012662967686837667,
+        "eta2_near_cat_ratio": 0.005796447522894192,
+        "eta2_far_cat_ratio": 0.0033707290687442545,
+        "eta2_near_cat_far_depth": 0.0007880853033493955,
+        "eta2_far_cat_far_depth": 0.002045175804785173,
+        "eta2_pairing_clamp": 0.014456795934783355,
+        "eta2_near_cat_clamp": 0.0042351596906218215,
+        "eta2_far_cat_clamp": 0.0024002634762820708,
+        "p_near_by_category": {
+          "cube": 0.5,
+          "cylinder": 0.5,
+          "mug": 0.5,
+          "sphere": 0.5
+        },
+        "max_abs_role_imbalance": 0.0
+      },
+      "check_c": {
+        "clamped_fraction_drawn_floor": 0.292743953294412,
+        "accepted_in_floor_band_fraction": 0.3678065054211843,
+        "max_stratum_clamped_fraction": 0.38666666666666666,
+        "clamped_per_near_category": {
+          "cube": 0.29333333333333333,
+          "cylinder": 0.27666666666666667,
+          "mug": 0.2608695652173913,
+          "sphere": 0.34
+        },
+        "clamped_per_far_category": {
+          "cube": 0.26,
+          "cylinder": 0.32,
+          "mug": 0.30434782608695654,
+          "sphere": 0.2866666666666667
+        },
+        "raw_ratio_range": [
+          1.054795595788594,
+          1.8045416300427475
+        ],
+        "realized_ratio_range": [
+          1.1900566903812968,
+          1.8045416300427475
+        ],
+        "clamped_unclamped_overlap": 0.1305938558297049,
+        "n_always_clamped_pairings": 0,
+        "always_clamped_pairings": []
+      },
+      "per_pairing": {
+        "cube->cube": {
+          "n": 75,
+          "r_gap": 0.8855904203141826,
+          "range": 1.471355556582404,
+          "clamped_fraction": 0.21333333333333335
+        },
+        "cube->cylinder": {
+          "n": 75,
+          "r_gap": 0.9351495229018228,
+          "range": 1.4818329391342855,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "cube->mug": {
+          "n": 75,
+          "r_gap": 0.8938097667190632,
+          "range": 1.4934407515090535,
+          "clamped_fraction": 0.32
+        },
+        "cube->sphere": {
+          "n": 75,
+          "r_gap": 0.9177049755684304,
+          "range": 1.4084446564469262,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "cylinder->cube": {
+          "n": 75,
+          "r_gap": 0.9156841036748459,
+          "range": 1.422773017684738,
+          "clamped_fraction": 0.26666666666666666
+        },
+        "cylinder->cylinder": {
+          "n": 75,
+          "r_gap": 0.9133563608850771,
+          "range": 1.4832507830808688,
+          "clamped_fraction": 0.32
+        },
+        "cylinder->mug": {
+          "n": 75,
+          "r_gap": 0.8986803959088651,
+          "range": 1.4708292194950396,
+          "clamped_fraction": 0.32
+        },
+        "cylinder->sphere": {
+          "n": 75,
+          "r_gap": 0.8953985235859573,
+          "range": 1.4867499332925913,
+          "clamped_fraction": 0.2
+        },
+        "mug->cube": {
+          "n": 75,
+          "r_gap": 0.9105820564937646,
+          "range": 1.5013029769620172,
+          "clamped_fraction": 0.22666666666666666
+        },
+        "mug->cylinder": {
+          "n": 75,
+          "r_gap": 0.9144044131834381,
+          "range": 1.4661641606736273,
+          "clamped_fraction": 0.32
+        },
+        "mug->mug": {
+          "n": 74,
+          "r_gap": 0.87731740011566,
+          "range": 1.4675403775365543,
+          "clamped_fraction": 0.1891891891891892
+        },
+        "mug->sphere": {
+          "n": 75,
+          "r_gap": 0.9013857563062199,
+          "range": 1.5141871212336115,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "sphere->cube": {
+          "n": 75,
+          "r_gap": 0.9180821794809163,
+          "range": 1.440888188769025,
+          "clamped_fraction": 0.3333333333333333
+        },
+        "sphere->cylinder": {
+          "n": 75,
+          "r_gap": 0.9131965221863527,
+          "range": 1.473999504075757,
+          "clamped_fraction": 0.30666666666666664
+        },
+        "sphere->mug": {
+          "n": 75,
+          "r_gap": 0.9065116797664154,
+          "range": 1.4606509381095212,
+          "clamped_fraction": 0.38666666666666666
+        },
+        "sphere->sphere": {
+          "n": 75,
+          "r_gap": 0.9262192735827836,
+          "range": 1.4910752341838154,
+          "clamped_fraction": 0.3333333333333333
+        }
+      }
+    }
+  ],
+  "reference_seed": {
+    "seed": 410,
+    "check_a": {
+      "r_ratio_gap": 0.9046669824719916,
+      "retained_range": 1.56846375302679,
+      "r_ratio_gap_unclamped": 0.8774344510995697,
+      "retained_range_unclamped": 1.5636617036434708,
+      "acceptance_fraction": 0.7225,
+      "weakest_stratum_r_gap": 0.8899310471036994,
+      "weakest_stratum_range": 1.415731183561961,
+      "n_total": 1200,
+      "n_per_pairing_min": 75,
+      "n_per_pairing_max": 75,
+      "placement_failures": 0
+    },
+    "check_b": {
+      "eta2_pairing_ratio": 0.011838680123073916,
+      "eta2_near_cat_ratio": 0.005683642068031747,
+      "eta2_far_cat_ratio": 0.002140868431503761,
+      "eta2_near_cat_far_depth": 0.0009907560095600816,
+      "eta2_far_cat_far_depth": 2.620803067928859e-05,
+      "eta2_pairing_clamp": 0.007117844488086701,
+      "eta2_near_cat_clamp": 0.0005091596787098521,
+      "eta2_far_cat_clamp": 0.001589825119236882,
+      "p_near_by_category": {
+        "cube": 0.5,
+        "cylinder": 0.5,
+        "mug": 0.5,
+        "sphere": 0.5
+      },
+      "max_abs_role_imbalance": 0.0
+    },
+    "check_c": {
+      "clamped_fraction_drawn_floor": 0.2775,
+      "accepted_in_floor_band_fraction": 0.3616666666666667,
+      "max_stratum_clamped_fraction": 0.3333333333333333,
+      "clamped_per_near_category": {
+        "cube": 0.2833333333333333,
+        "cylinder": 0.29,
+        "mug": 0.2733333333333333,
+        "sphere": 0.2633333333333333
+      },
+      "clamped_per_far_category": {
+        "cube": 0.26,
+        "cylinder": 0.26666666666666666,
+        "mug": 0.30666666666666664,
+        "sphere": 0.27666666666666667
+      },
+      "raw_ratio_range": [
+        1.0485001800710727,
+        1.866500013787299
+      ],
+      "realized_ratio_range": [
+        1.1900179460222555,
+        1.866500013787299
+      ],
+      "clamped_unclamped_overlap": 0.13494809688581316,
+      "n_always_clamped_pairings": 0,
+      "always_clamped_pairings": []
+    },
+    "per_pairing": {
+      "cube->cube": {
+        "n": 75,
+        "r_gap": 0.8899310471036994,
+        "range": 1.4465804238045035,
+        "clamped_fraction": 0.25333333333333335
+      },
+      "cube->cylinder": {
+        "n": 75,
+        "r_gap": 0.9126505275306488,
+        "range": 1.4649705969119589,
+        "clamped_fraction": 0.3333333333333333
+      },
+      "cube->mug": {
+        "n": 75,
+        "r_gap": 0.9038468776210693,
+        "range": 1.415731183561961,
+        "clamped_fraction": 0.29333333333333333
+      },
+      "cube->sphere": {
+        "n": 75,
+        "r_gap": 0.9058891236709535,
+        "range": 1.4514872998178743,
+        "clamped_fraction": 0.25333333333333335
+      },
+      "cylinder->cube": {
+        "n": 75,
+        "r_gap": 0.8959019884153594,
+        "range": 1.4686908092569257,
+        "clamped_fraction": 0.29333333333333333
+      },
+      "cylinder->cylinder": {
+        "n": 75,
+        "r_gap": 0.9127672613828529,
+        "range": 1.4700443213770358,
+        "clamped_fraction": 0.28
+      },
+      "cylinder->mug": {
+        "n": 75,
+        "r_gap": 0.9227172494839185,
+        "range": 1.4816891778010186,
+        "clamped_fraction": 0.3333333333333333
+      },
+      "cylinder->sphere": {
+        "n": 75,
+        "r_gap": 0.9148635212620194,
+        "range": 1.5038496438010165,
+        "clamped_fraction": 0.25333333333333335
+      },
+      "mug->cube": {
+        "n": 75,
+        "r_gap": 0.9010115260093671,
+        "range": 1.56585006692554,
+        "clamped_fraction": 0.28
+      },
+      "mug->cylinder": {
+        "n": 75,
+        "r_gap": 0.9129290046417948,
+        "range": 1.4839609387591712,
+        "clamped_fraction": 0.22666666666666666
+      },
+      "mug->mug": {
+        "n": 75,
+        "r_gap": 0.9140213095456655,
+        "range": 1.5046589448768717,
+        "clamped_fraction": 0.26666666666666666
+      },
+      "mug->sphere": {
+        "n": 75,
+        "r_gap": 0.9028885863101602,
+        "range": 1.4727026396538134,
+        "clamped_fraction": 0.32
+      },
+      "sphere->cube": {
+        "n": 75,
+        "r_gap": 0.8986915281964295,
+        "range": 1.453210632235365,
+        "clamped_fraction": 0.21333333333333335
+      },
+      "sphere->cylinder": {
+        "n": 75,
+        "r_gap": 0.9220535703330145,
+        "range": 1.4645100550050612,
+        "clamped_fraction": 0.22666666666666666
+      },
+      "sphere->mug": {
+        "n": 75,
+        "r_gap": 0.9088278344835503,
+        "range": 1.4838500563753396,
+        "clamped_fraction": 0.3333333333333333
+      },
+      "sphere->sphere": {
+        "n": 75,
+        "r_gap": 0.914809823267871,
+        "range": 1.4771716407274404,
+        "clamped_fraction": 0.28
+      }
+    }
+  },
+  "bounds": {
+    "A.r_ratio_gap": {
+      "direction": "lower",
+      "min": 0.9048080139809382,
+      "max": 0.910866497159755,
+      "mean": 0.9074649557557455,
+      "sd": 0.0021338217356001365,
+      "cv": 0.0023514095195258196,
+      "values": [
+        0.9048080139809382,
+        0.9077276770416377,
+        0.90872884257165,
+        0.9051072253391589,
+        0.910866497159755,
+        0.9089290771741754,
+        0.9079854283066953,
+        0.9055668844719531
+      ],
+      "natural_zero": false,
+      "criterion_bound": null,
+      "near_zero_exempt": false,
+      "status": "gated",
+      "bound": 0.9
+    },
+    "A.retained_range": {
+      "direction": "lower",
+      "min": 1.5113642578478204,
+      "max": 1.577985439096366,
+      "mean": 1.5383521243506597,
+      "sd": 0.024375450598314856,
+      "cv": 0.01584516978426104,
+      "values": [
+        1.522598929918449,
+        1.5263427953867517,
+        1.5574442781815094,
+        1.577985439096366,
+        1.5322585143732577,
+        1.5113642578478204,
+        1.5624734794778283,
+        1.5163493005232955
+      ],
+      "natural_zero": false,
+      "criterion_bound": null,
+      "near_zero_exempt": false,
+      "status": "gated",
+      "bound": 1.46
+    },
+    "A.weakest_stratum_r_gap": {
+      "direction": "lower",
+      "min": 0.87731740011566,
+      "max": 0.90120642307387,
+      "mean": 0.888247493105875,
+      "sd": 0.007628920992082727,
+      "cv": 0.00858873349071574,
+      "values": [
+        0.8890748802947195,
+        0.8819743770301205,
+        0.884266116217174,
+        0.8875630438310572,
+        0.8883530741687149,
+        0.8962246301156844,
+        0.90120642307387,
+        0.87731740011566
+      ],
+      "natural_zero": false,
+      "criterion_bound": null,
+      "near_zero_exempt": false,
+      "status": "gated",
+      "bound": 0.86
+    },
+    "A.weakest_stratum_range": {
+      "direction": "lower",
+      "min": 1.383808193273763,
+      "max": 1.4338937782309968,
+      "mean": 1.4099656608461633,
+      "sd": 0.018395328235485047,
+      "cv": 0.01304664982014204,
+      "values": [
+        1.3946991202494896,
+        1.4338937782309968,
+        1.4184186210999599,
+        1.4327038063907631,
+        1.4142223115483659,
+        1.383808193273763,
+        1.3935347995290421,
+        1.4084446564469262
+      ],
+      "natural_zero": false,
+      "criterion_bound": null,
+      "near_zero_exempt": false,
+      "status": "gated",
+      "bound": 1.34
+    },
+    "B.eta2_pairing_ratio": {
+      "direction": "upper",
+      "min": 0.00774219943298648,
+      "max": 0.02598894120926718,
+      "mean": 0.014375485864720053,
+      "sd": 0.006675780816524468,
+      "cv": 0.46438644782838245,
+      "values": [
+        0.008274023936448622,
+        0.00774219943298648,
+        0.00827347107306247,
+        0.016668559750783372,
+        0.02598894120926718,
+        0.02146336602187758,
+        0.01393035780649705,
+        0.012662967686837667
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.1,
+      "near_zero_exempt": false,
+      "status": "DEMOTED_reported_only",
+      "reason": "seed-to-seed CV 0.464 > 0.25"
+    },
+    "B.eta2_near_cat_ratio": {
+      "direction": "upper",
+      "min": 0.0013767731999325707,
+      "max": 0.009851752259920339,
+      "mean": 0.004792822513648629,
+      "sd": 0.0031315217119037967,
+      "cv": 0.6533773581195822,
+      "values": [
+        0.002826294266227803,
+        0.0030105211387834725,
+        0.002723378416786572,
+        0.00373115269037348,
+        0.009851752259920339,
+        0.009026260614270603,
+        0.0013767731999325707,
+        0.005796447522894192
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.1,
+      "near_zero_exempt": true,
+      "reason": "CV 0.653 > 0.25 but EXEMPT: max 0.0099 <= 0.25 x criterion bound 0.1",
+      "status": "gated",
+      "bound": 0.02
+    },
+    "B.eta2_far_cat_ratio": {
+      "direction": "upper",
+      "min": 0.0003979352264905945,
+      "max": 0.005527015841956991,
+      "mean": 0.0032449479724517946,
+      "sd": 0.0017756933030900434,
+      "cv": 0.5472178038492178,
+      "values": [
+        0.0003979352264905945,
+        0.0028361571378839874,
+        0.0009723793907266585,
+        0.004561365707336757,
+        0.005527015841956991,
+        0.004305807046887846,
+        0.003988194359587269,
+        0.0033707290687442545
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.1,
+      "near_zero_exempt": true,
+      "reason": "CV 0.547 > 0.25 but EXEMPT: max 0.0055 <= 0.25 x criterion bound 0.1",
+      "status": "gated",
+      "bound": 0.01
+    },
+    "B.eta2_near_cat_far_depth": {
+      "direction": "upper",
+      "min": 0.0005380619795358871,
+      "max": 0.006146036349283599,
+      "mean": 0.0020666070114448883,
+      "sd": 0.001786703098045044,
+      "cv": 0.8645587129774873,
+      "values": [
+        0.00231211025638011,
+        0.0005380619795358871,
+        0.0012001302620029066,
+        0.0025355632909407058,
+        0.001699803995616489,
+        0.006146036349283599,
+        0.0013130646544500153,
+        0.0007880853033493955
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.05,
+      "near_zero_exempt": true,
+      "reason": "CV 0.865 > 0.25 but EXEMPT: max 0.0061 <= 0.25 x criterion bound 0.05",
+      "status": "gated",
+      "bound": 0.01
+    },
+    "B.eta2_far_cat_far_depth": {
+      "direction": "upper",
+      "min": 0.0003663435779075132,
+      "max": 0.005037351005283527,
+      "mean": 0.0028577207435583896,
+      "sd": 0.0016147277171047266,
+      "cv": 0.5650404157734785,
+      "values": [
+        0.002766385749505454,
+        0.003562757238377309,
+        0.0018621182503435816,
+        0.002196163427380246,
+        0.005037351005283527,
+        0.0003663435779075132,
+        0.005025470894884315,
+        0.002045175804785173
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.05,
+      "near_zero_exempt": true,
+      "reason": "CV 0.565 > 0.25 but EXEMPT: max 0.0050 <= 0.25 x criterion bound 0.05",
+      "status": "gated",
+      "bound": 0.01
+    },
+    "B.eta2_pairing_clamp": {
+      "direction": "upper",
+      "min": 0.00818285714285714,
+      "max": 0.019771310566369656,
+      "mean": 0.01373673483716193,
+      "sd": 0.0034496029002388964,
+      "cv": 0.2511224786043551,
+      "values": [
+        0.012973773369533089,
+        0.00818285714285714,
+        0.011862521304571168,
+        0.011766519191091214,
+        0.019771310566369656,
+        0.014507563025210085,
+        0.01637253816287974,
+        0.014456795934783355
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.1,
+      "near_zero_exempt": true,
+      "reason": "CV 0.251 > 0.25 but EXEMPT: max 0.0198 <= 0.25 x criterion bound 0.1",
+      "status": "gated",
+      "bound": 0.03
+    },
+    "B.max_abs_role_imbalance": {
+      "direction": "upper",
+      "min": 0.0,
+      "max": 0.0008347245409014992,
+      "mean": 0.0001043405676126874,
+      "sd": 0.00029511969164713886,
+      "cv": 2.8284271247461903,
+      "values": [
+        0.0008347245409014992,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "natural_zero": true,
+      "criterion_bound": 0.02,
+      "near_zero_exempt": true,
+      "reason": "CV 2.828 > 0.25 but EXEMPT: max 0.0008 <= 0.25 x criterion bound 0.02",
+      "status": "gated",
+      "bound": 0.01
+    },
+    "C.clamped_fraction_drawn_floor": {
+      "direction": "upper",
+      "min": 0.2708333333333333,
+      "max": 0.292743953294412,
+      "mean": 0.2842275681123158,
+      "sd": 0.009601367300021233,
+      "cv": 0.033780563102264384,
+      "values": [
+        0.2919099249374479,
+        0.2708333333333333,
+        0.28583333333333333,
+        0.2725,
+        0.2758333333333333,
+        0.2916666666666667,
+        0.2925,
+        0.292743953294412
+      ],
+      "natural_zero": false,
+      "criterion_bound": null,
+      "near_zero_exempt": false,
+      "status": "gated",
+      "bound": 0.32
+    },
+    "C.max_stratum_clamped_fraction": {
+      "direction": "upper",
+      "min": 0.32,
+      "max": 0.4,
+      "mean": 0.3783333333333333,
+      "sd": 0.029331168751303798,
+      "cv": 0.07752731828538449,
+      "values": [
+        0.4,
+        0.3466666666666667,
+        0.38666666666666666,
+        0.32,
+        0.4,
+        0.38666666666666666,
+        0.4,
+        0.38666666666666666
+      ],
+      "natural_zero": false,
+      "criterion_bound": null,
+      "near_zero_exempt": false,
+      "status": "gated",
+      "bound": 0.46
+    }
+  },
+  "check_c_hard_failures": [],
+  "acceptance_vs_selection_bounds": {
+    "all_pass": true,
+    "rows": [
+      [
+        "A.r_ratio_gap",
+        "lower",
+        0.7,
+        0.9048080139809382,
+        true
+      ],
+      [
+        "A.retained_range",
+        "lower",
+        1.23,
+        1.5113642578478204,
+        true
+      ],
+      [
+        "A.weakest_stratum_r_gap",
+        "lower",
+        0.58,
+        0.87731740011566,
+        true
+      ],
+      [
+        "A.weakest_stratum_range",
+        "lower",
+        1.14,
+        1.383808193273763,
+        true
+      ],
+      [
+        "C.clamped_fraction_drawn_floor",
+        "upper",
+        0.55,
+        0.292743953294412,
+        true
+      ],
+      [
+        "C.max_stratum_clamped_fraction",
+        "upper",
+        0.69,
+        0.4,
+        true
+      ]
+    ]
+  }
+}

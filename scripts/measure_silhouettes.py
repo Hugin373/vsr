@@ -159,6 +159,17 @@ def main() -> int:
     ap.add_argument("--n", type=int, help="number of scenes to measure (overrides n_images)")
     ap.add_argument("--out", help="output measurement dir")
     ap.add_argument("--validate-against", help="rendered set dir to replay and compare against")
+    ap.add_argument(
+        "--allow-placement-failures",
+        action="store_true",
+        help=(
+            "CALIBRATION ONLY: skip un-placeable images instead of raising, and record the count. "
+            "A stimulus RENDER must never use this — an un-placeable image there breaks the factor "
+            "balance. For a calibration measurement a skipped image at the ~0.04%% background rate "
+            "shifts no constant materially, and crashing the whole sweep over one image would make "
+            "the derived quantity depend on a rare placement coin-flip."
+        ),
+    )
     args = ap.parse_args()
 
     if args.validate_against:
@@ -172,7 +183,19 @@ def main() -> int:
         config["n_images"] = int(args.n)
     seed = int(config["seed"])
     out_dir = ensure_dir(Path(args.out))
-    specs = build_scene_specs(config, seed)
+    placement_failures: list[dict] = []
+    specs = build_scene_specs(
+        config,
+        seed,
+        raise_on_placement_failure=not args.allow_placement_failures,
+        placement_failures=placement_failures,
+    )
+    if placement_failures:
+        log.warning(
+            "%d image(s) could not be placed and were SKIPPED (--allow-placement-failures). "
+            "This is acceptable for a calibration measurement and NEVER for a stimulus render.",
+            len(placement_failures),
+        )
     log.info("measuring %d scenes from %s", len(specs), args.config)
 
     tmp = out_dir / ".measure_id.png"
@@ -195,6 +218,8 @@ def main() -> int:
     )
     meta = run_metadata(config, seed)
     meta["measurement_only"] = True
+    meta["placement_failures_skipped"] = len(placement_failures)
+    meta["allow_placement_failures"] = bool(args.allow_placement_failures)
     meta["measurement_note"] = (
         "ID-pass-only silhouette measurement for cue-constant derivation. NOT a stimulus set: "
         "no beauty images, no mask PNGs, no questions."

@@ -1963,3 +1963,109 @@ Scoped work executed. **Textures NOT started** (they follow, per the standing se
 
 **OWED / NEXT:** ratify the floor (and with it, re-run the sweep + re-fill bounds) · ratify or reject
 the spread-rule amendment · then textures → determinism → freeze tag → §5 one-shot.
+
+### ⚖️ 2026-07-20 — three rulings adopted; §5 protocol v2 PRE-COMMITTED before execution
+
+Executed as **two commits by design**: `f0589b9` pre-commits the protocol with nothing run, then a
+second commit carries the results. Git history is the ordering proof that r* was not chosen after
+seeing which value looked good.
+
+1. **FLOOR: 1.2320 REJECTED; minimal self-consistent floor via pre-committed root search.**
+   Rejection reason recorded: 1.2320 is the fixed point *plus a margin policy inherited from the
+   now-dead six-category envelope*, and it demonstrably destroys sampling semantics
+   (r 0.73→0.50, weakest stratum 0.64→**0.18**, clamp 0.48→0.72).
+   - **Pre-committed** (`scripts/floor_root_search.py`): calibration seeds 8001–8002, n=1200 each,
+     **worst case over seeds** (constructed quantity, rule 7 clause 1) · grid 1.165–1.200 step
+     0.005 · r* = smallest grid point with **F ≥ R(F)**, tolerance one step ·
+     **r_op = r\* + 0.005, rounded UP to 3 dp**. Interpolation predicts r* ≈ 1.175 → candidate ≈1.181.
+   - **Why a root search at all:** the requirement is a FUNCTION of the floor, R = R(F), falling as
+     F rises (a higher floor puts far objects deeper, where perspective is less extreme). Validity
+     is the fixed-point condition F ≥ R(F), never a one-shot derivation.
+   - **ACCEPTANCE IS JOINT:** (a) area validity F ≥ R(F) re-derived at r_op itself AND (b) sampling
+     validity against the check A–C design-selection bounds. Expected to be a genuine test —
+     interpolation puts weakest-stratum r and clamp both near their bounds.
+   - **PRE-REGISTERED ESCAPE HATCH, usable only on joint failure:** evaluate extending the **FAR
+     depth-bin envelope** (deeper bins place easily; raises the ratio ceiling, relaxing the squeeze
+     *from above* instead of pushing the floor up into the distribution) before declaring the 4-set
+     infeasible. ⚠ Battery-wide, and it **re-opens the z-identifiability checks**. Only if that also
+     fails is the 4-set dead.
+2. **CLAMP ESTIMAND FIXED AND RENAMED AT BOTH SITES** so the names carry the meaning:
+   **`clamped_fraction_drawn_floor`** (per-image DRAWN jittered floor, ≈0.484) is the **gating**
+   quantity; **`below_base_floor_fraction`** (≈0.328) is a **diagnostic** and **must never again be
+   called "clamped"**. Headroom vs the ≤0.55 bound is only ~0.07 → **re-verify at the new floor**.
+3. **NEAR-ZERO SPREAD EXEMPTION RATIFIED AS AMENDED (protocol v2.0):** the CV spread rule is
+   inapplicable when **max_s q_s ≤ 0.25 × criterion bound**, restricted to **natural-zero,
+   lower-is-better** quantities (η², imbalances, clamp-predictability) — **never** correlations or
+   retained range, which are far from zero so relative spread is meaningful there. Each quantity
+   carries an explicit `natural_zero` flag and its criterion bound so the exemption cannot silently
+   widen. **Ratified on FRESH seeds 9009–9016**: a rule amended in response to a result may not be
+   validated on that same result.
+
+- **🔒 SEED ROLES ARE NOW FORMAL AND DISJOINT** (same discipline as M5's direction protocol).
+  **calibration 8001–8008** (which floor? — selects) · **bound-setting 9009–9016** (how far may it
+  drift? — sets operative bounds) · **frozen pilot = config seed** (accept/reject ONLY, never moves
+  a threshold). **9001–9008 demoted to DEVELOPMENT EVIDENCE**; the bounds they produced at floor
+  1.1707 are **design-selection evidence only**, and operative bounds recompute at the ratified
+  floor from the committed formula. A seed used for one role may never be reused for another —
+  otherwise the design is selected and judged on the same draw.
+
+### 🔴 2026-07-20 (execution) — ROOT SEARCH DONE, JOINT ACCEPTANCE **FAILS**, escape hatch WORKS
+
+Protocol committed at `f0589b9` before it ran; results in `reports/m4a_floor_joint_acceptance.md`
+and `reports/m4a_placement_background_rate.md`.
+
+- **ROOT SEARCH: r\* = 1.1850 → r_op = 1.1900** (grid 1.165–1.200 step 0.005, calibration seeds
+  8001–8002, R = worst case over seeds). Applied mechanically.
+  - ⚠ **The root is NOT resolved beyond its own noise.** R(F) is non-monotone (1.1915, 1.1786,
+    1.1769, 1.1828, 1.1797) and the seed-to-seed spread in R averages **0.0043** — the same size as
+    the grid step (0.005), the margin (0.005) AND the winning gap F − R(F) = +0.0053. **The margin
+    was pre-committed before the noise scale of R was known and does not exceed it.** Also, R is a
+    worst case over unconverged extremes, so it is biased DOWNWARD: more sampling can only push it
+    up, and the true r\* is likely ABOVE 1.1850.
+- 🔴 **JOINT ACCEPTANCE AT 1.1900: FAIL — all six sampling quantities, not marginally.**
+  r 0.6509 (bound 0.700) · retained range 1.2172 (1.230) · **weakest-stratum r 0.4391 (0.580)** ·
+  weakest range 1.1340 (1.140) · clamped 0.5850 (0.550) · max stratum 0.7600 (0.690). Acceptance
+  requires BOTH legs, so this fails regardless of the area leg. **The floor area congruence demands
+  and the floor sampling semantics tolerate do not overlap on the current depth envelope.**
+- ✅ **ESCAPE HATCH EVALUATED (triggered legitimately, only on joint failure) — IT WORKS.**
+  Extending `depth_gaps` raises the ratio CEILING so the floor squeezes less from below:
+  ceiling 1.464 → **1.665** (`…1.95`) → **1.844** (`…2.55`). At floor 1.1900 **all six sampling
+  quantities PASS with margin** under both extensions (`…1.95`: r 0.845, weakest 0.792, clamped
+  0.395; `…2.55`: r 0.905, weakest 0.877, clamped 0.293).
+  - 🎁 **It also fixes the separate placement blocker**: failures 1/2400 → **0/2400**. Deeper far
+    bins place easily, exactly as the ruling anticipated.
+- ⚠ **NOT ESTABLISHED:** the extended envelope has **not been root-searched** (these numbers use a
+  floor rooted on the OLD envelope) · the change is **battery-wide** (`depth_gaps` must move for
+  counterbalanced/conflict too or the arms stop being depth-matched) · it **re-opens
+  z-identifiability** (far depth ~6.2 → ~7.4 m at `…2.55`; leak ceiling and B0/B1/B2 need
+  re-checking) · **`…1.95` vs `…2.55` is NOT decided** — both pass; 2.55 has more headroom, 1.95 is
+  the smaller perturbation, and minimal perturbation deserves weight given what re-opening z costs.
+
+### 🐛 SEPARATE §5 BLOCKER FOUND: placement failures are a floor-independent background rate
+
+`reports/m4a_placement_background_rate.md`. Surfaced when the root search CRASHED on an un-placeable
+image.
+
+- **My first amendment (protocol v1.1) was WRONG, and measuring it is what showed so.** I made any
+  placement failure mark a grid point INFEASIBLE, reasoning it could only push r\* upward. The
+  *argument* was fine; the **premise** was false. The feasibility map came out NON-MONOTONE (1.165
+  fail, 1.170 ok, 1.175 fail, 1.180 ok, 1.185 fail) — not how a property of F behaves.
+- **Measured rate, 6 seeds × 1200 per floor: FLAT at ~0.02% across the whole range INCLUDING the old
+  six-category floor 1.85** (where placement should be easiest). Pooled **8/43 200 = 0.019%**.
+  Gating on a 1-in-2400 event would have made r\* depend on a coin-flip — with this map r\* would
+  have come out 1.180 instead of 1.175 purely because seed 8001 lost a die roll. **Superseded by
+  v1.2**; both amendments kept visible in the script, since a silent deletion invites the same
+  reasoning back.
+- 🔴 **The real defect:** the gate-scale render uses `raise_on_placement_failure=True` (correctly —
+  an un-placeable image breaks the factor balance). At 0.019%/image: P(≥1 failure) ≈ **7.3%** at
+  N=400, **15.7%** at N=900 each, **~34% across the 2 200-image battery**. A one-in-three chance the
+  ONE-SHOT §5 render dies partway, presenting as a mysterious late crash rather than a diagnosis.
+- **More attempts does NOT fix it** (500 → 2 failures, 2000 → 1, 8000 → 1): specific factor
+  combinations are structurally un-placeable, the same lesson as the dropped 0.2 m bin.
+- **Resolved for free by the escape hatch** (0/2400), which is a substantive argument for taking it.
+- Added `measure_silhouettes.py --allow-placement-failures`, **calibration-only** and explicitly
+  documented as never valid for a stimulus render.
+
+**DECISIONS OWED:** take the escape hatch? (`…1.95` vs `…2.55`) · if so, re-root on the extended
+envelope, propagate battery-wide, re-derive all constants, re-check z-identifiability · whether the
+margin formula needs revising now that R's noise scale is known (0.0043 vs a 0.005 margin).
