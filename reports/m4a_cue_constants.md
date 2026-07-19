@@ -1,8 +1,8 @@
 # M4a blocker #9 — cue constants, floor squeeze, bin-drop consistency
 
-Date: 2026-07-19 · derivation version `2.0.0` · derived at git `ac36cd3-dirty`
+Date: 2026-07-19 · derivation version `2.0.0` · derived at git `da0b83c` · source sha `957dbef540f7c3ce`
 
-Scope of this session: **derive the cue constants and measure the 1.85 floor.** Textures, the
+Scope: **derive the cue constants and measure the 1.85 floor.** Textures, the
 freeze tag, contrastive pairs and the 1k render were deliberately not touched.
 
 ---
@@ -118,14 +118,29 @@ Natural-congruent height and area constants (`px·depth` and `px·depth²`, size
 The v0 lesson reproduces at six categories: the cube's area constant spreads **25.9%** as near and
 **20.2%** as far, while a sphere's spreads 4.6% / 3.7%. Means are not usable here.
 
-### Derive per regime, not pooled
+### Per-regime derivation is a FORMAL RULE; pooling is a diagnostic
 
-Pooling all three regimes' samples into one envelope gives a binding requirement of **1.8640** for
-natural-congruent, **+5.5%** above the 1.7661 derived from its own envelope. `C_a` is not perfectly
-size-invariant — conflict renders far objects at 1.12–1.30× physical size, and a larger object at
-the same depth presents a different perspective — so pooling imports pose conditions that regime
-never produces. Constants are therefore derived **per regime**, from that regime's own frozen
-generator.
+**Enforced in code (2026-07-19):** `--write-config` refuses to run when more than one `--set` is
+pooled, and a pooled run prints a banner saying it is never the operative bound. Pooling remains
+useful for two things, and only these:
+
+* **Stress diagnostic** — how far a regime's bound moves when foreign pose conditions are admitted.
+* **Regime isolation** — *which* pairing drives that divergence, i.e. where one regime's envelope
+  reaches conditions another never produces.
+
+Measured (`reports/m4a_cue_constants/POOLED_DIAGNOSTIC.json`, pooled bound 1.8672):
+
+| regime | own bound | inflation under pooling | worst diverging pairing | median divergence |
+|---|---:|---:|---|---:|
+| natural-congruent | 1.7661 | **+5.72%** | near_bottle_far_cube (+0.1011) | +0.0429 |
+| counterbalanced | 1.8671 | +0.00% | near_sphere_far_sphere (+0.0161) | +0.0029 |
+| conflict | 1.8526 | +0.79% | near_mug_far_mug (+0.0363) | +0.0120 |
+
+The divergence is concentrated almost entirely in natural-congruent's bottle/cube pairing: the
+shared-multiplier congruent envelope never produces the far-object sizes the per-object regimes do.
+The other two regimes are close to exchangeable. `C_a` is not perfectly size-invariant — conflict
+renders far objects at 1.12–1.30× physical size, and a larger object at the same depth presents a
+different perspective — so pooling imports pose conditions a regime never produces.
 
 ### Residual uncertainty, stated rather than assumed away
 
@@ -182,14 +197,29 @@ shape-dependent. A height-calibrated bottle's silhouette area is ~3× smaller th
 (`sqrt(151754 / 48653) = 1.766`), and near=bottle / far=cube is the binding pairing in all three
 regimes.
 
-**Options for a later session — recorded, not decided here** (each changes the generator, so it
-belongs with the §5 re-render, not with a constant derivation):
-- calibrate the congruent regime on **area** rather than height, accepting height spread instead;
-- **per-pairing floors** — rejected for v0 because they make shape predict the ratio distribution;
-  that objection still stands and would need its own confound check;
-- restrict natural-congruent to an area-compatible subset of the six categories;
-- widen the depth range so the available ratio range reaches ~1.8 (interacts with the placement
-  limit that forced the bin drop, so probably not free).
+### Resolution direction (advisor ruling, confirmed with numbers 2026-07-19)
+
+**RESTRICTED CATEGORY PAIRINGS is the default**, keeping hard area congruence — because the control
+regime's ratio arm is the all-cues-agree reference for the conflict regime's fusion analysis and has
+to stay valid. Full decision table: **`reports/m4a_natural_congruent_decision.md`**. Headline:
+
+- Largest symmetric feasible subset is **{cube, cylinder, mug, sphere}** with a **uniform** floor of
+  1.1707 → retained ratio 1.171–1.458 (**1.25×**, vs 1.08× now), clamped fraction 0.332, and
+  `r(ratio, depth_gap_bin)` restored from **−0.017 to +0.751**.
+- The safeguard the ruling specified **fired and disqualified per-pair floors over all six
+  categories**: η²(pairing → ratio) = **0.823**, worst pairwise distribution overlap **0.000**. That
+  is v0's shape-predicts-ratio confound at full strength, and it does not even solve the problem
+  (4 pairings remain infeasible). A *uniform* floor over a restricted set has η² = 0 by construction.
+- The fallback to primitives-only is therefore **not triggered** — category does not predict ratio
+  under the default. Primitives-only stays available and measures marginally better on range
+  (1.28×, clamped 0.261) at the cost of a category.
+- Sets must be **symmetric** (C × C): the `cat_pair` balancing is what gives each category an exact
+  0.500 near/far split, and that split is what closes B2→z. An asymmetric retention would make
+  bottle preferentially near and reintroduce the confound the balancing exists to kill.
+
+Predicted to pass the ratio gate, **not proven to** — the passing regimes sit at r = +0.905 / 1.38×
+with R² = +0.803 and +0.420, so A1-4cat lands between the current failure and them. That is a §5
+measurement to be reported, not assumed.
 
 Whichever is taken: **natural-congruent stays a control, not the localisation-claim regime**, which
 is where the battery report already put it. What changes is the reason — the ratio target there is
@@ -209,9 +239,16 @@ not "narrow and shortcut-heavy", it is not a scene property at all.
 
 The existing guard `test_frozen_m4a_configs_place_at_scale` passed throughout, because it globbed
 only `*_pilot*` configs **and** skipped any config without `pos_x_m` — the two filters between them
-excluded exactly the five configs that were wrong. It now covers every M4a config, and a new
-`test_all_m4a_configs_share_the_frozen_generator_block` asserts bins, camera jitter and the
-placement budget match. Both were verified to **fail** against the pre-fix configs.
+excluded exactly the five configs that were wrong.
+
+**Now MANIFEST-based (advisor arbitration item 3), not a widened glob.** `M4A_CONFIG_MANIFEST` lists
+the eight stimulus configs explicitly, and `test_m4a_config_manifest_matches_disk` asserts
+`discovered == expected` **before** any field is compared. A glob only answers "is everything I found
+consistent?", which stays vacuously true when a config is deleted or renamed — coverage silently
+drops to nothing and the suite stays green. `test_frozen_generator_block_per_config` is then
+parametrised per config over bins, camera jitter, **translation** (called out separately as the
+load-bearing addition) and the placement budget. Verified: both fail against the pre-fix configs,
+and the manifest test fails when a config is removed from disk.
 
 ### Dynamic range: reported as a property, per DR3 #14 — not a failure
 
@@ -230,11 +267,28 @@ holds in every regime: ordinal margin is strictly positive everywhere (minimum 0
 class balance is exact, and the continuous targets still span 2.1–3.2× in depth. Several targets
 became easier; per DR3 #14 that is reported, not engineered away.
 
-⚠ **Could not reproduce the "max ratio ~3.1×, was ~10×" figure** quoted in the session prompt.
-Measured maximum far/near depth ratio is 1.474 available / 1.998 accepted (natural-congruent) and
-1.471 (counterbalanced); measured depth dynamic range is 2.08–3.22× post-drop, 2.44–3.80× pre-drop.
-The nearest 3.1 in this session's numbers is the conflict regime's shape-plus-multiplier apparent-size
-requirement (3.0876). Flagging rather than repeating an unverified number.
+### ⚠ Retired numbers: the "~3.1×, was ~10×" figures — provenance corrected
+
+**Resolved 2026-07-19 (advisor).** The figures were **bin-endpoint arithmetic**: the ratio of the
+outermost `near_depth_bins` entries, `2.0 / 0.65 = 3.0769` post-drop and `2.0 / 0.20 = 10.0`
+pre-drop. They are ratios of the near object's **world-y offsets**, not depth ratios and not
+dynamic ranges — the camera sits at y = −2.5, so those offsets map to actual depths of ~2.95–4.95 m,
+a 1.68× span, and no quantity in the battery ever takes the value 10.
+
+The measured quantities they were mistaken for:
+
+| quantity | pre-drop | post-drop |
+|---|---|---|
+| depth dynamic range (natural-congruent) | 3.80× | 3.22× |
+| depth dynamic range (counterbalanced) | 2.44× | 2.11× |
+| max far/near depth ratio | 1.538 | 1.474 available / 1.998 accepted |
+
+🔴 **Labeling hazard, recorded deliberately.** `2.0 / 0.65 = 3.0769` sits **0.35%** away from the
+conflict regime's shape-plus-multiplier apparent-size requirement, **3.0876** — two unrelated
+quantities, in different units, that round to the same "~3.1". Last session this near-collision was
+noted as "the nearest 3.1 in this session's numbers", which is exactly the coincidence that would
+let a bin-endpoint number be re-attributed to an apparent-size derivation by a later reader. Neither
+number should ever be quoted as "~3.1" without its unit and derivation.
 
 ---
 
@@ -268,9 +322,31 @@ uv run --extra analysis scripts/floor_squeeze.py \
 uv run pytest -q && uv run ruff check src/ tests/ scripts/
 ```
 
-## 7. Still owed (unchanged by this session)
+## 7. Provenance audit — do the committed constants derive from post-role-fix code?
 
-Nuisance texture families · lighting/renderer-seed families · determinism byte-compare · §5
-revalidation · freeze tag · contrastive pairs · the 1k render. Plus, new from this session: the
-natural-congruent congruence-vs-ratio design decision above, and re-deriving these constants at §5
-re-render scale.
+Asked because `derived_at_git_hash` recorded `ac36cd3-dirty` for every run: the `-dirty` suffix
+erases exactly the distinction being asked about, and the three measurement sweeps carry three
+different `git_patch_sha` values because the tree changed between them. Archaeology could not settle
+it, so it was settled by reproduction instead.
+
+- **640 of 3600 swept scenes carry a distractor**, so the role fix genuinely bites — a pre-fix
+  derivation would have been corrupted, not merely differently-formatted.
+- **Measurement reproduces byte-identically at HEAD.** Re-running the natural-congruent sweep at
+  `da0b83c` with a clean tree gives an `annotations.jsonl` with md5 `0f4a68f4…`, identical to the
+  stored one.
+- **Derivation reproduces byte-identically at HEAD.** Re-deriving all seven per-regime configs
+  reproduces every committed `cue_constants` value exactly (only the timestamp and git hash differ).
+
+**Verdict: all committed constants derive from post-role-fix code.** Nothing needed re-running.
+
+**Provenance hardened so this is answerable without reproduction next time:** every block now
+records `derivation_source_sha`, a content hash of `cue_constants.py` + `derive_cue_constants.py`.
+Unlike `<commit>-dirty`, it stays meaningful for runs made from a working tree — which is most runs
+during active development.
+
+## 8. Still owed
+
+Per the ruled sequence: **decision table** (done — `reports/m4a_natural_congruent_decision.md`) →
+implement the chosen natural-congruent fix (freeze work) → textures → determinism byte-compare →
+freeze tag → §5 one-shot. Plus re-deriving these constants over whichever envelope the
+natural-congruent decision selects.

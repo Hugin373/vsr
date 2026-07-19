@@ -33,6 +33,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from sbind.stimuli import cue_constants as cue_constants_module
 from sbind.stimuli.cue_constants import (
     DERIVATION_VERSION,
     collect_constants,
@@ -43,6 +44,26 @@ from sbind.stimuli.cue_constants import (
 from sbind.stimuli.sampler import _resolve_sizes
 from sbind.utils.config import git_hash
 from sbind.utils.io import read_jsonl
+
+
+def _derivation_source_sha() -> str:
+    """Content hash of the code that decides the constants.
+
+    `derived_at_git_hash` records `<commit>-dirty` for any run from a working tree, which is the
+    normal case during development — and `-dirty` erases exactly the distinction that matters when
+    asking later "was this derived before or after the role/schema fix?" (advisor arbitration item
+    4). A content hash of the two files that own the derivation answers that question directly, and
+    keeps answering it after the tree is clean again.
+    """
+    import hashlib
+
+    digest = hashlib.sha256()
+    for path in (
+        Path(__file__).resolve(),
+        Path(cue_constants_module.__file__).resolve(),
+    ):
+        digest.update(path.read_bytes())
+    return digest.hexdigest()[:16]
 
 
 def _load_set(set_dir: Path) -> tuple[list[dict], dict, dict]:
@@ -97,6 +118,51 @@ def _extreme_growth(values: list[float], rng: np.random.Generator, draws: int = 
     return out
 
 
+def _regime_isolation(
+    per_set_ratios: dict[str, dict],
+    pooled_ratios: dict[str, dict],
+    pooled_required: float,
+) -> dict[str, dict]:
+    """What pooling does to each regime's bound — the diagnostic a pooled run exists to produce.
+
+    Two readings, both useful and neither operative:
+
+    * **Inflation** — how far the pooled bound sits above each regime's own. This is the cost of
+      pooling, and the number that justifies the per-regime rule.
+    * **Regime isolation** — WHICH pairing drives the divergence, i.e. where one regime's pose or
+      size envelope reaches conditions another never produces. A large, pairing-specific
+      divergence says the regimes are not exchangeable for that pairing; a uniformly small one
+      says the silhouette constants are close to regime-invariant and pooling would have been
+      nearly harmless.
+    """
+    print("\n--- regime isolation (DIAGNOSTIC — pooling cost per regime, never a bound) ---")
+    out: dict[str, dict] = {}
+    for set_name, own in per_set_ratios.items():
+        own_required = max(r["binding"] for r in own.values())
+        inflation = 100.0 * (pooled_required / own_required - 1.0)
+        divergences = {
+            key: pooled_ratios[key]["binding"] - own[key]["binding"]
+            for key in own
+            if key in pooled_ratios
+        }
+        worst_key = max(divergences, key=lambda k: divergences[k])
+        out[set_name] = {
+            "own_required": own_required,
+            "pooled_required": pooled_required,
+            "inflation_pct": inflation,
+            "worst_diverging_pairing": worst_key,
+            "worst_divergence": divergences[worst_key],
+            "median_divergence": float(np.median(list(divergences.values()))),
+        }
+        print(
+            f"  {set_name:34s} own {own_required:.4f} -> pooled {pooled_required:.4f} "
+            f"({inflation:+.2f}%)  worst pairing {worst_key} "
+            f"(+{divergences[worst_key]:.4f})  median +{out[set_name]['median_divergence']:.4f}"
+        )
+    print()
+    return out
+
+
 def _print_cells(title: str, const: dict[tuple[str, str], list[float]]) -> None:
     print(f"--- {title} (min .. max per role; MEANS ARE NOT SAFE TO USE) ---")
     for category in sorted({c for c, _ in const}):
@@ -147,6 +213,17 @@ def main() -> int:
     )
     args = ap.parse_args()
 
+    # FORMAL RULE (advisor arbitration item 2, 2026-07-19): operative cue constants are derived
+    # PER REGIME. A pooled run is a cross-regime stress diagnostic — it may never be written into
+    # a config, because pooling inflates a regime's requirement with pose conditions that regime
+    # never produces (measured: +5.5% for natural-congruent). Enforced here, not just documented.
+    if args.write_configs and len(args.sets) > 1:
+        ap.error(
+            f"--write-config is per-regime only, but {len(args.sets)} sets were pooled. "
+            f"A pooled envelope is a DIAGNOSTIC, never the operative bound. Run once per regime "
+            f"with a single --set."
+        )
+
     rng = np.random.default_rng(args.seed)
     parts: list[dict] = []
     sources: list[dict] = []
@@ -183,6 +260,15 @@ def main() -> int:
         )
 
     pooled = merge_constants(parts)
+    is_pooled = len(parts) > 1
+    if is_pooled:
+        print(
+            "\n" + "!" * 96 + "\n"
+            "POOLED RUN = CROSS-REGIME STRESS DIAGNOSTIC AND REGIME-ISOLATION CHECK ONLY.\n"
+            "It is NEVER the operative bound. C_a is not perfectly size-invariant, so pooling\n"
+            "imports pose conditions a regime never produces and inflates its requirement.\n"
+            "The operative constants are ALWAYS derived per regime, from one --set.\n" + "!" * 96
+        )
     print(
         f"\nPOOLED: {pooled['n_records']} images, {pooled['n_objects']} target objects, "
         f"schemas={pooled['size_schema']}\n"
@@ -234,6 +320,10 @@ def main() -> int:
     print(f"  WORST-CASE area   requirement : {worst_a:.4f}")
     print(f"  => shape-only min_depth_ratio must exceed : {required:.4f}")
 
+    isolation: dict[str, dict] = {}
+    if is_pooled:
+        isolation = _regime_isolation(per_set_ratios, ratios, required)
+
     for source in sources:
         mult = source["multiplier_worst_case"]
         if mult is not None:
@@ -265,6 +355,7 @@ def main() -> int:
         "derivation_version": DERIVATION_VERSION,
         "derived_at_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "derived_at_git_hash": git_hash(),
+        "derivation_source_sha": _derivation_source_sha(),
         "sources": sources,
         "pooled": {
             "n_images": pooled["n_records"],
@@ -280,6 +371,8 @@ def main() -> int:
             "worst_case_area_ratio": worst_a,
             "worst_case_binding_ratio": required,
         },
+        "pooled_is_diagnostic_only": is_pooled,
+        "regime_isolation": isolation,
         "per_set_required_ratio_by_pairing": per_set_ratios,
         "pose_coverage": growth,
     }
@@ -343,6 +436,7 @@ def _yaml_block(report: dict) -> dict:
             "derivation_version": report["derivation_version"],
             "derived_at_utc": report["derived_at_utc"],
             "derived_at_git_hash": report["derived_at_git_hash"],
+            "derivation_source_sha": report["derivation_source_sha"],
             "sources": [
                 {
                     "set_name": s["set_name"],

@@ -1643,3 +1643,82 @@ pairs and the 1k render deliberately untouched. Full report: `reports/m4a_cue_co
   determinism byte-compare · TAG the freeze (#5, dead last). **§5 revalidation** (#6, runs ONCE
   against a pre-registered block). NOT started: contrastive pairs, 1k render. New: the
   natural-congruent congruence-vs-ratio design decision, and re-deriving the constants at §5 scale.
+
+### 📋 ADVISOR ARBITRATION (2026-07-19, same session) — 6 items, ALL EXECUTED
+
+Adopted with one supersession of the advisor's earlier descope lean. Reports:
+`reports/m4a_natural_congruent_decision.md`, `reports/m4a_cue_constants.md`.
+
+1. **✅ NATURAL-CONGRUENT RULING: RESTRICTED CATEGORY PAIRINGS is the default** (per-pair derived
+   requirements, hard area congruence KEPT). Rationale: the control regime's ratio arm is the
+   **all-cues-agree reference for the conflict regime's fusion analysis** and must stay valid — a
+   reference arm whose target is noise cannot anchor a fusion claim. **The earlier descope lean is
+   SUPERSEDED**; full descope of the ratio target is last-resort only. Decision table built with
+   numbers (n=1200 each), BEFORE textures, per the sequence:
+   - **Largest symmetric feasible subset = {cube, cylinder, mug, sphere}**, uniform floor 1.1707 →
+     retained ratio 1.171–1.458 (**1.25×** vs 1.08× now), clamped fraction 0.332, and
+     **`r(ratio, depth_gap_bin)` restored −0.017 → +0.751**.
+   - 🔴 **THE SAFEGUARD FIRED.** Per-pair floors over all six categories give
+     **η²(pairing→ratio) = 0.823** with worst pairwise distribution overlap **0.000** (some pairings'
+     ratio distributions entirely disjoint) — v0's shape-predicts-ratio confound at full strength.
+     It also fails to solve the problem: 4 pairings (bottle-as-near) stay infeasible. **REFINEMENT
+     to the ruling: restricted set + UNIFORM floor (η² = 0 by construction), not per-pair floors.**
+   - **Primitives-only fallback NOT triggered** — category does not predict ratio under the default.
+     It stays available and measures marginally better (1.28×, clamped 0.261) at the cost of a
+     category.
+   - ⚠ **Retained sets must be SYMMETRIC (C×C).** `cat_pair` balancing is what gives each category
+     an exact 0.500 near/far split, and that split is what closes B2→z. An asymmetric retention
+     would make bottle preferentially NEAR and reintroduce the confound the balancing exists to kill.
+   - ⚠ **CROSS-REGIME ISSUE SURFACED BY THE TABLE:** a 4-category control is no longer
+     category-matched to the 6-category conflict arm it anchors. **Recommendation: subset the
+     ANALYSIS, not the stimuli** — keep 6 categories everywhere and restrict the fusion comparison
+     to the 4 shared ones. Category set is a property of the analysis contrast, not the generator.
+   - **Predicted to pass the ratio gate, NOT proven to** (passing regimes sit at r = +0.905 / 1.38×,
+     R² = +0.803 / +0.420). A §5 measurement to be reported, not assumed.
+
+2. **✅ POOLED = DIAGNOSTIC, per-regime = FORMAL RULE — ENFORCED IN CODE.** `--write-config` now
+   refuses when >1 `--set` is pooled; a pooled run prints a never-the-operative-bound banner and
+   emits a **regime-isolation** diagnostic. Measured (pooled bound 1.8672): natural-congruent own
+   1.7661 → **+5.72%** (worst pairing near_bottle_far_cube, +0.1011); counterbalanced **+0.00%**;
+   conflict **+0.79%**. The divergence is concentrated almost entirely in the congruent regime's
+   bottle/cube pairing — the shared-multiplier envelope never produces the far-object sizes the
+   per-object regimes do. The other two are close to exchangeable.
+
+3. **✅ MANIFEST-BASED FROZEN-CONFIG GUARD** replaces the widened glob. `M4A_CONFIG_MANIFEST` lists
+   the 8 stimulus configs explicitly; `test_m4a_config_manifest_matches_disk` asserts
+   **discovered == expected BEFORE any field is compared**, then `test_frozen_generator_block_per_config`
+   checks bins · jitter · **translation (called out separately)** · attempts, parametrised per config.
+   **Why the widened glob was still not enough:** a glob only answers "is everything I found
+   consistent?", which stays vacuously true if a config is DELETED or RENAMED — coverage silently
+   drops to nothing and the suite stays green. Verified: manifest test FAILS when a config is
+   removed from disk; both field tests FAIL against the pre-fix configs.
+
+4. **✅ PROVENANCE AUDIT — all committed constants DO derive from post-role-fix runs.** Could not be
+   settled from the recorded provenance: `derived_at_git_hash` said `ac36cd3-dirty` for every run and
+   **`-dirty` erases exactly the distinction being asked about**; the three sweeps carry three
+   different `git_patch_sha` because the tree changed between them. Settled by reproduction instead:
+   - **640 of 3600 swept scenes carry a distractor**, so the role fix genuinely bites.
+   - **Measurement reproduces BYTE-IDENTICALLY at HEAD** (natural-congruent sweep re-run at
+     `da0b83c`, clean tree, md5 `0f4a68f4…` matches).
+   - **Derivation reproduces BYTE-IDENTICALLY at HEAD** for all 7 per-regime configs.
+   - **Nothing needed re-running.** Hardened so it is answerable without reproduction next time:
+     every block now records **`derivation_source_sha`** (content hash of `cue_constants.py` +
+     `derive_cue_constants.py`), which stays meaningful for runs from a working tree — most runs.
+
+5. **✅ RETIRED-NUMBER PROVENANCE CORRECTED.** The "~3.1× / ~10×" figures were **advisor
+   bin-endpoint arithmetic**: `2.0/0.65 = 3.0769` and `2.0/0.20 = 10.0` — ratios of the near
+   object's **world-y offsets**, not depth ratios and not dynamic ranges (the camera sits at
+   y = −2.5, so those offsets map to depths of ~2.95–4.95 m). Measured equivalents: depth dynamic
+   range 3.80×→3.22× (natural-congruent), 2.44×→2.11× (counterbalanced); max far/near ratio
+   1.538→1.474.
+   🔴 **LABELING HAZARD, recorded deliberately:** `2.0/0.65 = 3.0769` sits **0.35%** from conflict's
+   shape-plus-multiplier apparent-size requirement **3.0876** — two unrelated quantities in
+   different units that both round to "~3.1". Last session flagged the near-collision as "the
+   nearest 3.1 in this session's numbers", which is precisely the coincidence that would let a
+   bin-endpoint number be re-attributed to an apparent-size derivation later. **Neither number may
+   be quoted as "~3.1" without its unit and derivation.**
+
+6. **✅ SEQUENCE RECORDED (binding):** decision table ✅ → **implement the chosen natural-congruent
+   fix (freeze work)** → textures → determinism byte-compare → freeze tag → **§5 one-shot** against a
+   pre-registered block. NEXT SESSION starts at "implement the chosen fix", which also requires
+   re-deriving the constants over whichever envelope is selected.

@@ -1,0 +1,1260 @@
+{
+  "available_ratio_min": 1.0463765791411344,
+  "available_ratio_max": 1.4737326828512378,
+  "margin_pct": 4.75,
+  "usable_dynamic_range_threshold": 1.2,
+  "all_subsets": [
+    {
+      "categories": [
+        "bottle",
+        "chair"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.3280049146326802,
+      "uniform_floor": 1.3910851480777326,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.3948088291532212,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.056583993482412,
+      "uniform_acceptance_fraction": 0.022222222222222223,
+      "image_retention_fraction": 0.1125
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "bottle",
+        "cylinder"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.6146842051132286,
+      "uniform_floor": 1.691381704856107,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "bottle",
+        "mug"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.5895006217737564,
+      "uniform_floor": 1.66500190130801,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.1125
+    },
+    {
+      "categories": [
+        "bottle",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "chair",
+        "cube"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.452461269637593,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.014645081186194,
+      "uniform_acceptance_fraction": 0.015037593984962405,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "chair",
+        "cylinder"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.2588426558613095,
+      "uniform_floor": 1.3186376820147219,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.3243499872488005,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.1127969925176382,
+      "uniform_acceptance_fraction": 0.12781954887218044,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "chair",
+        "mug"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.2392089907552941,
+      "uniform_floor": 1.2980714178161707,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.298443889103894,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.1349991287404166,
+      "uniform_acceptance_fraction": 0.20300751879699247,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "chair",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.281563430395191,
+      "uniform_floor": 1.3424376933389628,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.3506111543854928,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0911598634928819,
+      "uniform_acceptance_fraction": 0.09022556390977443,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.099029396538832,
+      "uniform_floor": 1.1512332928744267,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1634191630420332,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2667254671977526,
+      "uniform_acceptance_fraction": 0.7593984962406015,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "cube",
+        "mug"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1753786106005057,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2538365676897096,
+      "uniform_acceptance_fraction": 0.6417910447761194,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "cube",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.0897288370962683,
+      "uniform_floor": 1.1414909568583411,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1433376914772406,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.288974109606334,
+      "uniform_acceptance_fraction": 0.7424242424242424,
+      "image_retention_fraction": 0.11
+    },
+    {
+      "categories": [
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.0320360588670243,
+      "uniform_floor": 1.0810577716632082,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.0879280211033837,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.3546233337721814,
+      "uniform_acceptance_fraction": 0.9701492537313433,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.070002216167265,
+      "uniform_floor": 1.1208273214352102,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1243444290008417,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.3107484191128895,
+      "uniform_acceptance_fraction": 0.8045112781954887,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.0512831971272771,
+      "uniform_floor": 1.101219148990823,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1018739614019606,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.337478454410653,
+      "uniform_acceptance_fraction": 0.9029850746268657,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25166666666666665
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cylinder"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.6146842051132286,
+      "uniform_floor": 1.691381704856107,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25083333333333335
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.5895006217737564,
+      "uniform_floor": 1.66500190130801,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25166666666666665
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25166666666666665
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "cylinder"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25166666666666665
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "bottle",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.6146842051132286,
+      "uniform_floor": 1.691381704856107,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25083333333333335
+    },
+    {
+      "categories": [
+        "bottle",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "bottle",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.25166666666666665
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "cylinder"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.4454463384469782,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0195692801952447,
+      "uniform_acceptance_fraction": 0.010033444816053512,
+      "image_retention_fraction": 0.24916666666666668
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.452461269637593,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.014645081186194,
+      "uniform_acceptance_fraction": 0.006666666666666667,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.452461269637593,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.014645081186194,
+      "uniform_acceptance_fraction": 0.006688963210702341,
+      "image_retention_fraction": 0.24916666666666668
+    },
+    {
+      "categories": [
+        "chair",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.2588426558613095,
+      "uniform_floor": 1.3186376820147219,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.3199333195180354,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.1165205552878696,
+      "uniform_acceptance_fraction": 0.13377926421404682,
+      "image_retention_fraction": 0.24916666666666668
+    },
+    {
+      "categories": [
+        "chair",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.281563430395191,
+      "uniform_floor": 1.3424376933389628,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.3478431377195146,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0934007390093792,
+      "uniform_acceptance_fraction": 0.08361204013377926,
+      "image_retention_fraction": 0.24916666666666668
+    },
+    {
+      "categories": [
+        "chair",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.281563430395191,
+      "uniform_floor": 1.3424376933389628,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.348939294261424,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.09251223470226,
+      "uniform_acceptance_fraction": 0.11,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1719749694999007,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2574779506426674,
+      "uniform_acceptance_fraction": 0.6533333333333333,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.099029396538832,
+      "uniform_floor": 1.1512332928744267,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1518239613107912,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2794773614312642,
+      "uniform_acceptance_fraction": 0.7315436241610739,
+      "image_retention_fraction": 0.24833333333333332
+    },
+    {
+      "categories": [
+        "cube",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1739234029598837,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2553908365191688,
+      "uniform_acceptance_fraction": 0.6266666666666667,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.070002216167265,
+      "uniform_floor": 1.1208273214352102,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.122609890966362,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.312773648896522,
+      "uniform_acceptance_fraction": 0.8333333333333334,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "cylinder"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.445
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "mug"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.44666666666666666
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.44583333333333336
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.6146842051132286,
+      "uniform_floor": 1.691381704856107,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.445
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.445
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.44666666666666666
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.445
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.44333333333333336
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.44583333333333336
+    },
+    {
+      "categories": [
+        "bottle",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.445
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.4454463384469782,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0195692801952447,
+      "uniform_acceptance_fraction": 0.005639097744360902,
+      "image_retention_fraction": 0.44333333333333336
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.4454463384469782,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0195692801952447,
+      "uniform_acceptance_fraction": 0.005649717514124294,
+      "image_retention_fraction": 0.4425
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.448646686870136,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0173168490346678,
+      "uniform_acceptance_fraction": 0.0075046904315197,
+      "image_retention_fraction": 0.44416666666666665
+    },
+    {
+      "categories": [
+        "chair",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.281563430395191,
+      "uniform_floor": 1.3424376933389628,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.3478431377195146,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0934007390093792,
+      "uniform_acceptance_fraction": 0.09398496240601503,
+      "image_retention_fraction": 0.44333333333333336
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1719749694999007,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2574779506426674,
+      "uniform_acceptance_fraction": 0.6390977443609023,
+      "image_retention_fraction": 0.44333333333333336
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 5,
+      "n_pairings": 25,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.695
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 5,
+      "n_pairings": 25,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.6941666666666667
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 5,
+      "n_pairings": 25,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.6966666666666667
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 5,
+      "n_pairings": 25,
+      "worst_required": 1.643827542127572,
+      "uniform_floor": 1.721909350378632,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.695
+    },
+    {
+      "categories": [
+        "bottle",
+        "cube",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 5,
+      "n_pairings": 25,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 0.6941666666666667
+    },
+    {
+      "categories": [
+        "chair",
+        "cube",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 5,
+      "n_pairings": 25,
+      "worst_required": 1.3768853261007272,
+      "uniform_floor": 1.442287379090512,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.4454463384469782,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.0195692801952447,
+      "uniform_acceptance_fraction": 0.006016847172081829,
+      "image_retention_fraction": 0.6925
+    },
+    {
+      "categories": [
+        "bottle",
+        "chair",
+        "cube",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 6,
+      "n_pairings": 36,
+      "worst_required": 1.766094418516401,
+      "uniform_floor": 1.8499839033959302,
+      "uniform_feasible": false,
+      "uniform_retained_range": null,
+      "uniform_dynamic_range": 1.0,
+      "uniform_acceptance_fraction": 0.0,
+      "image_retention_fraction": 1.0
+    }
+  ],
+  "feasible_uniform_floor_subsets": [
+    {
+      "categories": [
+        "cube",
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 4,
+      "n_pairings": 16,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1719749694999007,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2574779506426674,
+      "uniform_acceptance_fraction": 0.6390977443609023,
+      "image_retention_fraction": 0.44333333333333336
+    },
+    {
+      "categories": [
+        "cylinder",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.070002216167265,
+      "uniform_floor": 1.1208273214352102,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.122609890966362,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.312773648896522,
+      "uniform_acceptance_fraction": 0.8333333333333334,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.099029396538832,
+      "uniform_floor": 1.1512332928744267,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1518239613107912,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2794773614312642,
+      "uniform_acceptance_fraction": 0.7315436241610739,
+      "image_retention_fraction": 0.24833333333333332
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1719749694999007,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2574779506426674,
+      "uniform_acceptance_fraction": 0.6533333333333333,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "cube",
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 3,
+      "n_pairings": 9,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1739234029598837,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2553908365191688,
+      "uniform_acceptance_fraction": 0.6266666666666667,
+      "image_retention_fraction": 0.25
+    },
+    {
+      "categories": [
+        "cylinder",
+        "mug"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.0320360588670243,
+      "uniform_floor": 1.0810577716632082,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.0879280211033837,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.3546233337721814,
+      "uniform_acceptance_fraction": 0.9701492537313433,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "mug",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.0512831971272771,
+      "uniform_floor": 1.101219148990823,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1018739614019606,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.337478454410653,
+      "uniform_acceptance_fraction": 0.9029850746268657,
+      "image_retention_fraction": 0.11166666666666666
+    },
+    {
+      "categories": [
+        "cylinder",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.070002216167265,
+      "uniform_floor": 1.1208273214352102,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1243444290008417,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.3107484191128895,
+      "uniform_acceptance_fraction": 0.8045112781954887,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "cube",
+        "sphere"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.0897288370962683,
+      "uniform_floor": 1.1414909568583411,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1433376914772406,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.288974109606334,
+      "uniform_acceptance_fraction": 0.7424242424242424,
+      "image_retention_fraction": 0.11
+    },
+    {
+      "categories": [
+        "cube",
+        "cylinder"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.099029396538832,
+      "uniform_floor": 1.1512332928744267,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1634191630420332,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2667254671977526,
+      "uniform_acceptance_fraction": 0.7593984962406015,
+      "image_retention_fraction": 0.11083333333333334
+    },
+    {
+      "categories": [
+        "cube",
+        "mug"
+      ],
+      "n_categories": 2,
+      "n_pairings": 4,
+      "worst_required": 1.117606164759154,
+      "uniform_floor": 1.170692457585214,
+      "uniform_feasible": true,
+      "uniform_retained_range": [
+        1.1753786106005057,
+        1.4737326828512378
+      ],
+      "uniform_dynamic_range": 1.2538365676897096,
+      "uniform_acceptance_fraction": 0.6417910447761194,
+      "image_retention_fraction": 0.11166666666666666
+    }
+  ],
+  "per_pair_infeasible": {
+    "near_bottle_far_cube": 1.8499839033959302,
+    "near_bottle_far_cylinder": 1.691381704856107,
+    "near_bottle_far_mug": 1.66500190130801,
+    "near_bottle_far_sphere": 1.721909350378632
+  },
+  "coupling_all_six_per_pair_floors": {
+    "eta2_pairing_explains_ratio": 0.8226549443455303,
+    "min_pairwise_overlap": 0.0,
+    "median_pairwise_overlap": 0.4545454545454546,
+    "n_pairings": 36
+  },
+  "coupling_best_subset_per_pair_floors": {
+    "eta2_pairing_explains_ratio": 0.0418627971235737,
+    "min_pairwise_overlap": 0.14705882352941177,
+    "median_pairwise_overlap": 0.4148841354723708,
+    "n_pairings": 16
+  },
+  "best_subset": {
+    "categories": [
+      "cube",
+      "cylinder",
+      "mug",
+      "sphere"
+    ],
+    "n_categories": 4,
+    "n_pairings": 16,
+    "worst_required": 1.117606164759154,
+    "uniform_floor": 1.170692457585214,
+    "uniform_feasible": true,
+    "uniform_retained_range": [
+      1.1719749694999007,
+      1.4737326828512378
+    ],
+    "uniform_dynamic_range": 1.2574779506426674,
+    "uniform_acceptance_fraction": 0.6390977443609023,
+    "image_retention_fraction": 0.44333333333333336
+  }
+}

@@ -151,16 +151,35 @@ def test_scene_appearance_factors_are_persisted():
     assert len({tuple(s.factors["ground_color"]) for s in specs}) > 1
 
 
-def _m4a_configs():
-    """Every M4a stimulus config — pilot AND full. Deliberately not a `*_pilot*` glob."""
-    import glob
+# ---------------------------------------------------------------------------------------------
+# MANIFEST of the frozen M4a stimulus configs (advisor arbitration item 3, 2026-07-19).
+#
+# Explicit, not a glob. A glob answers "is everything I found consistent?", which is silently
+# vacuous when the thing that went wrong is that a config was never migrated — or, worse, when a
+# config is DELETED or RENAMED and the guard simply stops checking it. The manifest turns both
+# into failures: `discovered == expected` is asserted before any field is compared.
+#
+# Adding an M4a config REQUIRES adding it here. That is the point: a new regime must make an
+# explicit claim about whether it carries the frozen generator block.
+# ---------------------------------------------------------------------------------------------
+M4A_CONFIG_MANIFEST = (
+    "configs/m4a_v1_conflict.yaml",
+    "configs/m4a_v1_conflict_pilot.yaml",
+    "configs/m4a_v1_contrastive_pairs.yaml",
+    "configs/m4a_v1_counterbalanced.yaml",
+    "configs/m4a_v1_counterbalanced_pilot.yaml",
+    "configs/m4a_v1_counterbalanced_pilot_j2.yaml",
+    "configs/m4a_v1_natural_congruent.yaml",
+    "configs/m4a_v1_natural_congruent_pilot.yaml",
+)
 
-    return sorted(f for f in glob.glob("configs/m4a_v1_*.yaml") if "size_calibration" not in f)
+# `m4a_v1_size_calibration.yaml` is a calibration OUTPUT (per-category size_m), not a stimulus
+# config: it has no `factors` / `camera` block, so the frozen-generator fields do not apply.
+M4A_NON_STIMULUS_CONFIGS = ("configs/m4a_v1_size_calibration.yaml",)
 
-
-# The frozen M4a generator block (2026-07-18 §4 freeze). Every M4a config must carry it, so a
-# regime differs from another ONLY in its condition/constraints, never in its camera envelope,
-# depth bins or placement budget.
+# The canonical frozen generator block (2026-07-18 §4 freeze). Every M4a stimulus config must
+# carry it, so a regime differs from another ONLY in its condition/constraints, never in its
+# camera envelope, depth bins or placement budget.
 FROZEN_NEAR_DEPTH_BINS = [0.65, 1.1, 1.55, 2.0]
 FROZEN_CAMERA_JITTER = {
     "height_m": [-0.16, 0.16],
@@ -170,6 +189,37 @@ FROZEN_CAMERA_JITTER = {
     "yaw_deg": [-4.0, 4.0],
 }
 FROZEN_PLACEMENT_ATTEMPTS = 500
+# Translation is called out separately from the rest of the jitter because it is the load-bearing
+# addition: without it, image position stays tied to lateral world position (leak-ceiling world-x
+# R2 ~0.92) and the world-x target is un-decorrelatable.
+FROZEN_TRANSLATION_KEYS = ("pos_x_m", "pos_y_m")
+
+
+def test_m4a_config_manifest_matches_disk():
+    """The manifest IS the guard's scope — assert it before checking any field.
+
+    Without this, deleting or renaming a config silently shrinks what every downstream frozen-block
+    test covers, and the suite stays green while coverage quietly drops to nothing.
+    """
+    import glob
+
+    discovered = sorted(glob.glob("configs/m4a_v1_*.yaml"))
+    expected = sorted(M4A_CONFIG_MANIFEST + M4A_NON_STIMULUS_CONFIGS)
+    assert discovered == expected, (
+        f"M4a config set changed.\n  on disk but not in manifest: "
+        f"{sorted(set(discovered) - set(expected))}\n  in manifest but not on disk: "
+        f"{sorted(set(expected) - set(discovered))}\n"
+        f"Add it to M4A_CONFIG_MANIFEST (frozen generator block applies) or to "
+        f"M4A_NON_STIMULUS_CONFIGS (it is not a stimulus config)."
+    )
+
+
+def _m4a_configs():
+    """The manifested M4a stimulus configs — never a glob.
+
+    See test_m4a_config_manifest_matches_disk for why the manifest is asserted first.
+    """
+    return list(M4A_CONFIG_MANIFEST)
 
 
 def test_frozen_m4a_configs_place_at_scale():
@@ -192,21 +242,39 @@ def test_frozen_m4a_configs_place_at_scale():
         assert b0 >= 0.5, f"{f}: closest near_depth_bin {b0} < 0.5 — un-placeable under translation"
 
 
-def test_all_m4a_configs_share_the_frozen_generator_block():
-    """Bin-drop consistency sweep (advisor addendum #3): bins, camera jitter and the placement
-    budget are properties of the FROZEN GENERATOR, not of a regime. Any divergence means two
-    regimes were rendered under different scene statistics, which silently breaks every
-    cross-regime comparison the M4a gate is built on."""
+@pytest.mark.parametrize("config_path", M4A_CONFIG_MANIFEST)
+def test_frozen_generator_block_per_config(config_path):
+    """Every freeze-critical field of every manifested config, checked against the canonical block.
+
+    Bins, camera jitter, translation and the placement budget are properties of the FROZEN
+    GENERATOR, not of a regime. Any divergence means two regimes were rendered under different
+    scene statistics, which silently breaks every cross-regime comparison the M4a gate is built on.
+    Parametrised per config so a failure names the offending file rather than the first one checked.
+    """
     from sbind.utils.config import load_config
 
-    for f in _m4a_configs():
-        cfg = load_config(f)
-        assert cfg["factors"]["near_depth_bins"] == FROZEN_NEAR_DEPTH_BINS, f
-        jitter = cfg["camera"]["jitter"]
-        assert set(jitter) == set(FROZEN_CAMERA_JITTER), f"{f}: camera jitter keys diverge"
-        for key, want in FROZEN_CAMERA_JITTER.items():
-            assert [float(v) for v in jitter[key]] == want, f"{f}: camera jitter {key}"
-        assert cfg["condition"]["target_placement_attempts"] == FROZEN_PLACEMENT_ATTEMPTS, f
+    cfg = load_config(config_path)
+
+    assert cfg["factors"]["near_depth_bins"] == FROZEN_NEAR_DEPTH_BINS, (
+        f"{config_path}: near_depth_bins diverge from the frozen block"
+    )
+
+    jitter = cfg["camera"]["jitter"]
+    assert set(jitter) == set(FROZEN_CAMERA_JITTER), (
+        f"{config_path}: camera jitter keys {sorted(jitter)} != {sorted(FROZEN_CAMERA_JITTER)}"
+    )
+    for key, want in FROZEN_CAMERA_JITTER.items():
+        assert [float(v) for v in jitter[key]] == want, f"{config_path}: camera jitter {key}"
+
+    # translation, called out explicitly — it is what decorrelates world-x from image position
+    for key in FROZEN_TRANSLATION_KEYS:
+        assert key in jitter, f"{config_path}: camera translation {key} missing (pan-only config)"
+        lo, hi = (float(v) for v in jitter[key])
+        assert lo < 0.0 < hi, f"{config_path}: camera translation {key} does not straddle zero"
+
+    assert cfg["condition"]["target_placement_attempts"] == FROZEN_PLACEMENT_ATTEMPTS, (
+        f"{config_path}: target_placement_attempts diverge from the frozen block"
+    )
 
 
 def test_category_role_balanced_at_scale():

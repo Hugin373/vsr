@@ -1,7 +1,8 @@
 {
   "derivation_version": "2.0.0",
-  "derived_at_utc": "2026-07-19T12:21:10Z",
-  "derived_at_git_hash": "ac36cd3-dirty",
+  "derived_at_utc": "2026-07-19T13:16:50Z",
+  "derived_at_git_hash": "da0b83c-dirty",
+  "derivation_source_sha": "957dbef540f7c3ce",
   "sources": [
     {
       "set": "/data3/hugin/vsr/measurements/cue_sweep_conflict",
@@ -385,6 +386,8 @@
     "worst_case_area_ratio": 1.8525649939937667,
     "worst_case_binding_ratio": 1.8525649939937667
   },
+  "pooled_is_diagnostic_only": false,
+  "regime_isolation": {},
   "per_set_required_ratio_by_pairing": {
     "m4a_v1_conflict_pilot": {
       "near_bottle_far_bottle": {

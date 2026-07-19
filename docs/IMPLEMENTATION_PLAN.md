@@ -352,12 +352,21 @@ forward-compat but is outside the core matrix.)
        silhouette sweeps at 198–202 samples per category×role cell. Committed to every M4a config
        with provenance. Re-derive again at §5 re-render scale — at n≈200 the extremes are still a
        LOWER bound (worst cell's half-sample recovers 74.9% of range).
-     - 🔴 **DESIGN DECISION OWED, blocks nothing yet:** area congruence and an informative
-       depth-ratio target are **incompatible** for the current six-category height-calibrated set —
-       the minimum congruent floor (1.766) exceeds the maximum ratio the design produces (1.474),
-       so 100% of natural-congruent images are floor-clamped and its ratio target is an independent
-       uniform draw (this is what R² = −0.252 was). Options in `reports/m4a_cue_constants.md` §4;
-       take the decision with the §5 re-render, not before.
+     - 🔴 **DESIGN DECISION — table built, default ruled, implementation is the NEXT freeze step.**
+       Area congruence and an informative depth-ratio target are **incompatible** for the current
+       six-category height-calibrated set: the minimum congruent floor (1.766) exceeds the maximum
+       ratio the design produces (1.474), so 100% of natural-congruent images are floor-clamped and
+       its ratio target is an independent uniform draw (this is what R² = −0.252 was).
+       **Ruled default = RESTRICTED CATEGORY PAIRINGS with hard area congruence kept**, because the
+       control's ratio arm is the all-cues-agree reference for the conflict regime's fusion
+       analysis. Confirmed with numbers: {cube, cylinder, mug, sphere} + **uniform** floor 1.1707
+       restores `r(ratio, depth_gap_bin)` from −0.017 to **+0.751** at 1.25× retained range, while
+       per-pair floors over all six categories are disqualified by their own safeguard
+       (η²(pairing→ratio) = 0.823, worst overlap 0.000). Retained sets must be **symmetric** or the
+       0.500 near/far category balance that closes B2→z breaks. Full table:
+       `reports/m4a_natural_congruent_decision.md`.
+     - **BINDING SEQUENCE:** decision table ✅ → implement the chosen fix (freeze work) → textures →
+       determinism byte-compare → freeze tag → §5 one-shot against a pre-registered block.
 2. ⚠ **While the generator is open, add the SOLO-OBJECT ID PASS** (M4.5's prerequisite). It is nearly
    free now — one extra tiny render per object — and expensive to retrofit once 5–10k images are
    rendered. M4.5 does not *run* until M4b's gate passes; its cheap prerequisite belongs **here**.

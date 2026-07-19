@@ -149,8 +149,9 @@ cue_constants:
   provenance:
     derivation_script: scripts/derive_cue_constants.py
     derivation_version: 2.0.0
-    derived_at_utc: '2026-07-19T12:21:09Z'
-    derived_at_git_hash: ac36cd3-dirty
+    derived_at_utc: '2026-07-19T13:16:49Z'
+    derived_at_git_hash: da0b83c-dirty
+    derivation_source_sha: 957dbef540f7c3ce
     sources:
     - set_name: m4a_v1_natural_congruent_pilot
       seed: 410

@@ -163,7 +163,15 @@ def analyse(
 
     # How much of the design's natural ratio range does the floor keep?
     acceptance_fraction = float((avail_r >= floor).mean()) if avail_r.size else float("nan")
-    # How much of what survives is the floor's own jitter rather than scene depth structure?
+    # ⚠ TWO DIFFERENT QUANTITIES, easy to conflate (and I did, briefly):
+    #   clamped_fraction   — images the floor actually MOVED. 1 - acceptance. Unambiguous.
+    #   floor_determined   — accepted ratios lying inside the floor band. This counts clamped
+    #                        images AND images whose natural ratio happened to land in the band,
+    #                        so it OVERSTATES the floor's influence whenever the band is wide
+    #                        relative to the available range. It is exact only when the whole
+    #                        available range sits below the floor (the current natural-congruent
+    #                        case, where both read 1.000).
+    clamped = 1.0 - acceptance_fraction
     floor_determined = float((acc_r <= floor_max).mean()) if acc_r.size else float("nan")
 
     strata: dict[str, dict] = {}
@@ -193,6 +201,7 @@ def analyse(
             "available": _quantiles(a),
             "accepted": _quantiles(b),
             "acceptance_fraction": float((a >= floor).mean()) if a.size else float("nan"),
+            "clamped_fraction": (1.0 - float((a >= floor).mean())) if a.size else float("nan"),
             "floor_determined_fraction": float((b <= floor_max).mean()) if b.size else float("nan"),
         }
 
@@ -224,6 +233,7 @@ def analyse(
         "available": _quantiles(avail_r),
         "accepted": _quantiles(acc_r),
         "acceptance_fraction": acceptance_fraction,
+        "clamped_fraction": clamped,
         "floor_determined_fraction": floor_determined,
         "factor_correlations_available": _factor_corr(available),
         "factor_correlations_accepted": _factor_corr(accepted),
@@ -252,8 +262,11 @@ def _print_regime(result: dict) -> None:
         f"  acceptance fraction (available >= floor) : {result['acceptance_fraction']:.3f}"
     )
     print(
-        f"  floor-DETERMINED fraction (accepted within the floor band) : "
-        f"{result['floor_determined_fraction']:.3f}"
+        f"  CLAMPED fraction (images the floor actually moved) : {result['clamped_fraction']:.3f}"
+    )
+    print(
+        f"  floor-determined fraction (accepted inside the floor band; overstates when the band "
+        f"is wide) : {result['floor_determined_fraction']:.3f}"
     )
     print(f"  placement failures: {result['placement_failures_with_floor']} with floor, "
           f"{result['placement_failures_without_floor']} without")
