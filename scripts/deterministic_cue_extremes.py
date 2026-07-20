@@ -515,6 +515,9 @@ def main() -> int:
                     help="depth grid points (refinement knob)")
     ap.add_argument("--lateral-levels", type=int, default=LATERAL_LEVELS,
                     help="lateral magnitude levels (refinement knob)")
+    ap.add_argument("--records", help="JSONL of per-pose records; enables resume + chunking")
+    ap.add_argument("--max-renders", type=int, default=None,
+                    help="stop after N renders and exit(2) for a fresh process (see CHUNK_RENDERS)")
     ap.add_argument("--verify-targeted", action="store_true",
                     help="deterministic adversarial probe of the load-bearing cells (committed)")
     ap.add_argument("--floor-curve", action="store_true",
@@ -525,7 +528,14 @@ def main() -> int:
     out_dir = Path("/tmp/sbind_det")
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"DETERMINISTIC ENVELOPE SWEEP — {args.config}")
-    result = sweep(config, out_dir, args.depth_grid, args.lateral_levels)
+    records_path = Path(args.records) if args.records else None
+    result = sweep(
+        config, out_dir, args.depth_grid, args.lateral_levels,
+        records_path=records_path, max_renders=args.max_renders,
+    )
+    if result.get("incomplete"):
+        print("  SWEEP INCOMPLETE — rerun with the same --records to continue")
+        return 2
     const = result["constants"]
 
     print("\n--- envelope extremes (min .. max per category x role) ---")
