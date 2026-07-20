@@ -57,6 +57,11 @@ from sbind.utils.config import load_config
 
 N_DEPTH_GRID = 6          # boundaries + interior; constants are non-monotone in depth
 LATERAL_LEVELS = 2        # boundaries of |lateral|
+
+# R = sqrt(max C_a[far] / min C_a[near]). ONLY these two extrema enter it. A violation anywhere
+# else is a coverage defect worth fixing but is NOT an error bound on R — which is exactly why the
+# x1.02283 shortcut was rejected: it was measured on the near-role MAXIMUM, which R never reads.
+LOAD_BEARING = (("area", "near", "min"), ("area", "far", "max"))
 DEPTH_MARGIN = 0.02       # expand the measured reachable depth range by 2%, outward
 
 
@@ -143,7 +148,10 @@ def _world_y_for_depth(cam: CameraSpec, x: float, z: float, target_depth: float)
     return (target_depth - float(t[2]) - float(axis[0]) * x - float(axis[2]) * z) / float(axis[1])
 
 
-def sweep(config: dict, out_dir: Path) -> dict:
+def sweep(
+    config: dict, out_dir: Path, depth_grid_n: int = N_DEPTH_GRID,
+    lateral_levels: int = LATERAL_LEVELS,
+) -> dict:
     from sbind.stimuli import render_bpy as rb
 
     categories = list(config["objects"]["categories"])
@@ -151,14 +159,14 @@ def sweep(config: dict, out_dir: Path) -> dict:
     fcfg = config["factors"]
     mults = [float(m) for m in fcfg.get("size_multipliers", [1.0])]
     lo_lat, hi_lat = (float(v) for v in fcfg["lateral_range"])
-    lat_mags = list(np.linspace(lo_lat, hi_lat, LATERAL_LEVELS))
+    lat_mags = list(np.linspace(lo_lat, hi_lat, lateral_levels))
     ranges = reachable_ranges(config)
     depths = {r: v["depth"] for r, v in ranges.items()}
     union_lo = min(d[0] for d in depths.values())
     union_hi = max(d[1] for d in depths.values())
     bbox_margin = float(config["condition"]["target_bbox_margin_px"])
     frame_margin = float(config["condition"]["target_frame_margin_px"])
-    depth_grid = list(np.linspace(union_lo, union_hi, N_DEPTH_GRID))
+    depth_grid = list(np.linspace(union_lo, union_hi, depth_grid_n))
     cams = camera_corners(config)
 
     print(f"  reachable depth: near {depths['near'][0]:.3f}..{depths['near'][1]:.3f}  "
@@ -305,7 +313,28 @@ def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:
                             ),
                         })
                 checked += 1
-    return {"n_objects_checked": checked, "n_exceeding": len(exceed), "exceedances": exceed[:40]}
+    load_bearing = [
+        e for e in exceed
+        if any(
+            e["constant"] == c and e["role"] == r
+            and ((side == "max" and e["value"] > max(e["envelope"]))
+                 or (side == "min" and e["value"] < min(e["envelope"])))
+            for c, r, side in LOAD_BEARING
+        )
+    ]
+    # localize to cells so a refinement can target the axis that failed, not the whole grid
+    cells: dict[str, int] = {}
+    for e in exceed:
+        key = f"{e['constant']}:{e['category']}:{e['role']}"
+        cells[key] = cells.get(key, 0) + 1
+    return {
+        "n_objects_checked": checked,
+        "n_exceeding": len(exceed),
+        "n_exceeding_load_bearing": len(load_bearing),
+        "load_bearing_exceedances": load_bearing[:40],
+        "cells": cells,
+        "exceedances": exceed[:40],
+    }
 
 
 def r_of_floor_curve(records: list[dict], ranges: dict, floors: list[float]) -> list[dict]:
@@ -344,6 +373,10 @@ def main() -> int:
     ap.add_argument("--json")
     ap.add_argument("--verify-random", type=int, default=0,
                     help="draw N real sampler configurations and check none exceeds the envelope")
+    ap.add_argument("--depth-grid", type=int, default=N_DEPTH_GRID,
+                    help="depth grid points (refinement knob)")
+    ap.add_argument("--lateral-levels", type=int, default=LATERAL_LEVELS,
+                    help="lateral magnitude levels (refinement knob)")
     ap.add_argument("--floor-curve", action="store_true",
                     help="compute R(F) across a floor grid from the same sweep (no re-render)")
     args = ap.parse_args()
@@ -352,7 +385,7 @@ def main() -> int:
     out_dir = Path("/tmp/sbind_det")
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"DETERMINISTIC ENVELOPE SWEEP — {args.config}")
-    result = sweep(config, out_dir)
+    result = sweep(config, out_dir, args.depth_grid, args.lateral_levels)
     const = result["constants"]
 
     print("\n--- envelope extremes (min .. max per category x role) ---")
@@ -395,8 +428,15 @@ def main() -> int:
               f"({args.verify_random} scenes) ---")
         verification = verify_random(config, const, args.verify_random, out_dir)
         n_bad = verification["n_exceeding"]
+        n_lb = verification["n_exceeding_load_bearing"]
         print(f"  objects checked: {verification['n_objects_checked']}   "
-              f"exceeding the envelope: {n_bad}")
+              f"exceeding: {n_bad}   ON THE LOAD-BEARING PAIR: {n_lb}")
+        print(f"  cells: {verification['cells']}")
+        if n_lb:
+            print("  *** LOAD-BEARING VIOLATION — R is an UNDERESTIMATE, not ratifiable")
+        elif n_bad:
+            print("  *** coverage defect on non-load-bearing extrema — R unaffected but the "
+                  "envelope is not certified")
         if n_bad:
             print("  *** ENVELOPE VIOLATED — the deterministic R is an UNDERESTIMATE")
             for e in verification["exceedances"][:5]:
@@ -423,6 +463,7 @@ def main() -> int:
         "required_ratio_by_pairing": ratios,
         "deterministic_R": required,
         "binding_pairing": binding,
+        "grid": {"depth": args.depth_grid, "lateral": args.lateral_levels},
     }
     if args.json:
         Path(args.json).write_text(json.dumps(report, indent=2), encoding="utf-8")

@@ -1,5 +1,22 @@
 # Floor root search and joint acceptance — the 4-set FAILS at its own minimal floor
 
+> ## ⛔ STATUS OF R (2026-07-20)
+>
+> **R = 1.2072 is the CURRENT CORRECTED-SWEEP ESTIMATE on the 1.95 envelope. Envelope verification
+> FAILED (19/600). R is NOT RATIFIED and nothing may consume it.**
+>
+> The ×1.02283 inflation shortcut was **rejected**: that margin was measured on the near-role
+> *maximum*, which R never reads. R is `sqrt(max C_a[far] / min C_a[near])` — a margin measured on
+> a non-load-bearing extremum is not an error bound for the load-bearing pair.
+>
+> `r* = 1.2100` is an **upper-bound candidate only**. The flat R(F) curve is an artifact of the
+> conservative far-pose filter, not a property of the design; floor dependence must be recovered by
+> the adaptive few-floor procedure once the instrument is trusted.
+>
+> Atomic three-regime constant derivation stays blocked (2.55 escalation is still live, so no
+> regime may derive early). **Textures are decoupled** — they touch no silhouette geometry and
+> consume neither R nor the floor.
+
 Date: 2026-07-20 · protocol committed at `f0589b9` **before** it ran · raw:
 `reports/m4a_floor_root_search.json`, `reports/m4a_s5_candidate_F1.1900.json`
 
