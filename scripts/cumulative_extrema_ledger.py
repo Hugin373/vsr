@@ -45,6 +45,7 @@ SOURCES = [
     ("pass0_grid_d6_l2", "reports/m4a_deterministic_extremes.json"),
     ("pass1_grid_d8_l3", "reports/m4a_deterministic_extremes_refine1.json"),
     ("pass2_grid_d10_l4", "reports/m4a_deterministic_extremes_pass2.json"),
+    ("pass3_perrole_n21_f12", "reports/m4a_deterministic_extremes_pass3.json"),
 ]
 
 

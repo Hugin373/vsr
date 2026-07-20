@@ -1,89 +1,69 @@
 # Checkpoint briefing
 
-Date: 2026-07-21 · repo state at commit `296727d` (+ this commit)
-Covers TWO checkpoints — the previous one was not relayed, so its live content is folded in here.
+Date: 2026-07-21 · repo state at commit `45815c5` (+ this commit)
 
-**Question.** (a) Does the cumulative extrema ledger change the operative R? (b) Where do the ten
-load-bearing violations cluster, and does that choose a refinement axis or trip the safeguard?
+**Question.** Pass 3 (the last grid attempt): does per-role depth resolution close C_a,near^min and
+converge cumulative R within ε_R?
 
-**Method.** (a) Folded every admitted evaluated pose from all three grid sweeps plus every
-verification exceedance into one extrema set; extrema of a union are the min/max of per-source
-extrema, so per-pass summaries suffice for sweeps whose per-pose records were not kept.
-(b) Re-ran the targeted adversarial probe (3,168 poses) with full coordinate capture on every
-exceedance, then measured each violation's distance to the actual pass-2 sweep grid.
+**Method.** Per-role depth grids — near band 21 points (0.102 m spacing, was 0.443) over its own
+range, far band 12 points; camera corners and multipliers held exhaustive; lateral reduced 4→2
+(justified: all prior violations sat at lateral boundaries, none interior). 50,688 renders, chunked
+and resumable, deposited into the cumulative ledger. Fresh role-specific verification: targeted
+adversarial (3,168) + random on seeds 6007–6010 (798). Every pose's camera classified corner vs
+interior.
 
----
+**Results — NOT converged. The safeguard TRIPS.**
 
-## (a) Cumulative ledger — R RISES to 1.2092
+| ratification condition | result | |
+|---|---|---|
+| cumulative \|ΔR\| ≤ 0.002 | 1.2092 → **1.2167**, ΔR = **+0.0075** | **FAIL** |
+| fresh targeted verification finds nothing new | **8** load-bearing violations | **FAIL** |
+| binding pair stable | near_mug/far_cube unchanged | PASS |
+| ledger monotone (hard invariant) | R rose, as it must | OK |
 
-| | R | binding pairing |
-|---|---:|---|
-| pass 0 (grid 6×2) | 1.2072 | near_mug/far_cube |
-| pass 1 (grid 8×3) | 1.2060 | near_mug/far_cube |
-| pass 2 (grid 10×4) | 1.2026 | near_mug/far_cube |
-| **cumulative union** | **1.2092** | near_mug/far_cube |
+Cumulative R: 1.2092 → **1.2167**. Per-pass R for contrast: 1.2072 / 1.2060 / 1.2026 / 1.2167 —
+still non-monotone per-pass, still monotone cumulative, exactly as the ledger predicts.
 
-The correction is confirmed: the falling per-pass sequence was **forgetting, not convergence**. The
-three grids (6×2, 8×3, 10×4) barely overlap, so each pass re-rolled the extrema.
-
-**Treating violations as data changed the answer, not just the bookkeeping.** The binding minima for
-both relevant cells now come from targeted-verification exceedances rather than from any grid:
-
-| cell | cumulative min | source |
-|---|---:|---|
-| `area_mug_near` | 119,714.2 | pass-2 targeted verification |
-| `area_sphere_near` | 127,114.3 | pass-2 targeted verification |
-
-R = 1.2092 is a **lower bound** that can only rise. The "at least ~1.2046" wording is withdrawn.
-
-## (b) Violation clustering — one axis, unambiguously
-
-All ten load-bearing violations (every one on C_a,near^min):
+Residual load-bearing violations, all on C_a,near^min:
 
 | | value |
 |---|---|
-| multiplier | **0.92 in 10/10** — the minimum |
-| camera pitch | **+3.0° in 10/10** — the maximum |
-| depth | **4.611, 4.797, 4.983** — the top of the near band (max 4.983) |
-| lateral | spread across ±0.85 and ±0.30 — both extremes |
-| category | sphere 8, mug 2 |
-| distance to sweep grid | **0.086–0.171 m = 0.19–0.39 of the 0.443 m spacing** |
+| count | 8 targeted, 0 random |
+| category | **sphere, all 8** (mug now covered) |
+| camera | **all 8 at CORNERS** — 0 at interior |
+| worst excess | +0.098% (sphere, 127,114.3 vs envelope 127,239.3) |
 
-**The mechanism is structural, and it is my design error.** The sweep grids the **union** depth
-range (2.939–6.927 m) with 10 points, but the **near role only spans 2.939–4.983 m**. So only **5 of
-10** grid points land in the near band, giving 0.443 m resolution over a 2.044 m span — while the
-far band gets the other half. Every violation sits **between** those coarse points, at the deep end
-of the near band, at the minimum multiplier and maximum pitch.
+**Established.**
+- **Grids are not closing this.** A 0.102 m near grid still missed the extremum, and it improved the
+  near-band coverage (mug is now clean; violations dropped 10→8, all sphere). But R *rose* rather
+  than settled, and the lowest value (127,114.3) was found by a **verification pose, not any grid** —
+  the same value in pass 2 and pass 3, so it is reproducible geometry the grid keeps stepping over.
+- **The corner-extremality path did NOT fire**: all residual violations are at camera corners, so
+  the boundary assumption on camera axes holds. The gap is depth/pose geometry, not a mis-modelled
+  camera axis.
+- The four ruled invariants are in and green (ledger monotonicity + positive control, B16
+  self-comparison, corner/interior classification).
 
-Multiplier and camera corners are *not* the gap: the sweep enumerates all three multipliers and all
-32 camera corners exhaustively. The gap is **near-band depth resolution**.
+**NOT established — R is NOT RATIFIED, cumulative R ≥ 1.2167 and still rising.** Pass 3 was the last
+grid attempt and it did not converge.
 
-**Established.** Cumulative R = 1.2092. The refinement axis is determined by data, not by my guess:
-grid each role's **own** depth range rather than the union. Violations are systematic (one region,
-one axis), not scattered.
+**Safeguard verdict: TRIPPED** (via the ΔR > ε_R trigger; the corner-interior trigger did not fire,
+but only one is needed). Per the pre-committed rule, grids are now abandoned for **constrained
+adaptive minimization of C_a,near over the guard-defined reachable set**, feeding the same ledger.
 
-**NOT established.** R remains **unratified**; nothing downstream may consume it. Whether fixing the
-near-band resolution closes C_a,near^min or merely moves the bound again is exactly what pass 3
-tests.
+**Weakest point.** One violation sits at depth **4.983 m — which IS a near-grid endpoint**, not
+between points. A pure resolution-deficit story predicts violations only *between* grid points, so a
+violation *on* a grid point means the miss is not solely depth resolution: the extremum is
+off-grid in some other continuous axis the sweep samples coarsely (world-y, or the lateral I just
+reduced), or the sweep and verification differ subtly at that pose. Either way it is more evidence
+that a grid is the wrong instrument — which is where the safeguard sends us — but I have not
+isolated *which* axis, and the optimizer should be told to vary all of them, not assume depth.
 
-**Safeguard status: NOT tripped.** The pre-committed trigger is "violations appear in **new interior
-regions**". These are confined to one contiguous region, explained by a known resolution deficit —
-so a directed grid remains justified. If pass 3 still moves cumulative R by more than ε_R, the
-trigger fires and we switch to constrained adaptive minimization of C_a,near.
-
-**Weakest point.** Two self-inflicted measurement errors this checkpoint. First, I chose
-**non-nested grids**, which is what made the per-pass R non-monotone and the "convergence" reading
-possible; nesting each grid as a superset of the last would have made monotonicity automatic.
-Second, my violation-clustering diagnostic initially reported "distance to nearest grid point =
-0.0000 for all 10", which was **self-referential** — it compared against the targeted probe's own
-12-point grid instead of the sweep's. Corrected, the same violations sit 0.19–0.39 of a grid spacing
-away, which is the entire finding. Both errors share a shape: a measurement compared against itself
-rather than against the thing it was meant to test.
-
-Also: 100 of 126 total exceedances are `height:sphere:near` — pixel-extremal noise, reinforcing the
-sphere-first analytic-height track.
-
-**Next step.** Pass 3, directed: grid each role's own depth range (near band at ~0.10 m resolution
-instead of 0.443 m), keeping multipliers and camera corners exhaustive, chunked and resumable,
-depositing into the ledger. Then fresh targeted verification. ~90 min. Nothing else proceeds; R
-stays unratified; textures remain decoupled and parallelisable.
+**Next step — the optimizer is a NEW load-bearing instrument, so I am holding for design
+confirmation rather than launching, the same discipline the root search got (pre-committed before
+running).** Proposed: minimize C_a,near(pose) over the guard-defined reachable set — pose = (depth,
+lateral, multiplier, 5 camera axes) for sphere and mug — via multi-start SLSQP/differential
+evolution with the guard as a constraint, every evaluation deposited into the ledger, converged when
+the minimum is stable within an area tolerance that maps to ε_R on R. I want to pre-commit that
+protocol (starts, seeds from the verification role, convergence tolerance, restart count) in one
+commit before it runs. Textures remain decoupled and parallelisable meanwhile.
