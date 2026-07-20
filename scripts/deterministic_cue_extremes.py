@@ -55,6 +55,15 @@ from sbind.stimuli.sampler import (
 from sbind.stimuli.scene_spec import CameraSpec, ObjectSpec, SceneSpec
 from sbind.utils.config import load_config
 
+# ⚠ CHUNKING IS MANDATORY, not an optimisation. Measured 2026-07-21: per-render cost in a
+# long-lived Blender process doubles every ~2000 renders and accelerates —
+#   500:0.136  1000:0.145  2000:0.153  2500:0.170  3000:0.195  3500:0.229  4000:0.272 s
+# extrapolating to 14368 renders predicts ~4 s/render, and a process that had done exactly that
+# measured 4.17. Threads (83) and RSS (332->367 MB) stay flat, so it is internal Blender state,
+# not a datablock or thread leak. A single process cannot finish a 28k-render sweep; restarting
+# every CHUNK_RENDERS keeps the average near 0.145 s.
+CHUNK_RENDERS = 2000      # near-optimal against the ~55 s process startup cost
+
 N_DEPTH_GRID = 6          # boundaries + interior; constants are non-monotone in depth
 LATERAL_LEVELS = 2        # boundaries of |lateral|
 
@@ -150,7 +159,8 @@ def _world_y_for_depth(cam: CameraSpec, x: float, z: float, target_depth: float)
 
 def sweep(
     config: dict, out_dir: Path, depth_grid_n: int = N_DEPTH_GRID,
-    lateral_levels: int = LATERAL_LEVELS,
+    lateral_levels: int = LATERAL_LEVELS, records_path: Path | None = None,
+    max_renders: int | None = None,
 ) -> dict:
     from sbind.stimuli import render_bpy as rb
 
@@ -178,12 +188,33 @@ def sweep(
     tmp = out_dir / ".det_id.png"
     records: list[dict] = []
     done = 0
+    pose_index = -1
+    already: set[int] = set()
+    if records_path is not None and records_path.exists():
+        with records_path.open(encoding="utf-8") as fh:
+            for line in fh:
+                rec = json.loads(line)
+                records.append(rec)
+                already.add(int(rec["pose_index"]))
+        print(f"  resume: {len(already)} poses already recorded")
+    sink = records_path.open("a", encoding="utf-8") if records_path is not None else None
+    rendered_here = 0
     for cat in categories:
         for depth, sign, lat, mult in itertools.product(depth_grid, (-1.0, 1.0), lat_mags, mults):
             size = size_by_cat[cat] * mult
             z = _rest_height(cat, size)
             x = sign * lat
             for cam, cam_rec in cams:
+                pose_index += 1
+                if pose_index in already:
+                    continue
+                if max_renders is not None and rendered_here >= max_renders:
+                    if sink is not None:
+                        sink.close()
+                    print(f"  chunk limit {max_renders} reached at pose {pose_index}; exiting "
+                          f"for a fresh process (see CHUNK_RENDERS)")
+                    return {"incomplete": True, "records": records, "ranges": ranges,
+                            "depths": depths, "constants": None}
                 y = _world_y_for_depth(cam, x, z, depth)
                 if not np.isfinite(y):
                     continue
@@ -228,14 +259,19 @@ def sweep(
                     continue
                 _, height = mg
                 area = int(masks[0].sum())
-                records.append({
+                rec = {
+                    "pose_index": pose_index,
                     "category": cat, "depth": float(depth), "x": x, "mult": mult,
                     "roles_ok": roles_ok, "world_y": float(y),
                     "C_h": height * depth / mult,
                     "C_a": area * depth**2 / mult**2,
                     **{f"cam_{k}": v for k, v in cam_rec.items()},
-                })
+                }
+                records.append(rec)
+                if sink is not None:
+                    sink.write(json.dumps(rec) + "\n")
                 done += 1
+                rendered_here += 1
                 if done % 500 == 0:
                     print(f"    {done}/{total}")
 
@@ -249,7 +285,10 @@ def sweep(
                 continue
             const["height"][(cat, role)] = [r["C_h"] for r in rows]
             const["area"][(cat, role)] = [r["C_a"] for r in rows]
-    return {"constants": const, "records": records, "depths": depths, "ranges": ranges}
+    if sink is not None:
+        sink.close()
+    return {"constants": const, "records": records, "depths": depths, "ranges": ranges,
+            "incomplete": False}
 
 
 VERIFY_SEEDS = (6007, 6008, 6009, 6010)   # fresh; 6001-6006 burnt on inspection
