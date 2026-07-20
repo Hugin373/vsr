@@ -66,3 +66,53 @@ height measurement with an **analytic/semi-analytic silhouette-height bound** de
 mesh geometry, which is already validated. Rendered mask height is an integer extremal pixel and is
 therefore spiky in pose — the reason it is 15 of 17 violations while area is 2 of 17. An analytic
 bound plus a quantisation allowance is exact where a grid is merely dense.
+
+---
+
+# AMENDMENT 2026-07-21 — cumulative ledger supersedes per-pass R
+
+## The correction
+
+Per-pass R **discards evidence**. The sequence 1.2072 → 1.2060 → 1.2026 read like convergence from
+above; it is an artifact of **non-nested grids**. Pass 2 sampled depth × lateral at 10 × 4 where
+pass 0 sampled 6 × 2, so each pass re-rolls the extrema from its own sample and is free to miss a
+pose an earlier pass hit. A falling per-pass R is **forgetting, not convergence**.
+
+Over the union of all admitted evaluated poses the extrema can only widen, so **cumulative R is
+monotone non-decreasing** — a lower bound on the true worst case that improves with evidence.
+
+**ε_R applies to the CUMULATIVE sequence, never to per-pass values.**
+
+## Ratification, restated
+
+Convergence requires **all three**:
+1. cumulative R stationary within ε_R = 0.002;
+2. fresh targeted verification finds **nothing new**;
+3. binding pair stable.
+
+Zero-exceedance stands. **No tolerance creep** — "at least ~1.2046" style wording is withdrawn; the
+correct statement is **"at least the cumulative-union value"**.
+
+## Every evaluation deposits into the ledger
+
+Grid sweeps, random verification, targeted adversarial probes and optimizer calls all accumulate
+into one extrema set. **Verification violations are DATA, not merely failures**: each is a
+guard-admitted, measured pose, and its value belongs in the extrema set with provenance. Recording
+only "10 failures" discards the measurements that prove the envelope too narrow — and in fact the
+current binding minimum comes from two of them.
+
+## Pre-committed stopping safeguard
+
+If the next pass **either** moves cumulative R by more than ε_R **or** produces violations in new
+interior regions, then regular grids are **abandoned** for **constrained adaptive minimization of
+C_a,near over the guard-defined reachable set**. Optimizer evaluations feed the same ledger.
+
+Rationale: grids are a bet that extrema sit near sampled points. Two refinements that keep moving
+the cumulative bound falsify that bet, and buying resolution uniformly is then the wrong lever.
+
+## Height — analytic track
+
+Start with **SPHERE**: its silhouette is an exact projected ellipse with a closed form, and it
+accounts for 100 of 126 targeted exceedances. Height does **not** enter R (1.1193 against area's
+1.2026) but it **blocks the full-instrument claim and the conflict regime's constants**, so it must
+close before the atomic three-regime derivation.

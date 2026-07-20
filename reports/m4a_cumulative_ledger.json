@@ -1,0 +1,185 @@
+{
+  "cumulative_R": 1.2092443992951063,
+  "binding_pairing": "near_mug_far_cube",
+  "ledger": {
+    "area_cube_far": {
+      "min": 129493.2082256862,
+      "max": 175054.77391610012,
+      "n": 9490,
+      "min_source": "pass1_grid_d8_l3",
+      "max_source": "pass0_grid_d6_l2"
+    },
+    "area_cube_near": {
+      "min": 137498.55691704227,
+      "max": 181961.75387431166,
+      "n": 4607,
+      "min_source": "pass2_grid_d10_l4",
+      "max_source": "pass2_grid_d10_l4"
+    },
+    "area_cylinder_far": {
+      "min": 119901.89145744173,
+      "max": 139320.97277000238,
+      "n": 9490,
+      "min_source": "pass2_grid_d10_l4",
+      "max_source": "pass2_grid_d10_l4"
+    },
+    "area_cylinder_near": {
+      "min": 124485.47318399281,
+      "max": 141377.14700528627,
+      "n": 4611,
+      "min_source": "pass1_grid_d8_l3",
+      "max_source": "pass2_grid_d10_l4"
+    },
+    "area_mug_far": {
+      "min": 117564.03720108359,
+      "max": 129760.91594635039,
+      "n": 9200,
+      "min_source": "pass1_grid_d8_l3",
+      "max_source": "pass2_grid_d10_l4"
+    },
+    "area_mug_near": {
+      "min": 119714.2336404123,
+      "max": 133499.96319087,
+      "n": 4490,
+      "min_source": "pass2_grid_d10_l4:targeted_verification",
+      "max_source": "pass0_grid_d6_l2"
+    },
+    "area_sphere_far": {
+      "min": 126733.67830365954,
+      "max": 135253.65886286274,
+      "n": 9332,
+      "min_source": "pass1_grid_d8_l3",
+      "max_source": "pass0_grid_d6_l2"
+    },
+    "area_sphere_near": {
+      "min": 127114.25290910702,
+      "max": 135253.65886286274,
+      "n": 4472,
+      "min_source": "pass2_grid_d10_l4:targeted_verification",
+      "max_source": "pass0_grid_d6_l2"
+    },
+    "height_cube_far": {
+      "min": 376.05333933431064,
+      "max": 435.37767896121454,
+      "n": 9506,
+      "min_source": "pass2_grid_d10_l4",
+      "max_source": "pass2_grid_d10_l4:targeted_verification"
+    },
+    "height_cube_near": {
+      "min": 390.06960305017384,
+      "max": 446.44171126961265,
+      "n": 4613,
+      "min_source": "pass2_grid_d10_l4:random_verification",
+      "max_source": "pass2_grid_d10_l4"
+    },
+    "height_cylinder_far": {
+      "min": 372.2111596220827,
+      "max": 430.5208847009759,
+      "n": 9490,
+      "min_source": "pass2_grid_d10_l4",
+      "max_source": "pass0_grid_d6_l2"
+    },
+    "height_cylinder_near": {
+      "min": 386.33212326572703,
+      "max": 441.2199435515306,
+      "n": 4615,
+      "min_source": "pass2_grid_d10_l4",
+      "max_source": "pass2_grid_d10_l4:random_verification"
+    },
+    "height_mug_far": {
+      "min": 384.3225201088315,
+      "max": 422.46595826609195,
+      "n": 9204,
+      "min_source": "pass2_grid_d10_l4:random_verification",
+      "max_source": "pass2_grid_d10_l4:random_verification"
+    },
+    "height_mug_near": {
+      "min": 392.61394640825915,
+      "max": 440.85846741203324,
+      "n": 4486,
+      "min_source": "pass2_grid_d10_l4",
+      "max_source": "pass0_grid_d6_l2"
+    },
+    "height_sphere_far": {
+      "min": 398.3328590376084,
+      "max": 414.6313193068065,
+      "n": 9340,
+      "min_source": "pass0_grid_d6_l2:random_verification",
+      "max_source": "pass2_grid_d10_l4"
+    },
+    "height_sphere_near": {
+      "min": 398.93058559240575,
+      "max": 410.98823275662284,
+      "n": 4491,
+      "min_source": "pass1_grid_d8_l3:random_verification",
+      "max_source": "pass2_grid_d10_l4:targeted_verification"
+    }
+  },
+  "required_ratio_by_pairing": {
+    "near_cube_far_cube": 1.1283346091757769,
+    "near_cube_far_cylinder": 1.0066052218121746,
+    "near_cube_far_mug": 0.9714554322655639,
+    "near_cube_far_sphere": 0.9918030537085992,
+    "near_cylinder_far_cube": 1.1858442230604265,
+    "near_cylinder_far_cylinder": 1.0579104615610264,
+    "near_cylinder_far_mug": 1.0209691371199672,
+    "near_cylinder_far_sphere": 1.04235384795399,
+    "near_mug_far_cube": 1.2092443992951063,
+    "near_mug_far_cylinder": 1.0787861303543111,
+    "near_mug_far_mug": 1.041115845493786,
+    "near_mug_far_sphere": 1.0629225392430288,
+    "near_sphere_far_cube": 1.1735182685443228,
+    "near_sphere_far_cylinder": 1.046914281811836,
+    "near_sphere_far_mug": 1.0103569345205325,
+    "near_sphere_far_sphere": 1.0315193674465852
+  },
+  "provenance": [
+    {
+      "source": "pass0_grid_d6_l2",
+      "path": "reports/m4a_deterministic_extremes.json",
+      "kind": "grid sweep",
+      "per_pass_R": 1.2071867730203978
+    },
+    {
+      "source": "pass0_grid_d6_l2:random_verification",
+      "kind": "verification",
+      "n_objects_checked": 600,
+      "n_exceeding": 19,
+      "n_load_bearing": null
+    },
+    {
+      "source": "pass1_grid_d8_l3",
+      "path": "reports/m4a_deterministic_extremes_refine1.json",
+      "kind": "grid sweep",
+      "per_pass_R": 1.2059844516688663
+    },
+    {
+      "source": "pass1_grid_d8_l3:random_verification",
+      "kind": "verification",
+      "n_objects_checked": 800,
+      "n_exceeding": 17,
+      "n_load_bearing": 1
+    },
+    {
+      "source": "pass2_grid_d10_l4",
+      "path": "reports/m4a_deterministic_extremes_pass2.json",
+      "kind": "grid sweep",
+      "per_pass_R": 1.2026015211615304
+    },
+    {
+      "source": "pass2_grid_d10_l4:targeted_verification",
+      "kind": "verification",
+      "n_objects_checked": 3168,
+      "n_exceeding": 126,
+      "n_load_bearing": 10
+    },
+    {
+      "source": "pass2_grid_d10_l4:random_verification",
+      "kind": "verification",
+      "n_objects_checked": 798,
+      "n_exceeding": 6,
+      "n_load_bearing": 0
+    }
+  ],
+  "note": "Per-pass R is superseded. Non-nested grids re-roll extrema each pass, so a falling per-pass R reflects forgetting, not convergence. eps_R applies to THIS sequence."
+}

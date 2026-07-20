@@ -405,14 +405,14 @@ def verify_targeted(config: dict, const: dict, out_dir: Path) -> dict:
         y_lo, y_hi = ranges[role]["y"]
         # boundaries AND a fine interior grid on depth: the extremum need not sit at a corner
         depth_probe = list(np.linspace(d_lo, d_hi, 12))
-        for cat in cats:
+        for cat in cats:  # noqa: B007
             size = size_by_cat[cat] * mult
             z = _rest_height(cat, size)
             for depth, sign, lat in itertools.product(
                 depth_probe, (-1.0, 1.0), (lo_lat, hi_lat)
             ):
                 x = sign * lat
-                for cam, _ in cams:
+                for cam, cam_rec in cams:
                     y = _world_y_for_depth(cam, x, z, float(depth))
                     if not np.isfinite(y) or not (y_lo <= y <= y_hi):
                         continue
@@ -445,6 +445,7 @@ def verify_targeted(config: dict, const: dict, out_dir: Path) -> dict:
                         "area": int(masks[0].sum()) * depth**2 / mult**2,
                     }
                     checked += 1
+                    gb = _projected_box(cam, obj, margin_px=0.0)
                     for name, v in vals.items():
                         env = const[name].get((cat, role))
                         if env is None:
@@ -456,6 +457,25 @@ def verify_targeted(config: dict, const: dict, out_dir: Path) -> dict:
                                 "value": float(v), "envelope": [float(lo), float(hi)],
                                 "excess_pct": float(
                                     100 * (v - hi) / hi if v > hi else 100 * (lo - v) / lo
+                                ),
+                                # FULL COORDINATES: the refinement axes are chosen by where these
+                                # cluster, so a bare failure count is not enough (ruled 2026-07-21)
+                                "depth": float(depth), "lateral": float(x), "multiplier": mult,
+                                "world_y": float(y),
+                                "camera": {k: v2 for k, v2 in cam_rec.items()},
+                                "centroid_px": [
+                                    float((gb[0] + gb[2]) / 2), float((gb[1] + gb[3]) / 2)
+                                ] if gb else None,
+                                "guard_margin_px": {
+                                    "left": float(gb[0]), "top": float(gb[1]),
+                                    "right": float(cam.res_x - gb[2]),
+                                    "bottom": float(cam.res_y - gb[3]),
+                                } if gb else None,
+                                "depth_grid_nearest": float(
+                                    min(depth_probe, key=lambda g: abs(g - depth))
+                                ),
+                                "depth_grid_distance": float(
+                                    min(abs(g - depth) for g in depth_probe)
                                 ),
                             })
     return _split_report(checked, exceed)
