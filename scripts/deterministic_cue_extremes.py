@@ -160,7 +160,8 @@ def _world_y_for_depth(cam: CameraSpec, x: float, z: float, target_depth: float)
 def sweep(
     config: dict, out_dir: Path, depth_grid_n: int = N_DEPTH_GRID,
     lateral_levels: int = LATERAL_LEVELS, records_path: Path | None = None,
-    max_renders: int | None = None,
+    max_renders: int | None = None, depth_grid_near: int = N_DEPTH_GRID,
+    depth_grid_far: int = N_DEPTH_GRID,
 ) -> dict:
     from sbind.stimuli import render_bpy as rb
 
@@ -187,11 +188,18 @@ def sweep(
                 encoding="utf-8",
             )
     depths = {r: v["depth"] for r, v in ranges.items()}
-    union_lo = min(d[0] for d in depths.values())
-    union_hi = max(d[1] for d in depths.values())
     bbox_margin = float(config["condition"]["target_bbox_margin_px"])
     frame_margin = float(config["condition"]["target_frame_margin_px"])
-    depth_grid = list(np.linspace(union_lo, union_hi, depth_grid_n))
+    # PER-ROLE DEPTH GRIDS (pass 3, ruled 2026-07-21). Pass 2 gridded the UNION range, so only
+    # 5 of 10 points landed in the near band — 0.443 m resolution over a 2.044 m span — and every
+    # load-bearing violation sat 0.19-0.39 of a spacing away from a sampled point, at the deep end
+    # of that band. Gridding each role's OWN range puts the resolution where each role lives.
+    near_grid = np.linspace(*ranges["near"]["depth"], depth_grid_near)
+    far_grid = np.linspace(*ranges["far"]["depth"], depth_grid_far)
+    depth_grid = sorted({round(float(d), 6) for d in [*near_grid, *far_grid]})
+    print(f"  depth grids: near {depth_grid_near} pts "
+          f"(spacing {(near_grid[1] - near_grid[0]):.4f}), far {depth_grid_far} pts "
+          f"(spacing {(far_grid[1] - far_grid[0]):.4f}) -> {len(depth_grid)} unique")
     cams = camera_corners(config)
 
     print(f"  reachable depth: near {depths['near'][0]:.3f}..{depths['near'][1]:.3f}  "
@@ -365,10 +373,21 @@ def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:
                         continue
                     lo, hi = min(env), max(env)
                     if v < lo or v > hi:
+                        f = spec.factors
+                        cam_rec = {
+                            "height": f.get("camera_height_delta_m", 0.0),
+                            "pos_x": f.get("camera_x_delta_m", 0.0),
+                            "pos_y": f.get("camera_y_delta_m", 0.0),
+                            "pitch": f.get("camera_pitch_delta_deg", 0.0),
+                            "yaw": f.get("camera_yaw_delta_deg", 0.0),
+                        }
                         exceed.append({
                             "id": spec.id, "category": o.category, "role": role,
                             "constant": name, "value": float(v),
                             "envelope": [float(lo), float(hi)],
+                            "camera": cam_rec,
+                            "camera_is_corner": camera_is_corner(cam_rec, config),
+                            "depth": float(depth),
                             "excess_pct": float(
                                 100 * (v - hi) / hi if v > hi else 100 * (lo - v) / lo
                             ),
@@ -463,6 +482,7 @@ def verify_targeted(config: dict, const: dict, out_dir: Path) -> dict:
                                 "depth": float(depth), "lateral": float(x), "multiplier": mult,
                                 "world_y": float(y),
                                 "camera": {k: v2 for k, v2 in cam_rec.items()},
+                                "camera_is_corner": camera_is_corner(cam_rec, config),
                                 "centroid_px": [
                                     float((gb[0] + gb[2]) / 2), float((gb[1] + gb[3]) / 2)
                                 ] if gb else None,
@@ -479,6 +499,28 @@ def verify_targeted(config: dict, const: dict, out_dir: Path) -> dict:
                                 ),
                             })
     return _split_report(checked, exceed)
+
+
+def camera_is_corner(cam_rec: dict, config: dict, tol: float = 1e-9) -> bool:
+    """Is this camera pose at a CORNER of the jitter box, or in its interior?
+
+    Pre-committed interpretation (2026-07-21): a residual violation at a camera CORNER, sitting
+    between depth points, is a resolution deficit. A violation at a camera-INTERIOR value falsifies
+    the corner-extremality assumption itself and triggers the optimizer immediately, regardless of
+    depth resolution — because no amount of depth refinement fixes an axis whose extremum is not
+    at its boundary.
+    """
+    jitter = config["camera"].get("jitter", {}) or {}
+    axes = {"height": "height_m", "pos_x": "pos_x_m", "pos_y": "pos_y_m",
+            "pitch": "pitch_deg", "yaw": "yaw_deg"}
+    for key, cfg_key in axes.items():
+        if key not in cam_rec:
+            continue
+        lo, hi = (float(v) for v in jitter.get(cfg_key, [0.0, 0.0]))
+        v = float(cam_rec[key])
+        if abs(v - lo) > tol and abs(v - hi) > tol:
+            return False
+    return True
 
 
 def _split_report(checked: int, exceed: list[dict]) -> dict:
@@ -499,10 +541,13 @@ def _split_report(checked: int, exceed: list[dict]) -> dict:
     for e in exceed:
         key = f"{e['constant']}:{e['category']}:{e['role']}"
         cells[key] = cells.get(key, 0) + 1
+    interior = [e for e in load_bearing if e.get("camera_is_corner") is False]
     return {
         "n_objects_checked": checked,
         "n_exceeding": len(exceed),
         "n_exceeding_load_bearing": len(load_bearing),
+        "n_load_bearing_camera_interior": len(interior),
+        "optimizer_trigger_corner_extremality": bool(interior),
         "by_role_and_constant": split,
         "load_bearing_exceedances": load_bearing[:40],
         "cells": cells,
@@ -547,7 +592,11 @@ def main() -> int:
     ap.add_argument("--verify-random", type=int, default=0,
                     help="draw N real sampler configurations and check none exceeds the envelope")
     ap.add_argument("--depth-grid", type=int, default=N_DEPTH_GRID,
-                    help="depth grid points (refinement knob)")
+                    help="(legacy union grid size; superseded by the per-role knobs)")
+    ap.add_argument("--depth-grid-near", type=int, default=None,
+                    help="depth points across the NEAR role's own range")
+    ap.add_argument("--depth-grid-far", type=int, default=None,
+                    help="depth points across the FAR role's own range")
     ap.add_argument("--lateral-levels", type=int, default=LATERAL_LEVELS,
                     help="lateral magnitude levels (refinement knob)")
     ap.add_argument("--records", help="JSONL of per-pose records; enables resume + chunking")
@@ -567,6 +616,8 @@ def main() -> int:
     result = sweep(
         config, out_dir, args.depth_grid, args.lateral_levels,
         records_path=records_path, max_renders=args.max_renders,
+        depth_grid_near=args.depth_grid_near or args.depth_grid,
+        depth_grid_far=args.depth_grid_far or args.depth_grid,
     )
     if result.get("incomplete"):
         print("  SWEEP INCOMPLETE — rerun with the same --records to continue")

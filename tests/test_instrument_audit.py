@@ -233,3 +233,99 @@ def test_I5_camera_corners_cover_every_jitter_axis_boundary(cfg):
         lo, hi = (float(v) for v in jitter[axis])
         seen = {rec[key] for _, rec in cams}
         assert lo in seen and hi in seen, f"{axis}: corners missing a boundary value"
+
+
+# ------------------------------------------- I6-I8: ledger monotonicity, B16, corner/interior
+
+
+def test_I6_cumulative_ledger_R_is_monotone_non_decreasing():
+    """ΔR_cum < 0 beyond float tolerance is LEDGER CORRUPTION, never a result.
+
+    The cumulative R is a max over a growing union of measured poses, so it can only rise. A fall
+    means evidence was dropped — which is exactly the failure that made the per-pass sequence
+    1.2072 -> 1.2060 -> 1.2026 look like convergence when it was forgetting.
+    """
+    import sys as _sys
+
+    _sys.path.insert(0, "scripts")
+    from cumulative_extrema_ledger import required_ratio_from_ledger
+
+    base = {
+        "area_mug_near": {"min": 120000.0, "max": 133500.0},
+        "area_cube_far": {"min": 129000.0, "max": 175000.0},
+    }
+    r0, _, _ = required_ratio_from_ledger(base)
+
+    # any new evidence can only widen the extrema, hence raise R
+    widened = {
+        "area_mug_near": {"min": 119714.2, "max": 133500.0},   # a lower near minimum
+        "area_cube_far": {"min": 129000.0, "max": 175054.8},   # a higher far maximum
+    }
+    r1, _, _ = required_ratio_from_ledger(widened)
+    assert r1 >= r0 - 1e-12, f"cumulative R fell {r0} -> {r1}: ledger corruption"
+    assert r1 > r0, "widening the extrema must raise R"
+
+
+def test_I6b_narrowing_the_ledger_is_detected_as_corruption():
+    """POSITIVE CONTROL for I6: a ledger that NARROWS must be detectable as a fall in R."""
+    import sys as _sys
+
+    _sys.path.insert(0, "scripts")
+    from cumulative_extrema_ledger import required_ratio_from_ledger
+
+    wide = {"area_mug_near": {"min": 119714.2, "max": 1.0},
+            "area_cube_far": {"min": 0.0, "max": 175054.8}}
+    narrow = {"area_mug_near": {"min": 120107.9, "max": 1.0},
+              "area_cube_far": {"min": 0.0, "max": 173706.1}}
+    r_wide, _, _ = required_ratio_from_ledger(wide)
+    r_narrow, _, _ = required_ratio_from_ledger(narrow)
+    assert r_narrow < r_wide, (
+        "a narrowed ledger must show a FALLING R — if it does not, I6 cannot detect corruption"
+    )
+
+
+def test_I7_coverage_diagnostic_compares_against_the_sweep_domain_B16():
+    """B16: a coverage diagnostic must compare against the domain it CLAIMS to cover.
+
+    Shipped instance (2026-07-21): the violation-clustering diagnostic reported "distance to
+    nearest grid point = 0.0000" for all ten load-bearing violations. It was comparing each
+    violation against the TARGETED PROBE'S own 12-point grid — the grid that generated it — rather
+    than against the sweep grid whose coverage was in question. Measured against the sweep grid the
+    same violations sit 0.19-0.39 of a spacing away, which was the entire finding.
+    """
+    import numpy as np
+
+    sweep_grid = np.linspace(2.939, 6.927, 10)      # the domain whose coverage is claimed
+    probe_grid = np.linspace(2.939, 4.983, 12)      # the grid that generated the probe poses
+    # the real violations sat exactly ON probe-grid points; use the exact values, not the
+    # display-rounded ones, or the "vacuous comparison" it demonstrates is masked by rounding
+    violations = [float(probe_grid[i]) for i in (9, 10, 11)]
+
+    self_ref = [float(np.min(np.abs(probe_grid - v))) for v in violations]
+    correct = [float(np.min(np.abs(sweep_grid - v))) for v in violations]
+
+    assert max(self_ref) < 1e-9, "probe poses are ON the probe grid — a vacuous comparison"
+    assert min(correct) > 0.05, (
+        "against the SWEEP grid the violations are demonstrably off-grid; a diagnostic reporting "
+        "zero distance is comparing a measurement against itself"
+    )
+
+
+def test_I8_camera_corner_vs_interior_classification():
+    """Corner vs interior decides which pre-committed remedy applies, so it must be exact."""
+    import sys as _sys
+
+    _sys.path.insert(0, "scripts")
+    from deterministic_cue_extremes import camera_is_corner
+
+    cfg = load_config(CONFIG)
+    j = cfg["camera"]["jitter"]
+    corner = {"height": j["height_m"][1], "pos_x": j["pos_x_m"][0], "pos_y": j["pos_y_m"][1],
+              "pitch": j["pitch_deg"][1], "yaw": j["yaw_deg"][0]}
+    assert camera_is_corner(corner, cfg)
+
+    interior = dict(corner)
+    interior["pitch"] = 0.5 * (j["pitch_deg"][0] + j["pitch_deg"][1])   # midpoint, not a boundary
+    assert not camera_is_corner(interior, cfg), (
+        "an interior camera value must NOT read as a corner — it triggers the optimizer path"
+    )

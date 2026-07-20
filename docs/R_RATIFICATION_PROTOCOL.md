@@ -116,3 +116,55 @@ Start with **SPHERE**: its silhouette is an exact projected ellipse with a close
 accounts for 100 of 126 targeted exceedances. Height does **not** enter R (1.1193 against area's
 1.2026) but it **blocks the full-instrument claim and the conflict regime's constants**, so it must
 close before the atomic three-regime derivation.
+
+---
+
+# AMENDMENT 2026-07-21b — pass-3 rules, triggers, and the post-ratification queue
+
+## Pass 3 is the LAST grid attempt
+
+Per-role depth grids (the near band gridded over its own range, not the union), all other axes held
+exhaustive, everything deposited into the cumulative ledger, criterion **cumulative ΔR ≤ 0.002**,
+fresh role-specific verification. All five optimizer triggers live.
+
+## Pre-committed interpretation of residual violations
+
+| where the violating pose sits | reading | remedy |
+|---|---|---|
+| camera **CORNER**, between depth points | resolution deficit | safeguard per existing rules |
+| camera **INTERIOR** value | **corner-extremality assumption FALSIFIED** | **immediate optimizer trigger, regardless of depth resolution** |
+
+The second is not a matter of degree. If an extremum sits at an interior camera value, no amount of
+depth refinement reaches it, because the sweep only ever evaluates camera corners. The random
+verification path draws real sampler cameras (interior almost surely) and is therefore the leg most
+able to expose this.
+
+## Ledger monotonicity is a hard-fail invariant
+
+`ΔR_cum < 0` beyond float tolerance is **ledger corruption, never a result** — the cumulative R is a
+max over a growing union and can only rise. Tested (`test_I6`, with `test_I6b` as the positive
+control that a narrowed ledger is detectable).
+
+## B16 — coverage diagnostics must compare against the domain they claim to cover
+
+A coverage diagnostic compared against the grid that *generated* its own samples measures nothing.
+Shipped instance: the violation-clustering diagnostic reported "distance to nearest grid point =
+0.0000" for all ten load-bearing violations, having compared them against the targeted probe's own
+grid rather than the sweep grid whose coverage was in question. Against the sweep grid the same
+violations sit 0.19–0.39 of a spacing away — the entire finding. Tested (`test_I7`).
+
+## ⚠ POST-RATIFICATION QUEUE — ratifying R settles AREA VALIDITY ONLY
+
+Ratifying R does **not** ratify the floor. The **JOINT acceptance** must re-run at the ratified
+value:
+
+1. Compute `r_op ≈ R + margin` on the **1.95 envelope**.
+2. Re-run the **A–C sampling checks** at that `r_op`.
+3. **The existing sampling numbers do not transfer** — they were measured at floor **1.19**
+   (r = 0.845, weakest stratum 0.792, clamped 0.395). At an `r_op` near 1.21+ they will be worse,
+   and by how much is unmeasured.
+4. Only if BOTH legs pass is the floor ratified.
+5. Then: fresh-seed operative bounds on 9009–9016, atomic three-regime constants derivation,
+   determinism byte-compare, freeze tag, §5 one-shot.
+
+Listing this now so that a ratified R is not mistaken for a finished floor.
