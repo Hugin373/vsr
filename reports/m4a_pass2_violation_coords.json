@@ -1,0 +1,1920 @@
+{
+  "config": "configs/m4a_v1_natural_congruent_pilot.yaml",
+  "eps_R": 0.002,
+  "targeted_verification": {
+    "n_objects_checked": 3168,
+    "n_exceeding": 126,
+    "n_exceeding_load_bearing": 10,
+    "by_role_and_constant": {
+      "height:far": 16,
+      "area:near": 10,
+      "height:near": 100
+    },
+    "load_bearing_exceedances": [
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 120016.17084881585,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.07634867138613187,
+        "depth": 4.6113712743183095,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 1.823608793176296,
+        "camera": {
+          "height": -0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          284.7212388538693,
+          232.03196861374127
+        ],
+        "guard_margin_px": {
+          "left": 235.40503616304733,
+          "top": 177.1172143641495,
+          "right": 177.96255845530868,
+          "bottom": 225.05327713666696
+        },
+        "depth_grid_nearest": 4.6113712743183095,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 119714.2336404123,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.3277370311568873,
+        "depth": 4.79718403264106,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 2.01115844149749,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          287.3805208818969,
+          228.45536084372517
+        ],
+        "guard_margin_px": {
+          "left": 239.8607666322102,
+          "top": 175.8377494180662,
+          "right": 177.09972486841627,
+          "bottom": 230.92702773061586
+        },
+        "depth_grid_nearest": 4.79718403264106,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681,
+        "depth": 4.6113712743183095,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 1.7313102720610207,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          226.25986236083364,
+          277.3375266530696
+        ],
+        "guard_margin_px": {
+          "left": 180.39073365327414,
+          "top": 227.23206737682708,
+          "right": 239.87100893160687,
+          "bottom": 184.5570140706879
+        },
+        "depth_grid_nearest": 4.6113712743183095,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681,
+        "depth": 4.6113712743183095,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 2.131310272061021,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          226.25986236083364,
+          277.3375266530696
+        ],
+        "guard_margin_px": {
+          "left": 180.39073365327414,
+          "top": 227.23206737682708,
+          "right": 239.87100893160687,
+          "bottom": 184.5570140706879
+        },
+        "depth_grid_nearest": 4.6113712743183095,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681,
+        "depth": 4.6113712743183095,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 1.7313102720610207,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          285.74013763916633,
+          277.3375266530696
+        ],
+        "guard_margin_px": {
+          "left": 239.87100893160684,
+          "top": 227.23206737682708,
+          "right": 180.39073365327414,
+          "bottom": 184.5570140706879
+        },
+        "depth_grid_nearest": 4.6113712743183095,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681,
+        "depth": 4.6113712743183095,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 2.131310272061021,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          285.74013763916633,
+          277.3375266530696
+        ],
+        "guard_margin_px": {
+          "left": 239.87100893160684,
+          "top": 227.23206737682708,
+          "right": 180.39073365327414,
+          "bottom": 184.5570140706879
+        },
+        "depth_grid_nearest": 4.6113712743183095,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127202.26185411678,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.0743966116742411,
+        "depth": 4.982996790963811,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 2.1099059093005845,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          226.3707917984699,
+          267.0156321890715
+        ],
+        "guard_margin_px": {
+          "left": 183.98789089579242,
+          "top": 221.27779673804787,
+          "right": 243.24630729885263,
+          "bottom": 199.2465323599049
+        },
+        "depth_grid_nearest": 4.982996790963811,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127114.25290910702,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.14353332988571427,
+        "depth": 4.982996790963811,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 2.1134022498977605,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          231.4864148061237,
+          267.0156321890715
+        ],
+        "guard_margin_px": {
+          "left": 189.4549440357518,
+          "top": 221.27779673804787,
+          "right": 238.4821144235044,
+          "bottom": 199.2465323599049
+        },
+        "depth_grid_nearest": 4.982996790963811,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127202.26185411678,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.0743966116742411,
+        "depth": 4.982996790963811,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 2.1099059093005845,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          285.6292082015301,
+          267.0156321890715
+        ],
+        "guard_margin_px": {
+          "left": 243.24630729885266,
+          "top": 221.27779673804787,
+          "right": 183.98789089579242,
+          "bottom": 199.2465323599049
+        },
+        "depth_grid_nearest": 4.982996790963811,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127143.58922411026,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.12048775714856798,
+        "depth": 4.982996790963811,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 2.1134022498977605,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          280.51358519387634,
+          267.0156321890715
+        ],
+        "guard_margin_px": {
+          "left": 238.4821144235044,
+          "top": 221.27779673804787,
+          "right": 189.4549440357518,
+          "bottom": 199.2465323599049
+        },
+        "depth_grid_nearest": 4.982996790963811,
+        "depth_grid_distance": 0.0
+      }
+    ],
+    "cells": {
+      "height:cube:far": 16,
+      "area:mug:near": 2,
+      "height:sphere:near": 100,
+      "area:sphere:near": 8
+    },
+    "exceedances": [
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.3,
+        "multiplier": 1.08,
+        "world_y": 1.0340793126118042,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          289.98543171404367,
+          269.33919189096156
+        ],
+        "guard_margin_px": {
+          "left": 231.73582968591342,
+          "top": 203.0283957340213,
+          "right": 163.76496625782607,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.3,
+        "multiplier": 1.08,
+        "world_y": 1.034079312611804,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          222.01456828595633,
+          269.3391918909616
+        ],
+        "guard_margin_px": {
+          "left": 163.76496625782607,
+          "top": 203.02839573402133,
+          "right": 231.73582968591342,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.3,
+        "multiplier": 1.08,
+        "world_y": 1.0606359426161232,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          290.00791895527937,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 232.2372401913839,
+          "top": 254.5931290108069,
+          "right": 164.2214022808252,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.3,
+        "multiplier": 1.08,
+        "world_y": 1.060635942616123,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          221.99208104472066,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 164.2214022808252,
+          "top": 254.5931290108069,
+          "right": 232.23724019138388,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.3,
+        "multiplier": 1.08,
+        "world_y": 1.0760353997779102,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          129.87832612669322,
+          269.3391918909616
+        ],
+        "guard_margin_px": {
+          "left": 65.7938849918462,
+          "top": 203.02839573402133,
+          "right": 318.03723273845975,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.3,
+        "multiplier": 1.08,
+        "world_y": 1.1025920297822294,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          130.19605156836104,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 67.0530304062963,
+          "top": 254.5931290108069,
+          "right": 318.6609272695742,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.85,
+        "multiplier": 1.08,
+        "world_y": 1.0725390591807344,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          137.06764074032006,
+          269.3391918909616
+        ],
+        "guard_margin_px": {
+          "left": 73.9581417640112,
+          "top": 203.02839573402133,
+          "right": 311.8228602833711,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": -0.85,
+        "multiplier": 1.08,
+        "world_y": 1.0990956891850536,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          137.3715816453517,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 75.15039472917366,
+          "top": 254.5931290108069,
+          "right": 312.40723143847026,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.3,
+        "multiplier": 1.08,
+        "world_y": 1.0760353997779102,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          382.1216738733068,
+          269.3391918909616
+        ],
+        "guard_margin_px": {
+          "left": 318.03723273845975,
+          "top": 203.02839573402133,
+          "right": 65.7938849918462,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.3,
+        "multiplier": 1.08,
+        "world_y": 1.1025920297822294,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          381.8039484316389,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 318.6609272695742,
+          "top": 254.5931290108069,
+          "right": 67.05303040629633,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.3,
+        "multiplier": 1.08,
+        "world_y": 1.034079312611804,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          289.98543171404367,
+          269.3391918909616
+        ],
+        "guard_margin_px": {
+          "left": 231.73582968591342,
+          "top": 203.02839573402133,
+          "right": 163.76496625782607,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.3,
+        "multiplier": 1.08,
+        "world_y": 1.0340793126118042,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          222.01456828595633,
+          269.33919189096156
+        ],
+        "guard_margin_px": {
+          "left": 163.76496625782607,
+          "top": 203.0283957340213,
+          "right": 231.73582968591342,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.3,
+        "multiplier": 1.08,
+        "world_y": 1.060635942616123,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          290.00791895527937,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 232.2372401913839,
+          "top": 254.5931290108069,
+          "right": 164.2214022808252,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.3,
+        "multiplier": 1.08,
+        "world_y": 1.0606359426161232,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          221.99208104472063,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 164.2214022808252,
+          "top": 254.5931290108069,
+          "right": 232.23724019138393,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.85,
+        "multiplier": 1.08,
+        "world_y": 1.0725390591807344,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": -3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          374.93235925967997,
+          269.3391918909616
+        ],
+        "guard_margin_px": {
+          "left": 311.8228602833711,
+          "top": 203.02839573402133,
+          "right": 73.9581417640112,
+          "bottom": 176.35001195209816
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356,
+        "depth": 3.535397693820389,
+        "lateral": 0.85,
+        "multiplier": 1.08,
+        "world_y": 1.0990956891850536,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          374.62841835464826,
+          321.4224869899131
+        ],
+        "guard_margin_px": {
+          "left": 312.4072314384702,
+          "top": 254.5931290108069,
+          "right": 75.15039472917363,
+          "bottom": 123.74815503098068
+        },
+        "depth_grid_nearest": 3.535397693820389,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 120016.17084881585,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.07634867138613187,
+        "depth": 4.6113712743183095,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 1.823608793176296,
+        "camera": {
+          "height": -0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          284.7212388538693,
+          232.03196861374127
+        ],
+        "guard_margin_px": {
+          "left": 235.40503616304733,
+          "top": 177.1172143641495,
+          "right": 177.96255845530868,
+          "bottom": 225.05327713666696
+        },
+        "depth_grid_nearest": 4.6113712743183095,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 119714.2336404123,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.3277370311568873,
+        "depth": 4.79718403264106,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 2.01115844149749,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          287.3805208818969,
+          228.45536084372517
+        ],
+        "guard_margin_px": {
+          "left": 239.8607666322102,
+          "top": 175.8377494180662,
+          "right": 177.09972486841627,
+          "bottom": 230.92702773061586
+        },
+        "depth_grid_nearest": 4.79718403264106,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 0.641402107282995,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          289.9400393132417,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 220.67260612634794,
+          "top": 263.95377202788023,
+          "right": 152.79252749986455,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 0.6414021072829947,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          222.0599606867583,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 152.79252749986455,
+          "top": 263.95377202788023,
+          "right": 220.67260612634794,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 0.5994460201168883,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          183.0725635325203,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 110.01115612115973,
+          "top": 263.95377202788023,
+          "right": 255.86602905611915,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 0.6833581944491013,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          116.06746612721976,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 40.02115282579828,
+          "top": 263.95377202788023,
+          "right": 319.88622057135876,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 0.6029423607140642,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          191.37556254356966,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 119.23294362159209,
+          "top": 263.95377202788023,
+          "right": 248.48181853445277,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 0.6798618538519254,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          124.23647379338912,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 49.41876738197044,
+          "top": 263.95377202788023,
+          "right": 312.94581979519216,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 0.6833581944491013,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          395.93253387278025,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 319.88622057135876,
+          "top": 263.95377202788023,
+          "right": 40.021152825798254,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 0.5994460201168883,
+        "camera": {
+          "height": 0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          328.9274364674797,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 255.86602905611915,
+          "top": 263.95377202788023,
+          "right": 110.01115612115973,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 0.6414021072829947,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          289.9400393132417,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 220.67260612634794,
+          "top": 263.95377202788023,
+          "right": 152.79252749986455,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": 0.3,
+        "multiplier": 0.92,
+        "world_y": 0.641402107282995,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          222.0599606867583,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 152.79252749986455,
+          "top": 263.95377202788023,
+          "right": 220.67260612634794,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 0.6798618538519254,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          387.7635262066109,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 312.94581979519216,
+          "top": 263.95377202788023,
+          "right": 49.41876738197044,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866,
+        "depth": 3.124869207736306,
+        "lateral": 0.85,
+        "multiplier": 0.92,
+        "world_y": 0.6029423607140642,
+        "camera": {
+          "height": 0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          320.6244374564303,
+          344.43328380242167
+        ],
+        "guard_margin_px": {
+          "left": 248.48181853445277,
+          "top": 263.95377202788023,
+          "right": 119.23294362159209,
+          "bottom": 87.08720442303684
+        },
+        "depth_grid_nearest": 3.124869207736306,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.2697654966918035,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          290.97197605865745,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 239.52748225960067,
+          "top": 200.58255996520114,
+          "right": 169.58353014228572,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.269765496691803,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          221.02802394134252,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 169.58353014228572,
+          "top": 200.58255996520114,
+          "right": 239.52748225960067,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.6697654966918039,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          290.97197605865745,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 239.52748225960067,
+          "top": 200.58255996520114,
+          "right": 169.58353014228572,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.6697654966918034,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          221.02802394134252,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 169.58353014228572,
+          "top": 200.58255996520114,
+          "right": 239.52748225960067,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.227809409525697,
+        "camera": {
+          "height": -0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          210.77363076617797,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 157.1531080615849,
+          "top": 200.58255996520114,
+          "right": 247.60584652922898,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.3117215838579097,
+        "camera": {
+          "height": -0.16,
+          "pos_x": 0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          141.6932229156709,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 86.04570789286794,
+          "top": 200.58255996520114,
+          "right": 314.6592620615261,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.6278094095256972,
+        "camera": {
+          "height": -0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          210.77363076617794,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 157.15310806158487,
+          "top": 200.58255996520114,
+          "right": 247.60584652922898,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.3,
+        "multiplier": 0.92,
+        "world_y": 1.7117215838579098,
+        "camera": {
+          "height": -0.16,
+          "pos_x": 0.3,
+          "pos_y": 0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          141.6932229156709,
+          255.9728601597393
+        ],
+        "guard_margin_px": {
+          "left": 86.04570789286794,
+          "top": 200.5825599652011,
+          "right": 314.6592620615261,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 1.2313057501228728,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": -4.0
+        },
+        "centroid_px": [
+          217.1017339429741,
+          255.97286015973933
+        ],
+        "guard_margin_px": {
+          "left": 164.01763924475284,
+          "top": 200.58255996520114,
+          "right": 241.81417135880463,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676,
+        "depth": 4.053932999350058,
+        "lateral": -0.85,
+        "multiplier": 0.92,
+        "world_y": 1.3082252432607338,
+        "camera": {
+          "height": -0.16,
+          "pos_x": -0.3,
+          "pos_y": -0.2,
+          "pitch": 3.0,
+          "yaw": 4.0
+        },
+        "centroid_px": [
+          147.93149955523566,
+          255.9728601597393
+        ],
+        "guard_margin_px": {
+          "left": 93.00719308031938,
+          "top": 200.5825599652011,
+          "right": 309.14419396984806,
+          "bottom": 200.6368396457225
+        },
+        "depth_grid_nearest": 4.053932999350058,
+        "depth_grid_distance": 0.0
+      }
+    ]
+  },
+  "floor_curve": [],
+  "random_verification": {},
+  "method": "envelope coverage (deterministic), not random sampling",
+  "n_renders": 23706,
+  "reachable_ranges": {
+    "near": {
+      "depth": [
+        2.939056449413555,
+        4.982996790963811
+      ],
+      "y": [
+        0.49833736738746925,
+        2.1517561168360304
+      ]
+    },
+    "far": {
+      "depth": [
+        3.535397693820389,
+        6.926755991256055
+      ],
+      "y": [
+        1.033978072911734,
+        4.208369504474083
+      ]
+    }
+  },
+  "extremes": {
+    "height_cube_near": [
+      392.61394640825915,
+      446.44171126961265,
+      2484
+    ],
+    "height_cube_far": [
+      376.05333933431064,
+      432.4152586176724,
+      5114
+    ],
+    "height_cylinder_near": [
+      386.33212326572703,
+      437.47170323685685,
+      2484
+    ],
+    "height_cylinder_far": [
+      372.2111596220827,
+      425.0235447951481,
+      5114
+    ],
+    "height_mug_near": [
+      392.61394640825915,
+      440.85846741203324,
+      2448
+    ],
+    "height_mug_far": [
+      384.81977729200304,
+      421.48168192185517,
+      4956
+    ],
+    "height_sphere_near": [
+      401.21922522260587,
+      410.0634551375151,
+      2422
+    ],
+    "height_sphere_far": [
+      398.6796354758763,
+      414.6313193068065,
+      5014
+    ],
+    "area_cube_near": [
+      137498.55691704227,
+      181961.75387431166,
+      2484
+    ],
+    "area_cube_far": [
+      129575.47837068346,
+      173706.0596095029,
+      5114
+    ],
+    "area_cylinder_near": [
+      124525.0711049818,
+      141377.14700528627,
+      2484
+    ],
+    "area_cylinder_far": [
+      119901.89145744173,
+      139320.97277000238,
+      5114
+    ],
+    "area_mug_near": [
+      120107.87161302255,
+      133499.96319087,
+      2448
+    ],
+    "area_mug_far": [
+      118030.67346350806,
+      129760.91594635039,
+      4956
+    ],
+    "area_sphere_near": [
+      127296.96648394493,
+      135229.55824157828,
+      2422
+    ],
+    "area_sphere_far": [
+      126750.54793479093,
+      135229.55824157828,
+      5014
+    ]
+  },
+  "required_ratio_by_pairing": {
+    "near_cube_far_cube": {
+      "height": 1.1013751869324222,
+      "area": 1.1239795620903974,
+      "binding": 1.1239795620903974
+    },
+    "near_cube_far_cylinder": {
+      "height": 1.0825482606600731,
+      "area": 1.0066052218121746,
+      "binding": 1.0825482606600731
+    },
+    "near_cube_far_mug": {
+      "height": 1.0735270251545723,
+      "area": 0.9714554322655639,
+      "binding": 1.0735270251545723
+    },
+    "near_cube_far_sphere": {
+      "height": 1.0560789373377293,
+      "area": 0.9917146859154691,
+      "binding": 1.0560789373377293
+    },
+    "near_cylinder_far_cube": {
+      "height": 1.1192837265573394,
+      "area": 1.1810793739739551,
+      "binding": 1.1810793739739551
+    },
+    "near_cylinder_far_cylinder": {
+      "height": 1.1001506714025133,
+      "area": 1.0577422448907665,
+      "binding": 1.1001506714025133
+    },
+    "near_cylinder_far_mug": {
+      "height": 1.0909827491408255,
+      "area": 1.0208067944313137,
+      "binding": 1.0909827491408255
+    },
+    "near_cylinder_far_sphere": {
+      "height": 1.073250952578993,
+      "area": 1.0420952479095142,
+      "binding": 1.073250952578993
+    },
+    "near_mug_far_cube": {
+      "height": 1.1013751869324222,
+      "area": 1.2026015211615304,
+      "binding": 1.2026015211615304
+    },
+    "near_mug_far_cylinder": {
+      "height": 1.0825482606600731,
+      "area": 1.0770168887315599,
+      "binding": 1.0825482606600731
+    },
+    "near_mug_far_mug": {
+      "height": 1.0735270251545723,
+      "area": 1.0394083842685027,
+      "binding": 1.0735270251545723
+    },
+    "near_mug_far_sphere": {
+      "height": 1.0560789373377293,
+      "area": 1.0610847652977635,
+      "binding": 1.0610847652977635
+    },
+    "near_sphere_far_cube": {
+      "height": 1.077753087175118,
+      "area": 1.1681495799774333,
+      "binding": 1.1681495799774333
+    },
+    "near_sphere_far_cylinder": {
+      "height": 1.0593299574798167,
+      "area": 1.0461626765491068,
+      "binding": 1.0593299574798167
+    },
+    "near_sphere_far_mug": {
+      "height": 1.0505022078341515,
+      "area": 1.0096315746678555,
+      "binding": 1.0505022078341515
+    },
+    "near_sphere_far_sphere": {
+      "height": 1.0334283435116034,
+      "area": 1.0306869741074849,
+      "binding": 1.0334283435116034
+    }
+  },
+  "deterministic_R": 1.2026015211615304,
+  "binding_pairing": "near_mug_far_cube",
+  "grid": {
+    "depth": 10,
+    "lateral": 4
+  }
+}

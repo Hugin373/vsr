@@ -68,8 +68,11 @@ deciding anything.** That agent has **no repo access, no shell, and none of this
 every **result-producing** response — measurements produced, a decision surfaced, work finished or
 blocked — ends with a **self-contained briefing the user can paste straight into another chat.** Not a summary of what you did: the *scientific content needed to argue with you*.
 
-**Emit it only when the work is FINISHED — never while a sweep, render or background job is still
-running.** A briefing whose results section says "in progress" cannot be acted on: the advisor's
+**Emit it only when NO background job of yours is running.** Not "the analysis step I just did is
+finished" — the whole checkpoint. The test is mechanical: check for running jobs first, and if any
+of yours is alive, do not brief. (Slipped 2026-07-21: a ledger computation finished while a
+verification render was still going and I briefed on the ledger alone. The result was a briefing
+the user could not usefully relay, immediately followed by "the actual question is coming".) A briefing whose results section says "in progress" cannot be acted on: the advisor's
 job is to confirm or challenge a result, and there is no result yet. If a response has to be made
 mid-flight, give a one-line status ("sweep running, ~25 min, will brief on completion") and defer
 the whole briefing to the response that carries the completed numbers. Partial results are worse
@@ -113,6 +116,11 @@ by hand.
   tell which repo state a pasted briefing refers to.
 - Chat and file carry the **same content**. If they differ, the file is wrong — it is the one that
   gets relayed.
+- **CARRY FORWARD anything not yet relayed.** The user does not send every briefing. Before writing
+  a new one, check whether the previous was actually relayed; if not, fold its still-live content
+  into this one. A briefing is not a diff against a conversation the advisor never saw — it must
+  stand alone against the last state they actually know about. Superseded numbers are dropped, not
+  carried.
 
 ### Rules
 
