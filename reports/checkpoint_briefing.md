@@ -1,69 +1,72 @@
 # Checkpoint briefing
 
-Date: 2026-07-21 · repo state at commit `45815c5` (+ this commit)
+Date: 2026-07-21 · repo state at commit `404e146` (+ this commit)
 
-**Question.** Pass 3 (the last grid attempt): does per-role depth resolution close C_a,near^min and
-converge cumulative R within ε_R?
+**Question.** Item (1) of the optimizer ruling: two-path forensic reproduction of the depth-4.983
+endpoint violation — do the sweep and verification paths measure it identically (→ off-grid-axis,
+proceed) or divergently (→ B16, halt and fix)?
 
-**Method.** Per-role depth grids — near band 21 points (0.102 m spacing, was 0.443) over its own
-range, far band 12 points; camera corners and multipliers held exhaustive; lateral reduced 4→2
-(justified: all prior violations sat at lateral boundaries, none interior). 50,688 renders, chunked
-and resumable, deposited into the cumulative ledger. Fresh role-specific verification: targeted
-adversarial (3,168) + random on seeds 6007–6010 (798). Every pose's camera classified corner vs
-interior.
+**Method.** Extracted the exact violating pose (sphere, depth 4.982996791, lateral −0.85,
+multiplier 0.92, camera corner height +0.16 / pos_x −0.3 / pos_y −0.2 / pitch +3 / yaw −4). Rendered
+its C_a through both code paths and compared. Then traced why the sweep's recorded near-min
+(127,239) differed from the value verification found (127,114).
 
-**Results — NOT converged. The safeguard TRIPS.**
-
-| ratification condition | result | |
-|---|---|---|
-| cumulative \|ΔR\| ≤ 0.002 | 1.2092 → **1.2167**, ΔR = **+0.0075** | **FAIL** |
-| fresh targeted verification finds nothing new | **8** load-bearing violations | **FAIL** |
-| binding pair stable | near_mug/far_cube unchanged | PASS |
-| ledger monotone (hard invariant) | R rose, as it must | OK |
-
-Cumulative R: 1.2092 → **1.2167**. Per-pass R for contrast: 1.2072 / 1.2060 / 1.2026 / 1.2167 —
-still non-monotone per-pass, still monotone cumulative, exactly as the ledger predicts.
-
-Residual load-bearing violations, all on C_a,near^min:
+**Results — the gate HALTED on a real bug, not the branch the ruling anticipated.**
 
 | | value |
 |---|---|
-| count | 8 targeted, 0 random |
-| category | **sphere, all 8** (mug now covered) |
-| camera | **all 8 at CORNERS** — 0 at interior |
-| worst excess | +0.098% (sphere, 127,114.3 vs envelope 127,239.3) |
+| C_a via sweep path | 127,114.26 |
+| C_a via verification path | 127,114.25 |
+| Δ | **0.01 px** (pure 2e-7 depth rounding) |
+| mask area, both paths | **4,333 px — identical** |
+
+The measurement paths **agree exactly**. So it is not a C_a divergence. But the sweep still dropped
+this pose from the near set, and the cause is a **role-assignment rounding bug**:
+
+- the depth grid rounds endpoints to 6 dp: `4.982996791 → 4.982997`;
+- `roles_ok` then checks that rounded value against the **unrounded** near-range max `4.982996791`;
+- `4.982997 > 4.982996791` → near excluded → the pose is filed under **far only**;
+- so the pose carrying the binding **C_a,near^min (127,114)** never entered the near minimum.
+
+The sweep measured the true minimum correctly and then bucketed it wrong — every pass, at the near
+endpoint, which is exactly where the minimum lives.
 
 **Established.**
-- **Grids are not closing this.** A 0.102 m near grid still missed the extremum, and it improved the
-  near-band coverage (mug is now clean; violations dropped 10→8, all sphere). But R *rose* rather
-  than settled, and the lowest value (127,114.3) was found by a **verification pose, not any grid** —
-  the same value in pass 2 and pass 3, so it is reproducible geometry the grid keeps stepping over.
-- **The corner-extremality path did NOT fire**: all residual violations are at camera corners, so
-  the boundary assumption on camera axes holds. The gap is depth/pose geometry, not a mis-modelled
-  camera axis.
-- The four ruled invariants are in and green (ledger monotonicity + positive control, B16
-  self-comparison, corner/interior classification).
+- **The bug is fixed and the fix is confirmed by re-measurement.** With a `ROLE_BOUNDARY_TOL = 1e-5`
+  the corrected sweep finds `sphere_near min = 127,114.26` **itself**, on a coarse 3-point near
+  grid — the value that previously only verification could see.
+- This **explains the entire "grids keep missing it" narrative**: no grid resolution ever helped
+  because the deepest-near pose was being excluded by rounding regardless of spacing. Only
+  verification (role fixed a priori) ever saw it.
+- Forensic reproduction retained as `scripts/forensic_pose_reproduction.py`; regression test `I9`
+  encodes the exact rounding failure.
 
-**NOT established — R is NOT RATIFIED, cumulative R ≥ 1.2167 and still rising.** Pass 3 was the last
-grid attempt and it did not converge.
+**NOT established — and this is the decision it raises.** The pass-3 safeguard tripped on
+**bug-corrupted sweep data**: the sweep near-min was 127,239 when the truth was 127,114. The
+cumulative R = 1.2167 is still correct (verification supplied the value, the ledger holds it), but
+the conclusion "grids are exhausted, go to the optimizer" was drawn from a sweep that couldn't see
+its own minimum. Whether a **corrected** grid pass now converges within ε_R — capturing the
+deep-near region in the sweep rather than only in verification — is unmeasured.
 
-**Safeguard verdict: TRIPPED** (via the ΔR > ε_R trigger; the corner-interior trigger did not fire,
-but only one is needed). Per the pre-committed rule, grids are now abandoned for **constrained
-adaptive minimization of C_a,near over the guard-defined reachable set**, feeding the same ledger.
+**Weakest point.** My off-grid-axis hypothesis from last checkpoint was **wrong** (I guessed
+world-y or lateral). The real cause was a boundary rounding bug in code I wrote. The forensic gate
+the reviewer mandated is what caught it — I would otherwise have built the optimizer on top of a
+role definition that excludes the region the optimizer was meant to search, and it would have
+minimized over a set that structurally cannot contain the true minimum. That is the exact
+"optimizer would inherit it" failure the gate exists to prevent, and it landed.
 
-**Weakest point.** One violation sits at depth **4.983 m — which IS a near-grid endpoint**, not
-between points. A pure resolution-deficit story predicts violations only *between* grid points, so a
-violation *on* a grid point means the miss is not solely depth resolution: the extremum is
-off-grid in some other continuous axis the sweep samples coarsely (world-y, or the lateral I just
-reduced), or the sweep and verification differ subtly at that pose. Either way it is more evidence
-that a grid is the wrong instrument — which is where the safeguard sends us — but I have not
-isolated *which* axis, and the optimizer should be told to vary all of them, not assume depth.
+**Open decision — genuinely the advisor's, because it reopens a ratified ruling.** The ruling made
+pass 3 the last grid attempt and sent us to the optimizer. But that ruling rested on buggy data.
+Two paths:
+1. **Re-run one corrected grid pass** (pass-3 resolution, fixed role logic; ~2 h chunked). If cumulative
+   ΔR ≤ ε_R and verification is clean, R is ratifiable and the optimizer is not needed. Cheaper, and
+   it tests the bug-vs-fundamental question directly.
+2. **Proceed to the optimizer** as ruled, now on corrected role logic. Safe regardless, but may build
+   a heavy instrument the fix made unnecessary.
 
-**Next step — the optimizer is a NEW load-bearing instrument, so I am holding for design
-confirmation rather than launching, the same discipline the root search got (pre-committed before
-running).** Proposed: minimize C_a,near(pose) over the guard-defined reachable set — pose = (depth,
-lateral, multiplier, 5 camera axes) for sphere and mug — via multi-start SLSQP/differential
-evolution with the guard as a constraint, every evaluation deposited into the ledger, converged when
-the minimum is stable within an area tolerance that maps to ε_R on R. I want to pre-commit that
-protocol (starts, seeds from the verification role, convergence tolerance, restart count) in one
-commit before it runs. Textures remain decoupled and parallelisable meanwhile.
+I lean (1): the "grids can't reach it" evidence was an artifact, so the premise for the optimizer is
+now in doubt, and one clean pass settles it for less than the optimizer costs. But overriding a
+ratified "last grid attempt" is the advisor's call, not mine.
+
+**Next step.** Hold for that decision. Nothing consumes R meanwhile (still ≥ 1.2167, unratified).
+Textures remain decoupled and parallelisable.
