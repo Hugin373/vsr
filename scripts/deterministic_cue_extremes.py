@@ -252,7 +252,14 @@ def sweep(
     return {"constants": const, "records": records, "depths": depths, "ranges": ranges}
 
 
-VERIFY_SEEDS = (6003, 6004, 6005, 6006)   # fresh; 6001-6002 burnt on inspection
+VERIFY_SEEDS = (6007, 6008, 6009, 6010)   # fresh; 6001-6006 burnt on inspection
+
+# Targeted adversarial strata, committed in docs/R_RATIFICATION_PROTOCOL.md BEFORE this ran.
+# Uniform random cannot certify C_a,far^max: the far extremes occupy a small corner of the
+# reachable set, so a uniform draw rarely lands there and zero exceedances is consistent with
+# never having probed it.
+TARGETED_FAR = {"categories": ("cube",), "multiplier": "max"}
+TARGETED_NEAR = {"categories": ("mug", "sphere"), "multiplier": "min"}
 
 
 def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:
@@ -313,6 +320,95 @@ def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:
                             ),
                         })
                 checked += 1
+    return _split_report(checked, exceed)
+
+
+def verify_targeted(config: dict, const: dict, out_dir: Path) -> dict:
+    """Deterministic adversarial probe of the LOAD-BEARING cells, at boundary poses.
+
+    Part (a) of the committed two-part verification. Enumerates the far-role and near-role strata
+    directly rather than waiting for a random draw to wander into them.
+    """
+    from sbind.stimuli import render_bpy as rb
+
+    categories = list(config["objects"]["categories"])
+    size_by_cat = _resolve_sizes(config["objects"], categories)
+    mults = sorted(float(m) for m in config["factors"].get("size_multipliers", [1.0]))
+    lo_lat, hi_lat = (float(v) for v in config["factors"]["lateral_range"])
+    ranges = reachable_ranges(config)
+    bbox_margin = float(config["condition"]["target_bbox_margin_px"])
+    frame_margin = float(config["condition"]["target_frame_margin_px"])
+    cams = camera_corners(config)
+    tmp = out_dir / ".targeted_id.png"
+
+    probes = [
+        ("far", TARGETED_FAR["categories"], mults[-1]),
+        ("near", TARGETED_NEAR["categories"], mults[0]),
+    ]
+    exceed, checked = [], 0
+    for role, cats, mult in probes:
+        d_lo, d_hi = ranges[role]["depth"]
+        y_lo, y_hi = ranges[role]["y"]
+        # boundaries AND a fine interior grid on depth: the extremum need not sit at a corner
+        depth_probe = list(np.linspace(d_lo, d_hi, 12))
+        for cat in cats:
+            size = size_by_cat[cat] * mult
+            z = _rest_height(cat, size)
+            for depth, sign, lat in itertools.product(
+                depth_probe, (-1.0, 1.0), (lo_lat, hi_lat)
+            ):
+                x = sign * lat
+                for cam, _ in cams:
+                    y = _world_y_for_depth(cam, x, z, float(depth))
+                    if not np.isfinite(y) or not (y_lo <= y <= y_hi):
+                        continue
+                    obj = ObjectSpec(f"t_{cat}", cat, [0.8, 0.05, 0.05], size, [x, y, z])
+                    gbox = _projected_box(cam, obj, margin_px=bbox_margin)
+                    if gbox is None or not _box_in_frame(
+                        gbox, cam.res_x, cam.res_y, frame_margin
+                    ):
+                        continue
+                    spec = SceneSpec(
+                        id=f"t_{cat}", camera=cam, objects=[obj],
+                        ground_color=[0.45, 0.45, 0.48], sun_energy=4.0,
+                        sun_direction=[5.0, -5.0, 8.0], factors={},
+                    )
+                    scene = rb._reset_scene()
+                    ground = rb._add_ground(spec.ground_color)
+                    objs = [rb._add_object(o, 0) for o in spec.objects]
+                    rb._add_camera(scene, spec)
+                    sun = rb._add_sun(scene, spec)
+                    rb._configure_beauty(scene, config["render"])
+                    masks = rb._render_id_pass(scene, objs, ground, [sun], tmp)
+                    if tmp.exists():
+                        tmp.unlink()
+                    mg = rb._mask_geometry(masks[0])
+                    if mg is None:
+                        continue
+                    _, height = mg
+                    vals = {
+                        "height": height * depth / mult,
+                        "area": int(masks[0].sum()) * depth**2 / mult**2,
+                    }
+                    checked += 1
+                    for name, v in vals.items():
+                        env = const[name].get((cat, role))
+                        if env is None:
+                            continue
+                        lo, hi = min(env), max(env)
+                        if v < lo or v > hi:
+                            exceed.append({
+                                "category": cat, "role": role, "constant": name,
+                                "value": float(v), "envelope": [float(lo), float(hi)],
+                                "excess_pct": float(
+                                    100 * (v - hi) / hi if v > hi else 100 * (lo - v) / lo
+                                ),
+                            })
+    return _split_report(checked, exceed)
+
+
+def _split_report(checked: int, exceed: list[dict]) -> dict:
+    """Split by ROLE and CONSTANT. A total aggregate is never an acceptable summary (committed)."""
     load_bearing = [
         e for e in exceed
         if any(
@@ -322,7 +418,9 @@ def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:
             for c, r, side in LOAD_BEARING
         )
     ]
-    # localize to cells so a refinement can target the axis that failed, not the whole grid
+    split: dict[str, int] = {}
+    for e in exceed:
+        split[f"{e['constant']}:{e['role']}"] = split.get(f"{e['constant']}:{e['role']}", 0) + 1
     cells: dict[str, int] = {}
     for e in exceed:
         key = f"{e['constant']}:{e['category']}:{e['role']}"
@@ -331,6 +429,7 @@ def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:
         "n_objects_checked": checked,
         "n_exceeding": len(exceed),
         "n_exceeding_load_bearing": len(load_bearing),
+        "by_role_and_constant": split,
         "load_bearing_exceedances": load_bearing[:40],
         "cells": cells,
         "exceedances": exceed[:40],
@@ -377,6 +476,8 @@ def main() -> int:
                     help="depth grid points (refinement knob)")
     ap.add_argument("--lateral-levels", type=int, default=LATERAL_LEVELS,
                     help="lateral magnitude levels (refinement knob)")
+    ap.add_argument("--verify-targeted", action="store_true",
+                    help="deterministic adversarial probe of the load-bearing cells (committed)")
     ap.add_argument("--floor-curve", action="store_true",
                     help="compute R(F) across a floor grid from the same sweep (no re-render)")
     args = ap.parse_args()
@@ -446,8 +547,23 @@ def main() -> int:
         else:
             print("  OK — no real sample fell outside the swept envelope")
 
+    targeted = {}
+    if args.verify_targeted:
+        print("\n--- TARGETED adversarial verification (committed strata) ---")
+        targeted = verify_targeted(config, const, out_dir)
+        print(f"  objects checked: {targeted['n_objects_checked']}   "
+              f"exceeding: {targeted['n_exceeding']}   "
+              f"LOAD-BEARING: {targeted['n_exceeding_load_bearing']}")
+        print(f"  by role/constant: {targeted['by_role_and_constant']}")
+        print(f"  cells: {targeted['cells']}")
+        for e in targeted["load_bearing_exceedances"][:6]:
+            print(f"    LB {e['category']:9s} {e['role']:4s} {e['constant']:6s} {e['value']:11.1f} "
+                  f"vs {e['envelope'][0]:.1f}..{e['envelope'][1]:.1f} ({e['excess_pct']:+.3f}%)")
+
     report = {
         "config": args.config,
+        "eps_R": 0.002,
+        "targeted_verification": targeted,
         "floor_curve": curve,
         "random_verification": verification,
         "method": "envelope coverage (deterministic), not random sampling",
