@@ -72,6 +72,7 @@ LATERAL_LEVELS = 2        # boundaries of |lateral|
 # x1.02283 shortcut was rejected: it was measured on the near-role MAXIMUM, which R never reads.
 LOAD_BEARING = (("area", "near", "min"), ("area", "far", "max"))
 DEPTH_MARGIN = 0.02       # expand the measured reachable depth range by 2%, outward
+ROLE_BOUNDARY_TOL = 1e-5   # role-membership tolerance; absorbs the 6dp grid-endpoint rounding
 
 
 def reachable_ranges(config: dict, n: int = 4000) -> dict[str, dict[str, tuple[float, float]]]:
@@ -255,10 +256,21 @@ def sweep(
                 ):
                     continue
                 # role-wise reachability: BOTH the camera-frame depth and the world-y must be
-                # inside that role's measured envelope
+                # inside that role's measured envelope.
+                # ⚠ BOUNDARY TOLERANCE (fixed 2026-07-21, found by the forensic reproduction). The
+                # depth grid rounds its endpoints to 6 dp — round(4.982996791, 6) = 4.982997 —
+                # which then fails `<= 4.982996791`, the UNROUNDED near-range max the grid was
+                # built from. The deepest near pose (exactly where the binding C_a,near^min lives)
+                # was therefore filed under 'far' only and never entered the near minimum. The
+                # sweep MEASURED it correctly (verified: identical C_a to the verification path)
+                # and then bucketed it wrong. A pose derived from a role's own range belongs to
+                # that role; the tolerance restores that, 100x the rounding step and far below any
+                # real gap between the near and far bands.
                 roles_ok = [
                     r for r, v in ranges.items()
-                    if v["depth"][0] <= depth <= v["depth"][1] and v["y"][0] <= y <= v["y"][1]
+                    if v["depth"][0] - ROLE_BOUNDARY_TOL <= depth
+                    <= v["depth"][1] + ROLE_BOUNDARY_TOL
+                    and v["y"][0] - ROLE_BOUNDARY_TOL <= y <= v["y"][1] + ROLE_BOUNDARY_TOL
                 ]
                 if not roles_ok:
                     continue

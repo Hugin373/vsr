@@ -329,3 +329,31 @@ def test_I8_camera_corner_vs_interior_classification():
     assert not camera_is_corner(interior, cfg), (
         "an interior camera value must NOT read as a corner — it triggers the optimizer path"
     )
+
+
+# ------------------------ I9: role-boundary rounding (forensic finding, 2026-07-21)
+
+
+def test_I9_role_boundary_rounding_does_not_drop_the_near_endpoint():
+    """The deepest NEAR pose must be assigned to 'near', not dropped by grid-endpoint rounding.
+
+    Forensic finding 2026-07-21. The depth grid rounds endpoints to 6 dp, so the near-max endpoint
+    4.982996791 -> 4.982997, which then failed `<= 4.982996791` (the unrounded near-range max the
+    grid was built from). The pose carrying the binding C_a,near^min was filed under 'far' only and
+    never entered the near minimum — while the verification path (role fixed a priori) recorded it.
+    A pure resolution story could not explain a violation sitting ON a grid endpoint; this did.
+    """
+    ROLE_TOL = 1e-5
+    near = (2.9391, 4.982996791)     # (lo, hi) unrounded, as reachable_ranges returns
+    grid_endpoint = round(near[1], 6)   # exactly what the sweep grids to
+
+    # OLD behaviour: strict comparison drops the endpoint
+    assert not (near[0] <= grid_endpoint <= near[1]), (
+        "the rounded endpoint must be OUTSIDE the strict range — that is the bug"
+    )
+    # FIXED behaviour: the tolerance restores membership
+    assert near[0] - ROLE_TOL <= grid_endpoint <= near[1] + ROLE_TOL, (
+        "the boundary tolerance must re-admit the rounded endpoint to its own role"
+    )
+    # and the tolerance must be far smaller than the near/far band gap it must not blur
+    assert ROLE_TOL < 0.1, "tolerance must not blur genuinely distinct role bands"
