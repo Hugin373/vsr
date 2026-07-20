@@ -4,15 +4,29 @@ Evaluate the EXACT violating pose through both the sweep path and the verificati
 Identical C_a -> off-grid-axis hypothesis confirmed, optimizer may proceed.
 Divergent C_a -> B16 semantic divergence; HALT and fix before the optimizer would inherit it.
 """
-import json, sys
-sys.path.insert(0, "scripts")
-import numpy as np
+import json
+import sys
 from pathlib import Path
-from sbind.utils.config import load_config
-from sbind.stimuli import render_bpy as rb
-from sbind.stimuli.scene_spec import ObjectSpec, SceneSpec
-from sbind.stimuli.sampler import _resolve_sizes, _rest_height, _projected_box, _box_in_frame
-from deterministic_cue_extremes import camera_corners, _world_y_for_depth, reachable_ranges
+
+import numpy as np
+
+sys.path.insert(0, "scripts")
+
+from deterministic_cue_extremes import (  # noqa: E402
+    _world_y_for_depth,
+    camera_corners,
+    reachable_ranges,
+)
+
+from sbind.stimuli import render_bpy as rb  # noqa: E402
+from sbind.stimuli.sampler import (  # noqa: E402
+    _box_in_frame,
+    _projected_box,
+    _resolve_sizes,
+    _rest_height,
+)
+from sbind.stimuli.scene_spec import ObjectSpec, SceneSpec  # noqa: E402
+from sbind.utils.config import load_config  # noqa: E402
 
 e = json.load(open("/tmp/violating_pose.json"))
 cfg = load_config("configs/m4a_v1_natural_congruent_pilot.yaml")
@@ -38,15 +52,18 @@ def measure(x, depth_val, label):
     admitted = gbox is not None and _box_in_frame(gbox, cam.res_x, cam.res_y, frame_m)
     spec = SceneSpec(id="f", camera=cam, objects=[obj], ground_color=[0.45,0.45,0.48],
                      sun_energy=4.0, sun_direction=[5.,-5.,8.], factors={})
-    scene = rb._reset_scene(); g = rb._add_ground(spec.ground_color)
+    scene = rb._reset_scene()
+    g = rb._add_ground(spec.ground_color)
     objs = [rb._add_object(o,0) for o in spec.objects]
-    K,R,t = rb._add_camera(scene,spec); s_=rb._add_sun(scene,spec); rb._configure_beauty(scene,cfg["render"])
-    masks = rb._render_id_pass(scene, objs, g, [s_], tmp)
+    _K, _R, _t = rb._add_camera(scene, spec)
+    s_ = rb._add_sun(scene, spec)
+    rb._configure_beauty(scene, cfg["render"])
     from sbind.stimuli import geometry
-    real_depth = float(geometry.project(K,R,t,np.array([x,y,z]))[2])
+    masks = rb._render_id_pass(scene, objs, g, [s_], tmp)
+    real_depth = float(geometry.project(_K, _R, _t, np.array([x,y,z]))[2])
     area = int(masks[0].sum())
     C_a = area * real_depth**2 / mult**2
-    print(f"  {label}: x={x:.6f} depth_req={depth_val:.9f} world_y={y:.9f} real_depth={real_depth:.9f}")
+    print(f"  {label}: depth_req={depth_val:.9f} real_depth={real_depth:.9f}")
     print(f"       admitted={admitted}  mask_area={area}px  C_a={C_a:.4f}")
     return C_a, area, y
 
@@ -64,8 +81,8 @@ probe_depth = float(np.linspace(*ranges["near"]["depth"], 12)[-1])
 print("\nPATH B (verification): depth = probe-grid endpoint, unrounded")
 ca_verif, area_v, y_v = measure(lat, probe_depth, "verif")
 
-print(f"\n=== VERDICT ===")
-print(f"  sweep depth  {sweep_depth:.9f}  vs verif depth {probe_depth:.9f}  Δ={abs(sweep_depth-probe_depth):.2e}")
+print("\n=== VERDICT ===")
+print(f"  sweep depth {sweep_depth:.9f} vs verif {probe_depth:.9f}")
 print(f"  C_a sweep {ca_sweep:.4f}  vs C_a verif {ca_verif:.4f}  Δ={abs(ca_sweep-ca_verif):.4f} px")
 print(f"  mask area {area_s} vs {area_v}  Δ={abs(area_s-area_v)} px")
 print(f"  recorded violation value: {e['value']:.4f}")

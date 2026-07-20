@@ -1,0 +1,138 @@
+{
+  "corrected_baseline_R": 1.216735835932504,
+  "binding_pairing": "near_mug_far_cube",
+  "n_poses": 64944,
+  "n_reclassified": 174,
+  "ledger": {
+    "area_cube_far": {
+      "min": 129575.47837068346,
+      "max": 176513.81618910673,
+      "n": 13526,
+      "min_source": "pass2_records",
+      "max_source": "pass3_records"
+    },
+    "area_cube_near": {
+      "min": 137321.07272514177,
+      "max": 187445.413519069,
+      "n": 9479,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "area_cylinder_far": {
+      "min": 119901.89145744173,
+      "max": 139320.97277000238,
+      "n": 13526,
+      "min_source": "pass2_records",
+      "max_source": "pass2_records"
+    },
+    "area_cylinder_near": {
+      "min": 123992.30851632371,
+      "max": 143222.4920934192,
+      "n": 9483,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "area_mug_far": {
+      "min": 117701.0622090705,
+      "max": 129971.55734436463,
+      "n": 13328,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "area_mug_near": {
+      "min": 119230.1542432,
+      "max": 133499.96319087,
+      "n": 9060,
+      "min_source": "pass3_records",
+      "max_source": "pass2_records"
+    },
+    "area_sphere_far": {
+      "min": 126656.09659209073,
+      "max": 135408.65946552274,
+      "n": 13330,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "area_sphere_near": {
+      "min": 127114.25290910702,
+      "max": 135408.65946552274,
+      "n": 9182,
+      "min_source": "pass2_grid_d10_l4:targeted_verification",
+      "max_source": "pass3_records"
+    },
+    "height_cube_far": {
+      "min": 376.05333933431064,
+      "max": 441.92474999999996,
+      "n": 13542,
+      "min_source": "pass2_records",
+      "max_source": "pass3_records"
+    },
+    "height_cube_near": {
+      "min": 389.9736782608695,
+      "max": 459.4936597826087,
+      "n": 9486,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "height_cylinder_far": {
+      "min": 372.2111596220827,
+      "max": 432.4464869565217,
+      "n": 13526,
+      "min_source": "pass2_records",
+      "max_source": "pass3_records"
+    },
+    "height_cylinder_near": {
+      "min": 383.690769,
+      "max": 449.57653043478257,
+      "n": 9487,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "height_mug_far": {
+      "min": 383.870158,
+      "max": 428.5853576086957,
+      "n": 13332,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "height_mug_near": {
+      "min": 392.61394640825915,
+      "max": 440.85846741203324,
+      "n": 9058,
+      "min_source": "pass2_records",
+      "max_source": "pass2_records"
+    },
+    "height_sphere_far": {
+      "min": 397.9480869565217,
+      "max": 414.83360648148147,
+      "n": 13338,
+      "min_source": "pass3_records",
+      "max_source": "pass3_records"
+    },
+    "height_sphere_near": {
+      "min": 398.93058559240575,
+      "max": 411.2027010869565,
+      "n": 9223,
+      "min_source": "pass1_grid_d8_l3:random_verification",
+      "max_source": "pass3_records"
+    }
+  },
+  "required_ratio_by_pairing": {
+    "near_cube_far_cube": 1.1337590284751253,
+    "near_cube_far_cylinder": 1.0072555183062695,
+    "near_cube_far_mug": 0.9728716940991478,
+    "near_cube_far_sphere": 0.9930122946960613,
+    "near_cylinder_far_cube": 1.193141575854018,
+    "near_cylinder_far_cylinder": 1.060012230302575,
+    "near_cylinder_far_mug": 1.0238274951269266,
+    "near_cylinder_far_sphere": 1.0450229937569735,
+    "near_mug_far_cube": 1.216735835932504,
+    "near_mug_far_cylinder": 1.0809738703579332,
+    "near_mug_far_mug": 1.044073585519208,
+    "near_mug_far_sphere": 1.0656882230991425,
+    "near_sphere_far_cube": 1.1783986262389612,
+    "near_sphere_far_cylinder": 1.046914281811836,
+    "near_sphere_far_mug": 1.011176660154252,
+    "near_sphere_far_sphere": 1.032110258457722
+  }
+}

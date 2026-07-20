@@ -168,3 +168,67 @@ value:
    determinism byte-compare, freeze tag, §5 one-shot.
 
 Listing this now so that a ratified R is not mistaken for a finished floor.
+
+---
+
+# AMENDMENT 2026-07-21c — corrected grid pass (safeguard invalidated by instrument bug)
+
+## Audit trail, exact wording (ruled)
+
+> The safeguard triggered correctly on the available measurements, but its scientific
+> interpretation was invalidated when a role-boundary classification bug was discovered. One
+> corrected grid pass is authorized because the premise that grids could not represent the minimum
+> was false.
+
+> The previous grid-exhaustion conclusion is withdrawn because the sweep DID evaluate the binding
+> endpoint but misclassified its role due to rounding. One corrected grid pass is authorized;
+> optimizer development remains the mandatory fallback if that pass fails.
+
+Not "safeguard didn't trigger" (it did) and not "overridden by preference" — **invalidated by
+instrument bug**.
+
+## The ledger was rebuilt from raw poses first (not trusted at 1.2167)
+
+The bug was a bucketing bug, so every historical pose was re-classified under the corrected
+predicate from raw metadata (depth + world_y). 174 of 64,944 raw poses changed role. **Corrected
+baseline R = 1.2167** — the prior number reproduces, but now derived under correct classification,
+and `sphere_near = 127,114.3` is now in the sweep-derived ledger, not only in verification.
+`reports/m4a_corrected_baseline_ledger.json`. Passes 0/1 are summary-only (no raw poses to
+re-bucket); excluded as coarser and subsumed — conservative, drops possibly-misclassified extrema
+rather than trusting them.
+
+## Corrected-pass scope — isolate the fix, change nothing else
+
+Keep pass 3 EXACTLY: near depth 21 pts, far depth 12 pts, camera corners exhaustive, multipliers
+exhaustive, lateral 2 levels. Only difference: the corrected role tolerance. Do NOT also change grid
+spacing, lateral levels, or anything else — otherwise the bug-fix effect cannot be isolated.
+
+## Fresh verification seeds
+
+6007–6010 are **burnt** (used to find and analyse the bug). Corrected-pass random verification uses
+**6011–6014**. The known violating endpoint pose (sphere, depth 4.982996791, lateral −0.85,
+multiplier 0.92, its camera corner) is retained as a **permanent mandatory regression probe** — it
+proves the bug does not recur, it is NOT fresh generalization evidence.
+
+## Re-committed acceptance conjunction (six parts, all required)
+
+1. **Corrected cumulative convergence:** `0 ≤ R_cum,new − R_cum,corrected-baseline ≤ 0.002`
+   (baseline = 1.2167).
+2. **Binding pair stable.**
+3. **Fresh targeted verification: zero load-bearing exceedance.**
+4. **Fresh random verification (6011–6014): zero load-bearing exceedance.**
+5. **Sweep/verification role equivalence:** for every verification pose, `role_sweep == role_verif`
+   (test I10).
+6. **Endpoint inclusion:** both ends of the near and far ranges accepted by their own role,
+   regression-tested (test I11).
+
+Items 5–6 are new instrument gates. The lower bound in item 1 (`≥ 0`) enforces monotonicity: a
+corrected pass may not LOWER R below the corrected baseline.
+
+## Optimizer = conditional fallback (suspended, not cancelled)
+
+Mandatory if the corrected pass fails ANY of: cumulative ΔR > 0.002 · fresh targeted verification
+still finds a load-bearing exceedance · an extremum appears off-endpoint and outside current grid
+coverage · binding pair changes · sweep/verification roles still disagree · the corrected ledger
+reveals another dropped endpoint. On any of these, no second grid retry is authorized — straight to
+the optimizer.

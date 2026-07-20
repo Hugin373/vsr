@@ -92,6 +92,64 @@ def build_ledger() -> dict:
     return {"ledger": ledger, "provenance": provenance}
 
 
+# Raw per-pose records that can be RE-BUCKETED under corrected role logic (they carry depth +
+# world_y). Passes 0/1 are summary-only and were bucketed under the buggy predicate, so they
+# cannot be re-classified; they are coarser and subsumed by pass 3 over the same region, so the
+# corrected baseline EXCLUDES them — dropping possibly-misclassified extrema rather than trusting
+# them (conservative in the safe direction).
+RAW_RECORD_SOURCES = [
+    ("pass2_records", "pass2_records.jsonl"),
+    ("pass3_records", "pass3_records.jsonl"),
+]
+
+
+def _corrected_roles(depth: float, world_y: float, ranges: dict, tol: float) -> list[str]:
+    """The FIXED role predicate: boundary tolerance absorbs grid-endpoint rounding."""
+    return [
+        r for r, v in ranges.items()
+        if v["depth"][0] - tol <= depth <= v["depth"][1] + tol
+        and v["y"][0] - tol <= world_y <= v["y"][1] + tol
+    ]
+
+
+def rebuild_from_raw(data_root, config) -> dict:
+    """Rebuild the extrema ledger from RAW poses under corrected role classification.
+
+    The bug was a bucketing bug, not a renderer bug: C_a was measured correctly and mis-filed.
+    So the whole ledger must be re-derived by re-applying the corrected predicate to every raw
+    pose — the current R = 1.2167 is not trusted until it reproduces here (advisor, 2026-07-21).
+    """
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    _sys.path.insert(0, "scripts")
+    from deterministic_cue_extremes import ROLE_BOUNDARY_TOL, reachable_ranges
+
+    ranges = reachable_ranges(config)
+    ledger: dict[str, dict] = {}
+    reclassified = 0
+    total = 0
+    for name, fname in RAW_RECORD_SOURCES:
+        path = _Path(data_root) / "measurements" / fname
+        if not path.exists():
+            continue
+        with path.open(encoding="utf-8") as fh:
+            for line in fh:
+                rec = json.loads(line)
+                total += 1
+                roles = _corrected_roles(rec["depth"], rec["world_y"], ranges, ROLE_BOUNDARY_TOL)
+                if roles != rec.get("roles_ok"):
+                    reclassified += 1
+                for role in roles:
+                    key = f"area_{rec['category']}_{role}"
+                    ca = float(rec["C_a"])
+                    _fold(ledger, key, ca, ca, 1, name)
+                    hk = f"height_{rec['category']}_{role}"
+                    ch = float(rec["C_h"])
+                    _fold(ledger, hk, ch, ch, 1, name)
+    return {"ledger": ledger, "n_poses": total, "n_reclassified": reclassified, "ranges": ranges}
+
+
 def required_ratio_from_ledger(ledger: dict) -> tuple[float, str, dict]:
     """R = max over pairings of sqrt(C_a[far]^max / C_a[near]^min), on the cumulative extrema."""
     cats = sorted({k.split("_")[1] for k in ledger if k.startswith("area_")})
@@ -114,7 +172,44 @@ def required_ratio_from_ledger(ledger: dict) -> tuple[float, str, dict]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json")
+    ap.add_argument("--from-raw", action="store_true",
+                    help="rebuild from RAW poses under corrected role classification (baseline)")
     args = ap.parse_args()
+
+    if args.from_raw:
+        import os
+
+        from sbind.utils.config import load_config
+        cfg = load_config("configs/m4a_v1_natural_congruent_pilot.yaml")
+        rb = rebuild_from_raw(os.environ["DATA_ROOT"], cfg)
+        led = rb["ledger"]
+        # fold in verification exceedances (role fixed a priori, full coords) from the pass JSONs
+        for _name, path in SOURCES:
+            pp = Path(path)
+            if not pp.exists():
+                continue
+            rep = json.loads(pp.read_text(encoding="utf-8"))
+            for vname in ("targeted_verification", "random_verification"):
+                v = rep.get(vname) or {}
+                for e in v.get("exceedances", []) + v.get("load_bearing_exceedances", []):
+                    k = f"{e['constant']}_{e['category']}_{e['role']}"
+                    _fold(led, k, float(e["value"]), float(e["value"]), 1, f"{_name}:{vname}")
+        R, binding, table = required_ratio_from_ledger(led)
+        print("CORRECTED-BASELINE LEDGER (raw poses re-bucketed, tol applied)")
+        print(f"  poses re-bucketed: {rb['n_reclassified']} of {rb['n_poses']} changed role")
+        for key in sorted(led):
+            if key.startswith("area_"):
+                e = led[key]
+                print(f"  {key:22s} {e['min']:12.1f} {e['max']:12.1f}  n={e['n']}")
+        print(f"\n  CORRECTED-BASELINE R = {R:.4f}  (binding {binding})")
+        out = {"corrected_baseline_R": R, "binding_pairing": binding,
+               "n_poses": rb["n_poses"], "n_reclassified": rb["n_reclassified"],
+               "ledger": {k: v for k, v in sorted(led.items())},
+               "required_ratio_by_pairing": table}
+        if args.json:
+            Path(args.json).write_text(json.dumps(out, indent=2), encoding="utf-8")
+            print(f"\nwrote {args.json}")
+        return 0
 
     built = build_ledger()
     ledger = built["ledger"]

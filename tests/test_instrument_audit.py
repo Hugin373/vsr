@@ -357,3 +357,54 @@ def test_I9_role_boundary_rounding_does_not_drop_the_near_endpoint():
     )
     # and the tolerance must be far smaller than the near/far band gap it must not blur
     assert ROLE_TOL < 0.1, "tolerance must not blur genuinely distinct role bands"
+
+
+# ---------------- I10-I11: role equivalence & endpoint inclusion (corrected-pass gates)
+
+
+def test_I10_sweep_and_verification_agree_on_role_for_boundary_poses():
+    """Sweep and verification must assign the SAME role to a boundary pose (conjunction item 5).
+
+    The bug was exactly a role DISAGREEMENT: the sweep filed the near-endpoint pose under 'far'
+    (rounded depth > unrounded range max) while verification, with role fixed a priori, treated it
+    as 'near'. Post-fix they must agree.
+    """
+    import sys as _sys
+
+    _sys.path.insert(0, "scripts")
+    from deterministic_cue_extremes import ROLE_BOUNDARY_TOL
+
+    # near range [lo, hi] unrounded; the sweep grids the endpoint and rounds it to 6 dp
+    ranges = {"near": {"depth": (2.9391, 4.982996791), "y": (0.4983, 2.1518)},
+              "far": {"depth": (3.5354, 6.9268), "y": (1.0340, 4.2084)}}
+
+    def sweep_roles(depth, y):   # rounds the grid value, then classifies (the fixed predicate)
+        d = round(depth, 6)
+        return [r for r, v in ranges.items()
+                if v["depth"][0] - ROLE_BOUNDARY_TOL <= d <= v["depth"][1] + ROLE_BOUNDARY_TOL
+                and v["y"][0] - ROLE_BOUNDARY_TOL <= y <= v["y"][1] + ROLE_BOUNDARY_TOL]
+
+    def verif_role(depth, declared):   # role fixed a priori, checks its own range
+        v = ranges[declared]
+        return (v["depth"][0] - ROLE_BOUNDARY_TOL <= depth <= v["depth"][1] + ROLE_BOUNDARY_TOL)
+
+    # the exact endpoint pose the bug dropped
+    depth, y = 4.982996791, 2.1134
+    assert "near" in sweep_roles(depth, y), "fixed sweep predicate must admit the near endpoint"
+    assert verif_role(depth, "near"), "verification treats it as near"
+    # agreement: both call it near
+
+
+def test_I11_range_endpoints_are_included_by_their_own_role():
+    """Both ends of each role's range must be accepted BY THAT ROLE (conjunction item 6)."""
+    import sys as _sys
+
+    _sys.path.insert(0, "scripts")
+    from deterministic_cue_extremes import ROLE_BOUNDARY_TOL
+
+    for lo, hi in [(2.9391, 4.982996791), (3.5354, 6.9268)]:
+        for endpoint in (lo, hi):
+            grid_val = round(endpoint, 6)   # what the sweep actually evaluates
+            assert lo - ROLE_BOUNDARY_TOL <= grid_val <= hi + ROLE_BOUNDARY_TOL, (
+                f"endpoint {endpoint} rounds to {grid_val}, excluded from its own [{lo},{hi}]"
+            )

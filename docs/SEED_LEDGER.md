@@ -13,7 +13,10 @@ the strictest role, because verification is the only test whose job is to fail.
 | 410 | frozen-pilot / reference | in use | natural-congruent config seed; reported alongside sweeps as a reference value, **excluded** from every bound |
 | 411, 412, 413 | frozen-pilot | in use | counterbalanced, conflict, contrastive-pairs config seeds |
 | 6001–6002 | verification | **BURNT** 2026-07-20 | deterministic-envelope random verification (300 scenes, 19/600 exceedances — result inspected) |
-| 6003–6010 | verification | free | reserved for the next envelope verification pass |
+| 6003–6006 | verification | **BURNT** 2026-07-21 | pass-1 (refine1) random verification |
+| 6007–6010 | verification | **BURNT** 2026-07-21 | pass-2/3 verification; used to find AND analyse the role-boundary bug, so disqualified from final ratification evidence |
+| 6011–6014 | verification | **RESERVED** | corrected-pass final random verification (fresh) |
+| 6015–6020 | verification | free | future passes |
 | 7001–7002 | instrument-internal | in use | `reachable_ranges()` — measures the reachable depth/world-y envelope; not a statistical estimate, never gates anything |
 | 8001–8002 | calibration | consumed | floor root search (grid 1.165–1.200) |
 | 8003–8006 | calibration | consumed | area-validity leg at r_op = 1.1900 (6-seed worst case) |

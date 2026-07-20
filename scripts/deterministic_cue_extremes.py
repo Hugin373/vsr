@@ -603,6 +603,8 @@ def main() -> int:
     ap.add_argument("--json")
     ap.add_argument("--verify-random", type=int, default=0,
                     help="draw N real sampler configurations and check none exceeds the envelope")
+    ap.add_argument("--verify-seeds", type=str, default=None,
+                    help="comma-separated random-verification seeds (fresh per pass; see ledger)")
     ap.add_argument("--depth-grid", type=int, default=N_DEPTH_GRID,
                     help="(legacy union grid size; superseded by the per-role knobs)")
     ap.add_argument("--depth-grid-near", type=int, default=None,
@@ -670,6 +672,9 @@ def main() -> int:
         else:
             print("\n  *** no self-consistent floor in the grid")
 
+    if args.verify_seeds:
+        import deterministic_cue_extremes as _self
+        _self.VERIFY_SEEDS = tuple(int(x) for x in args.verify_seeds.split(","))
     verification = {}
     if args.verify_random:
         print(f"\n--- random verification of the boundary-extremal assumption "
