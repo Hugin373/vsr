@@ -1,65 +1,89 @@
 # Checkpoint briefing
 
-Date: 2026-07-21 · describes repo state at commit `0e1b721` (+ this commit)
-This file always holds the LATEST completed checkpoint; git history holds the rest.
+Date: 2026-07-21 · repo state at commit `296727d` (+ this commit)
+Covers TWO checkpoints — the previous one was not relayed, so its live content is folded in here.
 
-**Question.** Pass 2 under the committed rules: does R satisfy the four-part ratification
-conjunction (ε_R = 0.002, binding-pair stability, zero load-bearing exceedance, targeted
-adversarial pass)?
+**Question.** (a) Does the cumulative extrema ledger change the operative R? (b) Where do the ten
+load-bearing violations cluster, and does that choose a refinement axis or trip the safeguard?
 
-**Method.** Envelope sweep at depth grid 10 × lateral 4 (30,720 poses, 23,706 admitted by the
-placement guard), run chunked at 2,000 renders per process because a long-lived Blender process
-degrades superlinearly. Verification in a separate fresh process, two-part as committed:
-deterministic adversarial probe of the load-bearing strata (far: cube at max multiplier; near: mug
-AND sphere at min multiplier; depth on a 12-point interior grid, lateral and all 32 camera corners
-at boundaries) plus fresh random on seeds 6007–6010.
+**Method.** (a) Folded every admitted evaluated pose from all three grid sweeps plus every
+verification exceedance into one extrema set; extrema of a union are the min/max of per-source
+extrema, so per-pass summaries suffice for sweeps whose per-pose records were not kept.
+(b) Re-ran the targeted adversarial probe (3,168 poses) with full coordinate capture on every
+exceedance, then measured each violation's distance to the actual pass-2 sweep grid.
 
-**Results — R = 1.2026. RATIFICATION FAILS 3 of 4 conditions.**
+---
 
-| # | condition | result | |
-|---|---|---|---|
-| 1 | \|ΔR\| ≤ 0.002 | 1.2060 → 1.2026, **ΔR = −0.0034** | **FAIL** |
-| 2 | binding pair stable | near_mug/far_cube → near_mug/far_cube | **PASS** |
-| 3 | zero load-bearing exceedance | **10** (targeted 10, random 0) | **FAIL** |
-| 4 | targeted adversarial pass | **126 / 3,168** exceed | **FAIL** |
+## (a) Cumulative ledger — R RISES to 1.2092
 
-R across passes: 1.2072 → 1.2060 → **1.2026**. The binding pairing has never moved.
+| | R | binding pairing |
+|---|---:|---|
+| pass 0 (grid 6×2) | 1.2072 | near_mug/far_cube |
+| pass 1 (grid 8×3) | 1.2060 | near_mug/far_cube |
+| pass 2 (grid 10×4) | 1.2026 | near_mug/far_cube |
+| **cumulative union** | **1.2092** | near_mug/far_cube |
 
-Exceedances split by role and constant:
+The correction is confirmed: the falling per-pass sequence was **forgetting, not convergence**. The
+three grids (6×2, 8×3, 10×4) barely overlap, so each pass re-rolled the extrema.
 
-| | height:near | height:far | area:near | area:far |
-|---|---:|---:|---:|---:|
-| targeted (3,168 objs) | 100 | 16 | **10** | **0** |
-| random (798 objs) | 3 | 3 | 0 | 0 |
+**Treating violations as data changed the answer, not just the bookkeeping.** The binding minima for
+both relevant cells now come from targeted-verification exceedances rather than from any grid:
 
-Load-bearing violations are **all on C_a,near^min** — mug (+0.076%, +0.328%) and sphere (+0.075%).
-Worst is 0.328%, which would move R to roughly 1.2046.
+| cell | cumulative min | source |
+|---|---:|---|
+| `area_mug_near` | 119,714.2 | pass-2 targeted verification |
+| `area_sphere_near` | 127,114.3 | pass-2 targeted verification |
 
-**Established.**
-- **The targeted probe earns its place.** It found **10** load-bearing violations where uniform
-  random found **0** on a comparable sample. The ruling's reasoning — that uniform random cannot
-  certify these cells — is now measured, not argued.
-- **C_a,far^max is clean**: zero area:far exceedances across 3,966 targeted far-role objects.
-- **Binding-cell stability holds** across all three passes.
-- Chunking works: 23,706 renders completed with resume, versus a 4.6-hour single process that
-  produced nothing recoverable.
+R = 1.2092 is a **lower bound** that can only rise. The "at least ~1.2046" wording is withdrawn.
 
-**NOT established — R is NOT RATIFIED.** ΔR is 1.7× the committed ε_R and is *growing* between
-passes (−0.0012 then −0.0034), so refinement is not converging on this axis; the envelope is still
-tightening as coverage improves. C_a,near^min is under-covered.
+## (b) Violation clustering — one axis, unambiguously
 
-**Open decisions.** How to close C_a,near^min. The evidence points at the *near* role and the
-*minimum* — the opposite corner from where I aimed my earlier suspicion — so refinement should be
-directed there rather than uniformly.
+All ten load-bearing violations (every one on C_a,near^min):
 
-**Weakest point.** I flagged far-role coverage as the likely gap last checkpoint. **That was wrong**:
-far-role area is clean and near-role minimum is the problem. Worth noting I got there by reasoning
-about which term uniform random samples thinly, rather than by measuring — the targeted probe
-settled in one run what my reasoning had pointed the wrong way on. Also: 100 of 126 targeted
-exceedances are height:sphere:near, which is a *pixel-extremal* artifact and reinforces the ruling's
-preference for an analytic height bound over denser grids.
+| | value |
+|---|---|
+| multiplier | **0.92 in 10/10** — the minimum |
+| camera pitch | **+3.0° in 10/10** — the maximum |
+| depth | **4.611, 4.797, 4.983** — the top of the near band (max 4.983) |
+| lateral | spread across ±0.85 and ±0.30 — both extremes |
+| category | sphere 8, mug 2 |
+| distance to sweep grid | **0.086–0.171 m = 0.19–0.39 of the 0.443 m spacing** |
 
-**Next step.** Blocked on nothing; the direction is determined by the data. Refine specifically on
-the near-role minimum — finer lateral and multiplier resolution in the near depth band — and re-run
-pass 3 with fresh verification seeds. ~90 min chunked. R stays unratified and nothing may consume it
-meanwhile; textures remain decoupled and parallelisable.
+**The mechanism is structural, and it is my design error.** The sweep grids the **union** depth
+range (2.939–6.927 m) with 10 points, but the **near role only spans 2.939–4.983 m**. So only **5 of
+10** grid points land in the near band, giving 0.443 m resolution over a 2.044 m span — while the
+far band gets the other half. Every violation sits **between** those coarse points, at the deep end
+of the near band, at the minimum multiplier and maximum pitch.
+
+Multiplier and camera corners are *not* the gap: the sweep enumerates all three multipliers and all
+32 camera corners exhaustively. The gap is **near-band depth resolution**.
+
+**Established.** Cumulative R = 1.2092. The refinement axis is determined by data, not by my guess:
+grid each role's **own** depth range rather than the union. Violations are systematic (one region,
+one axis), not scattered.
+
+**NOT established.** R remains **unratified**; nothing downstream may consume it. Whether fixing the
+near-band resolution closes C_a,near^min or merely moves the bound again is exactly what pass 3
+tests.
+
+**Safeguard status: NOT tripped.** The pre-committed trigger is "violations appear in **new interior
+regions**". These are confined to one contiguous region, explained by a known resolution deficit —
+so a directed grid remains justified. If pass 3 still moves cumulative R by more than ε_R, the
+trigger fires and we switch to constrained adaptive minimization of C_a,near.
+
+**Weakest point.** Two self-inflicted measurement errors this checkpoint. First, I chose
+**non-nested grids**, which is what made the per-pass R non-monotone and the "convergence" reading
+possible; nesting each grid as a superset of the last would have made monotonicity automatic.
+Second, my violation-clustering diagnostic initially reported "distance to nearest grid point =
+0.0000 for all 10", which was **self-referential** — it compared against the targeted probe's own
+12-point grid instead of the sweep's. Corrected, the same violations sit 0.19–0.39 of a grid spacing
+away, which is the entire finding. Both errors share a shape: a measurement compared against itself
+rather than against the thing it was meant to test.
+
+Also: 100 of 126 total exceedances are `height:sphere:near` — pixel-extremal noise, reinforcing the
+sphere-first analytic-height track.
+
+**Next step.** Pass 3, directed: grid each role's own depth range (near band at ~0.10 m resolution
+instead of 0.443 m), keeping multipliers and camera corners exhaustive, chunked and resumable,
+depositing into the ledger. Then fresh targeted verification. ~90 min. Nothing else proceeds; R
+stays unratified; textures remain decoupled and parallelisable.
