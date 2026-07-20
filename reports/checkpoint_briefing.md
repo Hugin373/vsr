@@ -1,57 +1,64 @@
 # Checkpoint briefing
 
-Date: 2026-07-20 · describes repo state at commit `e555414`
-(superseded by later commits; this file always holds the LATEST completed checkpoint)
+Date: 2026-07-20 · describes repo state at commit `ed0b698` (+ this commit)
+This file always holds the LATEST completed checkpoint; git history holds the rest.
 
-**Question.** What is the congruence requirement R for the natural-congruent 4-set on the newly
-adopted 1.95 depth envelope, derived deterministically by envelope coverage rather than random
-seeds — and does the resulting floor hold up?
+**Question.** Does refining the deterministic envelope grid close the verification failure, so that
+R can be ratified?
 
-**Method.** Sweep the object's reachable pose envelope: discrete factors (size multiplier, lateral
-side) exhaustive; continuous factors (depth, lateral magnitude, all five camera-jitter axes) at
-boundaries; depth additionally gridded through the interior. 9,216 solo renders, 4 categories.
-Poses filtered by the sampler's own placement guard and by role-wise depth *and* world-y
-reachability. Then an independent random verification: 300 real sampler scenes (600 objects,
-dedicated seeds) checked against the swept envelope.
+**Method.** Refinement pass 1 of the envelope sweep: depth grid 6 → 8 points, lateral magnitude
+levels 2 → 3, all 32 camera-jitter corners retained. 18,432 solo renders. Verification on FRESH
+seeds 6003–6006 (6001–6002 were burnt on inspection), 400 real sampler scenes = 800 objects.
+Exceedances are now split into load-bearing vs not, where load-bearing means the two extrema that
+actually enter R = sqrt(max C_a[far] / min C_a[near]).
 
 **Results.**
 
-| quantity | value |
-|---|---:|
-| deterministic R | **1.2072** (binding: near_mug / far_cube, area) |
-| height requirement | 1.1145 (not binding) |
-| r* | 1.2100 |
-| r_op = r* + 0.005 | **1.2150** |
-| random verification | **19 / 600 exceed — FAIL**, worst +2.283% |
+| | pass 0 (depth 6, lat 2) | pass 1 (depth 8, lat 3) |
+|---|---:|---:|
+| deterministic R | 1.2072 | **1.2060** |
+| ΔR | — | **−0.0012 (−0.10%)** |
+| binding pairing | near_mug / far_cube | near_mug / far_cube — **STABLE** |
+| r* / r_op | 1.2100 / 1.2150 | 1.2100 / 1.2150 (unchanged) |
+| total exceedances | 19 / 600 (3.2%) | 17 / 800 (2.1%) |
+| **load-bearing exceedances** | 0 | **1 — FAIL** |
 
-**A bug in my own instrument, found and fixed mid-derivation.** The first version admitted any pose
-whose projected *centre* was on-screen. Measured: **712/9,216 (7.7%) of those poses are rejected by
-the real placement guard** — edge-clipped silhouettes with truncated area, which deflates C_a and
-inflates the requirement. That version reported **R = 1.4314**. With the correct guard, R = 1.2072.
+The single load-bearing violation: `sphere / near / area = 127,253.9` against an envelope minimum of
+`127,319.9` — **0.052% below**. That is C_a,near^min, one of the two terms R reads.
 
-**Established.** R = 1.2072 under envelope coverage, on the corrected guard. It sits *above* the
-random-seed estimates (~1.18), the direction the standing rule predicts — random maxima are biased
-low.
+Violations split sharply by constant: **15 of 17 are height** (worst +2.03%), only **2 are area**
+(worst +0.137%).
 
-**NOT established — the headline.** **The boundary-extremal assumption is falsified.** Corner
-evaluation does not cover the reachable set at this grid resolution. The violations happen not to
-touch R (all five area exceedances are on the near-role *maximum*; R uses the near-role *minimum*
-and the far-role maximum, where nothing exceeded) — but that is luck, not construction. **R = 1.2072
-is NOT RATIFIED.** Separately, the R(F) curve reads flat at 1.2072 across F ∈ [1.15, 1.25]; that is
-an artifact of the conservative far-pose filter, so r* = 1.2100 is an upper bound on the minimal
-floor, not an estimate of it.
+**Established.**
+- **Binding-cell stability holds** — the argmax pair did not move under refinement, satisfying that
+  stopping condition.
+- **R is essentially converged in magnitude**: refining two axes moved it by 0.0012.
+- **Area is nearly covered; height is not.** Plausible mechanism: mask area averages over thousands
+  of pixels, while mask height is a single extremal pixel measurement, so it is far spikier as a
+  function of pose. Height does not drive R here (1.1102 vs area 1.2060, a 0.096 gap that a 2%
+  height error cannot close), so this is a coverage defect rather than a threat to R.
 
-**Open decisions.** None outstanding — the rigorous path was ratified and the ×1.02283 inflation
-shortcut rejected (a margin measured on a non-load-bearing extremum is not an error bound for the
-load-bearing pair).
+**NOT established — R remains NOT RATIFIED.** The zero-exceedance requirement on the load-bearing
+pair is not met: 1 violation, 0.052%. Correcting for it would move R to roughly 1.2063 — immaterial
+in magnitude, but the criterion is zero, not small.
 
-**Weakest point.** Two instrument defects shipped in one session (centre-only filter; `--verify-random`
-declared but unimplemented for a full run). Both caught, but the pattern says the instrument
-deserves more suspicion than its output gets. Specifically: the *far-role* envelope is unverified,
-and the far-role maximum is one of the two terms in R. Zero far-role exceedances in 600 objects is
-consistent with good coverage and equally with the far range being sampled thinly by a uniform
-random draw.
+**Open decisions.** None new.
 
-**Next step.** Refinement pass 1 running: depth grid 6→8, lateral 2→3 (18,432 renders, ~55 min),
-verification on fresh seeds 6003–6006. Nothing else proceeds until R is ratified; textures are
-decoupled and may run in a parallel session.
+**Weakest point — two of the ruling's requirements were not implemented before I ran this pass.**
+1. **ε_R was never pre-specified.** The ruling requires pre-specified ε_R convergence; I launched
+   refinement without committing a value first. ΔR = 0.0012 looks convergent against any plausible
+   ε_R, but choosing ε_R now, having seen ΔR, is precisely the post-hoc threshold selection the
+   whole protocol exists to prevent. It must be committed before pass 2, and pass 1 should be
+   treated as evidence that cannot itself certify convergence.
+2. **Targeted adversarial verification is not implemented.** The ruling requires oversampling the
+   far-role extremes specifically (cube-as-far, max multiplier, camera/depth boundaries, the binding
+   pairing), on the explicit grounds that uniform random verification cannot certify C_a,far^max.
+   This pass used uniform random only. **Zero far-role exceedances in 800 objects is therefore not
+   evidence of far-role coverage** — it is the exact gap the ruling anticipated, and it happens to
+   sit on the term of R I already flagged as unverified.
+
+**Next step.** Blocked on my own process gaps, not on a decision. In order: pre-commit ε_R and the
+targeted-verification spec (no compute); implement targeted far-role adversarial verification;
+re-run verification on fresh seeds 6007–6010 against the pass-1 envelope (~10 min, no re-sweep
+needed unless it fails); only if the load-bearing count reaches zero does R become ratifiable.
+Textures remain decoupled and can proceed in parallel.

@@ -1,0 +1,538 @@
+{
+  "config": "configs/m4a_v1_natural_congruent_pilot.yaml",
+  "floor_curve": [
+    {
+      "floor": 1.15,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.155,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.16,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.165,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.17,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.175,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.18,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.185,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.19,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.195,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.2,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.205,
+      "requirement": 1.2059844516688663,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.21,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.215,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.22,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.225,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.23,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.235,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.24,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.245,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.25,
+      "requirement": 1.2059844516688663,
+      "self_consistent": true
+    }
+  ],
+  "random_verification": {
+    "n_objects_checked": 800,
+    "n_exceeding": 17,
+    "n_exceeding_load_bearing": 1,
+    "load_bearing_exceedances": [
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00019",
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127253.88152189048,
+        "envelope": [
+          127319.87706796094,
+          135232.24503920897
+        ],
+        "excess_pct": 0.05183444061545768
+      }
+    ],
+    "cells": {
+      "height:cylinder:near": 4,
+      "height:sphere:near": 2,
+      "height:mug:far": 2,
+      "area:sphere:near": 1,
+      "height:cube:near": 4,
+      "height:sphere:far": 3,
+      "area:cylinder:near": 1
+    },
+    "exceedances": [
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00002",
+        "category": "cylinder",
+        "role": "near",
+        "constant": "height",
+        "value": 440.3458165505538,
+        "envelope": [
+          387.3392115645522,
+          431.57352094167123
+        ],
+        "excess_pct": 2.0326306372415734
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00038",
+        "category": "cylinder",
+        "role": "near",
+        "constant": "height",
+        "value": 438.5377678249698,
+        "envelope": [
+          387.3392115645522,
+          431.57352094167123
+        ],
+        "excess_pct": 1.6136872503444968
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00045",
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 399.41218814708117,
+        "envelope": [
+          399.6831192141184,
+          409.0302074121671
+        ],
+        "excess_pct": 0.06778646733190685
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00049",
+        "category": "mug",
+        "role": "far",
+        "constant": "height",
+        "value": 416.87433421983235,
+        "envelope": [
+          384.81977729200304,
+          416.70600272989265
+        ],
+        "excess_pct": 0.040395743962636205
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00019",
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127253.88152189048,
+        "envelope": [
+          127319.87706796094,
+          135232.24503920897
+        ],
+        "excess_pct": 0.05183444061545768
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00091",
+        "category": "cylinder",
+        "role": "near",
+        "constant": "height",
+        "value": 432.13116076140244,
+        "envelope": [
+          387.3392115645522,
+          431.57352094167123
+        ],
+        "excess_pct": 0.12921085114639702
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00093",
+        "category": "cube",
+        "role": "near",
+        "constant": "height",
+        "value": 393.74976277226745,
+        "envelope": [
+          394.0755456787183,
+          442.4048111455803
+        ],
+        "excess_pct": 0.08267016566322496
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00073",
+        "category": "cube",
+        "role": "near",
+        "constant": "height",
+        "value": 391.20054870174516,
+        "envelope": [
+          394.0755456787183,
+          442.4048111455803
+        ],
+        "excess_pct": 0.7295547791531989
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00093",
+        "category": "cube",
+        "role": "near",
+        "constant": "height",
+        "value": 445.405064313728,
+        "envelope": [
+          394.0755456787183,
+          442.4048111455803
+        ],
+        "excess_pct": 0.6781691999186752
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00005",
+        "category": "sphere",
+        "role": "far",
+        "constant": "height",
+        "value": 398.77918534723665,
+        "envelope": [
+          399.04137775714224,
+          412.6211309316493
+        ],
+        "excess_pct": 0.06570556952747031
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00005",
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 398.93058559240575,
+        "envelope": [
+          399.6831192141184,
+          409.0302074121671
+        ],
+        "excess_pct": 0.18828256324468287
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00017",
+        "category": "sphere",
+        "role": "far",
+        "constant": "height",
+        "value": 398.4109826295162,
+        "envelope": [
+          399.04137775714224,
+          412.6211309316493
+        ],
+        "excess_pct": 0.15797738349072146
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00022",
+        "category": "mug",
+        "role": "far",
+        "constant": "height",
+        "value": 417.39674670488506,
+        "envelope": [
+          384.81977729200304,
+          416.70600272989265
+        ],
+        "excess_pct": 0.16576290489392181
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00050",
+        "category": "cylinder",
+        "role": "near",
+        "constant": "height",
+        "value": 434.1607211233431,
+        "envelope": [
+          387.3392115645522,
+          431.57352094167123
+        ],
+        "excess_pct": 0.5994807503543566
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00050",
+        "category": "cylinder",
+        "role": "near",
+        "constant": "area",
+        "value": 141298.09437687628,
+        "envelope": [
+          124485.47318399281,
+          141104.28702341433
+        ],
+        "excess_pct": 0.13735043601459634
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00050",
+        "category": "sphere",
+        "role": "far",
+        "constant": "height",
+        "value": 398.7458146386432,
+        "envelope": [
+          399.04137775714224,
+          412.6211309316493
+        ],
+        "excess_pct": 0.07406828839663018
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00071",
+        "category": "cube",
+        "role": "near",
+        "constant": "height",
+        "value": 393.58648979566783,
+        "envelope": [
+          394.0755456787183,
+          442.4048111455803
+        ],
+        "excess_pct": 0.12410206327524469
+      }
+    ]
+  },
+  "method": "envelope coverage (deterministic), not random sampling",
+  "n_renders": 14018,
+  "reachable_ranges": {
+    "near": {
+      "depth": [
+        2.939056449413555,
+        4.982996790963811
+      ],
+      "y": [
+        0.49833736738746925,
+        2.1517561168360304
+      ]
+    },
+    "far": {
+      "depth": [
+        3.535397693820389,
+        6.926755991256055
+      ],
+      "y": [
+        1.033978072911734,
+        4.208369504474083
+      ]
+    }
+  },
+  "extremes": {
+    "height_cube_near": [
+      394.0755456787183,
+      442.4048111455803,
+      1432
+    ],
+    "height_cube_far": [
+      376.45412995956815,
+      430.0051304765914,
+      2974
+    ],
+    "height_cylinder_near": [
+      387.3392115645522,
+      431.57352094167123,
+      1432
+    ],
+    "height_cylinder_far": [
+      374.04482352782696,
+      420.0751150923897,
+      2974
+    ],
+    "height_mug_near": [
+      394.0755456787183,
+      440.85846741203324,
+      1386
+    ],
+    "height_mug_far": [
+      384.81977729200304,
+      416.70600272989265,
+      2884
+    ],
+    "height_sphere_near": [
+      399.6831192141184,
+      409.0302074121671,
+      1370
+    ],
+    "height_sphere_far": [
+      399.04137775714224,
+      412.6211309316493,
+      2928
+    ],
+    "area_cube_near": [
+      138117.05188747728,
+      179402.1519582303,
+      1432
+    ],
+    "area_cube_far": [
+      129493.2082256862,
+      174429.96737256093,
+      2974
+    ],
+    "area_cylinder_near": [
+      124485.47318399281,
+      141104.28702341433,
+      1432
+    ],
+    "area_cylinder_far": [
+      119991.00647850274,
+      138997.652008351,
+      2974
+    ],
+    "area_mug_near": [
+      119932.71971358417,
+      133499.96319087,
+      1386
+    ],
+    "area_mug_far": [
+      117564.03720108359,
+      129336.37071037652,
+      2884
+    ],
+    "area_sphere_near": [
+      127319.87706796094,
+      135232.24503920897,
+      1370
+    ],
+    "area_sphere_far": [
+      126733.67830365954,
+      135232.24503920897,
+      2928
+    ]
+  },
+  "required_ratio_by_pairing": {
+    "near_cube_far_cube": {
+      "height": 1.0911743577896755,
+      "area": 1.1237944938801345,
+      "binding": 1.1237944938801345
+    },
+    "near_cube_far_cylinder": {
+      "height": 1.0659761045788625,
+      "area": 1.0031828110418084,
+      "binding": 1.0659761045788625
+    },
+    "near_cube_far_mug": {
+      "height": 1.0574266972394792,
+      "area": 0.9676909627033451,
+      "binding": 1.0574266972394792
+    },
+    "near_cube_far_sphere": {
+      "height": 1.0470609898439394,
+      "area": 0.9895015506179817,
+      "binding": 1.0470609898439394
+    },
+    "near_cylinder_far_cube": {
+      "height": 1.1101513031425394,
+      "area": 1.183726070201788,
+      "binding": 1.183726070201788
+    },
+    "near_cylinder_far_cylinder": {
+      "height": 1.0845148194411034,
+      "area": 1.056682207534612,
+      "binding": 1.0845148194411034
+    },
+    "near_cylinder_far_mug": {
+      "height": 1.0758167267566876,
+      "area": 1.0192975910529727,
+      "binding": 1.0758167267566876
+    },
+    "near_cylinder_far_sphere": {
+      "height": 1.0652707461890512,
+      "area": 1.0422713301677125,
+      "binding": 1.0652707461890512
+    },
+    "near_mug_far_cube": {
+      "height": 1.0911743577896755,
+      "area": 1.2059844516688663,
+      "binding": 1.2059844516688663
+    },
+    "near_mug_far_cylinder": {
+      "height": 1.0659761045788625,
+      "area": 1.0765516995200088,
+      "binding": 1.0765516995200088
+    },
+    "near_mug_far_mug": {
+      "height": 1.0574266972394792,
+      "area": 1.038464115455247,
+      "binding": 1.0574266972394792
+    },
+    "near_mug_far_sphere": {
+      "height": 1.0470609898439394,
+      "area": 1.061869844928072,
+      "binding": 1.061869844928072
+    },
+    "near_sphere_far_cube": {
+      "height": 1.0758651286601595,
+      "area": 1.1704758149125023,
+      "binding": 1.1704758149125023
+    },
+    "near_sphere_far_cylinder": {
+      "height": 1.0510204081632653,
+      "area": 1.0448540410677767,
+      "binding": 1.0510204081632653
+    },
+    "near_sphere_far_mug": {
+      "height": 1.0425909494232473,
+      "area": 1.0078878961605526,
+      "binding": 1.0425909494232473
+    },
+    "near_sphere_far_sphere": {
+      "height": 1.0323706734048974,
+      "area": 1.0306044745048384,
+      "binding": 1.0323706734048974
+    }
+  },
+  "deterministic_R": 1.2059844516688663,
+  "binding_pairing": "near_mug_far_cube",
+  "grid": {
+    "depth": 8,
+    "lateral": 3
+  }
+}
