@@ -25,8 +25,12 @@ from PIL import Image
 
 from ..schemas import Camera, ObjectAnnotation, PairRelation, StimulusAnnotation
 from ..utils.io import ensure_dir
+from ..utils.logging import get_logger
 from . import geometry
 from .scene_spec import SceneSpec
+
+log = get_logger("sbind.render_bpy")
+_GPU_LOGGED = False   # the enable path runs per scene; announce the device once
 
 try:
     import bpy
@@ -306,7 +310,10 @@ def _configure_beauty(scene, render_cfg):
     scene.render.pixel_aspect_y = 1.0
     scene.render.image_settings.file_format = "PNG"
     if scene.render.engine == "CYCLES":
-        scene.cycles.device = render_cfg.get("device", "CPU")
+        device = str(render_cfg.get("device", "CPU")).upper()
+        if device == "GPU":
+            _enable_gpu_devices(render_cfg)
+        scene.cycles.device = device
         scene.cycles.samples = int(render_cfg.get("samples", 32))
         scene.cycles.seed = int(render_cfg.get("cycles_seed", 0))
         # TWO sources of render non-determinism, both default OFF so that identical
@@ -320,6 +327,45 @@ def _configure_beauty(scene, render_cfg):
     scene.view_settings.view_transform = "Standard"
     scene.render.film_transparent = False
     _disable_metadata_stamping(scene)
+
+
+def _enable_gpu_devices(render_cfg) -> None:
+    """Enable exactly the CUDA_VISIBLE_DEVICES-masked GPU for Cycles, and VERIFY it is on.
+
+    ⚠ Setting `scene.cycles.device = "GPU"` alone is NOT enough. Cycles renders on GPU only if a
+    compute device type is selected in preferences AND at least one device of that type is
+    enabled. With neither done, Blender falls back to CPU **silently** — the render succeeds, the
+    config says GPU, and the only symptom is that it is slow. That is exactly the shape of every
+    bug this project has caught, so the fallback is turned into a hard error here.
+
+    CUDA_VISIBLE_DEVICES must already be set (by the GPU guard) before this runs: Blender
+    enumerates whatever the mask exposes, so masking is how "never claim more than one GPU" is
+    enforced rather than by picking indices here.
+    """
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    wanted = str(render_cfg.get("compute_device_type", "OPTIX")).upper()
+    available = [t[0] for t in prefs.get_device_types(bpy.context)]
+    if wanted not in available:
+        raise RuntimeError(
+            f"compute_device_type {wanted!r} not available; this build offers {available}"
+        )
+    prefs.compute_device_type = wanted
+    prefs.get_devices()
+
+    enabled = []
+    for dev in prefs.devices:
+        dev.use = dev.type == wanted
+        if dev.use:
+            enabled.append(dev.name)
+    if not enabled:
+        raise RuntimeError(
+            f"no {wanted} devices enabled — Cycles would fall back to CPU silently. "
+            f"Devices seen: {[(d.name, d.type) for d in prefs.devices]}"
+        )
+    global _GPU_LOGGED
+    if not _GPU_LOGGED:
+        log.info("Cycles GPU: %s device(s) enabled via %s: %s", len(enabled), wanted, enabled)
+        _GPU_LOGGED = True
 
 
 def _render_to(scene, path):

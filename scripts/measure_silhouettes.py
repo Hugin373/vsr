@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -106,11 +107,14 @@ def _camera_from_annotation(record: dict, render_cfg: dict, f_mm: float, sensor_
     )
 
 
-def validate_against(set_dir: Path) -> int:
+def validate_against(set_dir: Path, device: str | None = None) -> int:
     """Replay a rendered set's scenes through the ID-pass-only path and compare geometry."""
     records = list(read_jsonl(set_dir / "annotations.jsonl"))
     config = yaml.safe_load((set_dir / "config.yaml").read_text(encoding="utf-8"))
-    render_cfg = config["render"]
+    render_cfg = dict(config["render"])
+    if device:
+        render_cfg["device"] = device
+        print(f"  ⚠ device OVERRIDE: rendering the replay on {device}")
     tmp = ensure_dir(Path("/tmp") / "sbind_measure") / "validate_id.png"
 
     n_objects = 0
@@ -159,6 +163,10 @@ def main() -> int:
     ap.add_argument("--n", type=int, help="number of scenes to measure (overrides n_images)")
     ap.add_argument("--out", help="output measurement dir")
     ap.add_argument("--validate-against", help="rendered set dir to replay and compare against")
+    ap.add_argument("--gpu", type=int, default=None,
+                    help="claim this GPU and render on it (guarded); validates the GPU path")
+    ap.add_argument("--device", choices=("CPU", "GPU"), default=None,
+                    help="override render.device; use with --gpu to validate the GPU path")
     ap.add_argument(
         "--allow-placement-failures",
         action="store_true",
@@ -172,8 +180,16 @@ def main() -> int:
     )
     args = ap.parse_args()
 
+    if args.gpu is not None:
+        from sbind.utils.gpu import claim_gpu
+        claim_gpu(args.gpu)          # aborts if another user holds it; sets CUDA_VISIBLE_DEVICES
+        log.info(
+            "claimed GPU %d (CUDA_VISIBLE_DEVICES=%s)",
+            args.gpu, os.environ.get("CUDA_VISIBLE_DEVICES"),
+        )
+
     if args.validate_against:
-        return validate_against(Path(args.validate_against))
+        return validate_against(Path(args.validate_against), args.device)
 
     if not (args.config and args.out):
         ap.error("--config and --out are required unless --validate-against is given")
