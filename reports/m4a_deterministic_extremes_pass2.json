@@ -1,0 +1,966 @@
+{
+  "config": "configs/m4a_v1_natural_congruent_pilot.yaml",
+  "eps_R": 0.002,
+  "targeted_verification": {
+    "n_objects_checked": 3168,
+    "n_exceeding": 126,
+    "n_exceeding_load_bearing": 10,
+    "by_role_and_constant": {
+      "height:far": 16,
+      "area:near": 10,
+      "height:near": 100
+    },
+    "load_bearing_exceedances": [
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 120016.17084881585,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.07634867138613187
+      },
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 119714.2336404123,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.3277370311568873
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127201.56437252556,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.07494452857318681
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127202.26185411678,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.0743966116742411
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127114.25290910702,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.14353332988571427
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127202.26185411678,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.0743966116742411
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "area",
+        "value": 127143.58922411026,
+        "envelope": [
+          127296.96648394493,
+          135229.55824157828
+        ],
+        "excess_pct": 0.12048775714856798
+      }
+    ],
+    "cells": {
+      "height:cube:far": 16,
+      "area:mug:near": 2,
+      "height:sphere:near": 100,
+      "area:sphere:near": 8
+    },
+    "exceedances": [
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "cube",
+        "role": "far",
+        "constant": "height",
+        "value": 435.37767896121454,
+        "envelope": [
+          376.05333933431064,
+          432.4152586176724
+        ],
+        "excess_pct": 0.6850869122917356
+      },
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 120016.17084881585,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.07634867138613187
+      },
+      {
+        "category": "mug",
+        "role": "near",
+        "constant": "area",
+        "value": 119714.2336404123,
+        "envelope": [
+          120107.87161302255,
+          133499.96319087
+        ],
+        "excess_pct": 0.3277370311568873
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 410.98823275662284,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.22552061333960866
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      },
+      {
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 400.9868510226688,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.05791701526967676
+      }
+    ]
+  },
+  "floor_curve": [
+    {
+      "floor": 1.15,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.155,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.16,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.165,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.17,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.175,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.18,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.185,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.19,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.195,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.2,
+      "requirement": 1.2026015211615304,
+      "self_consistent": false
+    },
+    {
+      "floor": 1.205,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.21,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.215,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.22,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.225,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.23,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.235,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.24,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.245,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    },
+    {
+      "floor": 1.25,
+      "requirement": 1.2026015211615304,
+      "self_consistent": true
+    }
+  ],
+  "random_verification": {
+    "n_objects_checked": 798,
+    "n_exceeding": 6,
+    "n_exceeding_load_bearing": 0,
+    "by_role_and_constant": {
+      "height:near": 3,
+      "height:far": 3
+    },
+    "load_bearing_exceedances": [],
+    "cells": {
+      "height:sphere:near": 1,
+      "height:sphere:far": 1,
+      "height:mug:far": 2,
+      "height:cube:near": 1,
+      "height:cylinder:near": 1
+    },
+    "exceedances": [
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00000",
+        "category": "sphere",
+        "role": "near",
+        "constant": "height",
+        "value": 401.21693687338586,
+        "envelope": [
+          401.21922522260587,
+          410.0634551375151
+        ],
+        "excess_pct": 0.0005703488457562801
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00037",
+        "category": "sphere",
+        "role": "far",
+        "constant": "height",
+        "value": 398.508311364019,
+        "envelope": [
+          398.6796354758763,
+          414.6313193068065
+        ],
+        "excess_pct": 0.04297287762210493
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00052",
+        "category": "mug",
+        "role": "far",
+        "constant": "height",
+        "value": 384.3225201088315,
+        "envelope": [
+          384.81977729200304,
+          421.48168192185517
+        ],
+        "excess_pct": 0.12921819836567813
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00052",
+        "category": "cube",
+        "role": "near",
+        "constant": "height",
+        "value": 390.06960305017384,
+        "envelope": [
+          392.61394640825915,
+          446.44171126961265
+        ],
+        "excess_pct": 0.6480522104122052
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00021",
+        "category": "mug",
+        "role": "far",
+        "constant": "height",
+        "value": 422.46595826609195,
+        "envelope": [
+          384.81977729200304,
+          421.48168192185517
+        ],
+        "excess_pct": 0.23352766833156588
+      },
+      {
+        "id": "m4a_v1_natural_congruent_pilot_00021",
+        "category": "cylinder",
+        "role": "near",
+        "constant": "height",
+        "value": 441.2199435515306,
+        "envelope": [
+          386.33212326572703,
+          437.47170323685685
+        ],
+        "excess_pct": 0.8567960594800735
+      }
+    ]
+  },
+  "method": "envelope coverage (deterministic), not random sampling",
+  "n_renders": 23706,
+  "reachable_ranges": {
+    "near": {
+      "depth": [
+        2.939056449413555,
+        4.982996790963811
+      ],
+      "y": [
+        0.49833736738746925,
+        2.1517561168360304
+      ]
+    },
+    "far": {
+      "depth": [
+        3.535397693820389,
+        6.926755991256055
+      ],
+      "y": [
+        1.033978072911734,
+        4.208369504474083
+      ]
+    }
+  },
+  "extremes": {
+    "height_cube_near": [
+      392.61394640825915,
+      446.44171126961265,
+      2484
+    ],
+    "height_cube_far": [
+      376.05333933431064,
+      432.4152586176724,
+      5114
+    ],
+    "height_cylinder_near": [
+      386.33212326572703,
+      437.47170323685685,
+      2484
+    ],
+    "height_cylinder_far": [
+      372.2111596220827,
+      425.0235447951481,
+      5114
+    ],
+    "height_mug_near": [
+      392.61394640825915,
+      440.85846741203324,
+      2448
+    ],
+    "height_mug_far": [
+      384.81977729200304,
+      421.48168192185517,
+      4956
+    ],
+    "height_sphere_near": [
+      401.21922522260587,
+      410.0634551375151,
+      2422
+    ],
+    "height_sphere_far": [
+      398.6796354758763,
+      414.6313193068065,
+      5014
+    ],
+    "area_cube_near": [
+      137498.55691704227,
+      181961.75387431166,
+      2484
+    ],
+    "area_cube_far": [
+      129575.47837068346,
+      173706.0596095029,
+      5114
+    ],
+    "area_cylinder_near": [
+      124525.0711049818,
+      141377.14700528627,
+      2484
+    ],
+    "area_cylinder_far": [
+      119901.89145744173,
+      139320.97277000238,
+      5114
+    ],
+    "area_mug_near": [
+      120107.87161302255,
+      133499.96319087,
+      2448
+    ],
+    "area_mug_far": [
+      118030.67346350806,
+      129760.91594635039,
+      4956
+    ],
+    "area_sphere_near": [
+      127296.96648394493,
+      135229.55824157828,
+      2422
+    ],
+    "area_sphere_far": [
+      126750.54793479093,
+      135229.55824157828,
+      5014
+    ]
+  },
+  "required_ratio_by_pairing": {
+    "near_cube_far_cube": {
+      "height": 1.1013751869324222,
+      "area": 1.1239795620903974,
+      "binding": 1.1239795620903974
+    },
+    "near_cube_far_cylinder": {
+      "height": 1.0825482606600731,
+      "area": 1.0066052218121746,
+      "binding": 1.0825482606600731
+    },
+    "near_cube_far_mug": {
+      "height": 1.0735270251545723,
+      "area": 0.9714554322655639,
+      "binding": 1.0735270251545723
+    },
+    "near_cube_far_sphere": {
+      "height": 1.0560789373377293,
+      "area": 0.9917146859154691,
+      "binding": 1.0560789373377293
+    },
+    "near_cylinder_far_cube": {
+      "height": 1.1192837265573394,
+      "area": 1.1810793739739551,
+      "binding": 1.1810793739739551
+    },
+    "near_cylinder_far_cylinder": {
+      "height": 1.1001506714025133,
+      "area": 1.0577422448907665,
+      "binding": 1.1001506714025133
+    },
+    "near_cylinder_far_mug": {
+      "height": 1.0909827491408255,
+      "area": 1.0208067944313137,
+      "binding": 1.0909827491408255
+    },
+    "near_cylinder_far_sphere": {
+      "height": 1.073250952578993,
+      "area": 1.0420952479095142,
+      "binding": 1.073250952578993
+    },
+    "near_mug_far_cube": {
+      "height": 1.1013751869324222,
+      "area": 1.2026015211615304,
+      "binding": 1.2026015211615304
+    },
+    "near_mug_far_cylinder": {
+      "height": 1.0825482606600731,
+      "area": 1.0770168887315599,
+      "binding": 1.0825482606600731
+    },
+    "near_mug_far_mug": {
+      "height": 1.0735270251545723,
+      "area": 1.0394083842685027,
+      "binding": 1.0735270251545723
+    },
+    "near_mug_far_sphere": {
+      "height": 1.0560789373377293,
+      "area": 1.0610847652977635,
+      "binding": 1.0610847652977635
+    },
+    "near_sphere_far_cube": {
+      "height": 1.077753087175118,
+      "area": 1.1681495799774333,
+      "binding": 1.1681495799774333
+    },
+    "near_sphere_far_cylinder": {
+      "height": 1.0593299574798167,
+      "area": 1.0461626765491068,
+      "binding": 1.0593299574798167
+    },
+    "near_sphere_far_mug": {
+      "height": 1.0505022078341515,
+      "area": 1.0096315746678555,
+      "binding": 1.0505022078341515
+    },
+    "near_sphere_far_sphere": {
+      "height": 1.0334283435116034,
+      "area": 1.0306869741074849,
+      "binding": 1.0334283435116034
+    }
+  },
+  "deterministic_R": 1.2026015211615304,
+  "binding_pairing": "near_mug_far_cube",
+  "grid": {
+    "depth": 10,
+    "lateral": 4
+  }
+}

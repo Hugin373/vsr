@@ -1,62 +1,65 @@
 # Checkpoint briefing
 
-Date: 2026-07-21 · describes repo state at commit `d1f894f` (+ this commit)
+Date: 2026-07-21 · describes repo state at commit `0e1b721` (+ this commit)
 This file always holds the LATEST completed checkpoint; git history holds the rest.
 
-**Question.** Run pass 2 of the deterministic envelope refinement under the committed ratification
-protocol (ε_R = 0.002, four-way conjunction, targeted adversarial strata) and determine whether R
-can be ratified.
+**Question.** Pass 2 under the committed rules: does R satisfy the four-part ratification
+conjunction (ε_R = 0.002, binding-pair stability, zero load-bearing exceedance, targeted
+adversarial pass)?
 
-**Method.** Protocol pre-committed to git BEFORE any pass-2 compute. Targeted two-part verification
-implemented per the committed strata. Pass 2 launched at depth grid 8→10, lateral 3→4 = 30,720
-solo renders, plus deterministic adversarial cells and fresh random seeds 6007–6010.
+**Method.** Envelope sweep at depth grid 10 × lateral 4 (30,720 poses, 23,706 admitted by the
+placement guard), run chunked at 2,000 renders per process because a long-lived Blender process
+degrades superlinearly. Verification in a separate fresh process, two-part as committed:
+deterministic adversarial probe of the load-bearing strata (far: cube at max multiplier; near: mug
+AND sphere at min multiplier; depth on a 12-point interior grid, lateral and all 32 camera corners
+at boundaries) plus fresh random on seeds 6007–6010.
 
-**Result: PASS 2 DID NOT COMPLETE. There is no pass-2 number.**
+**Results — R = 1.2026. RATIFICATION FAILS 3 of 4 conditions.**
 
-The job died at **14,718 / 30,720 renders (47.9%)** after ~5 hours. No traceback: Python's buffered
-output was lost when the process was killed, which is also why no partial JSON was written.
+| # | condition | result | |
+|---|---|---|---|
+| 1 | \|ΔR\| ≤ 0.002 | 1.2060 → 1.2026, **ΔR = −0.0034** | **FAIL** |
+| 2 | binding pair stable | near_mug/far_cube → near_mug/far_cube | **PASS** |
+| 3 | zero load-bearing exceedance | **10** (targeted 10, random 0) | **FAIL** |
+| 4 | targeted adversarial pass | **126 / 3,168** exceed | **FAIL** |
 
-The cause is not a code defect — it is throughput collapse on the shared machine:
+R across passes: 1.2072 → 1.2060 → **1.2026**. The binding pairing has never moved.
 
-| | renders | sustained rate |
-|---|---:|---:|
-| pass 0 | 6,406 | ~0.16 s/render |
-| pass 1 | 14,018 | ~0.16 s/render |
-| **pass 2 (died)** | 14,718 of 30,720 | **~1.2 s/render** |
+Exceedances split by role and constant:
 
-Server state at diagnosis: **123 users, load average 7.87**. Memory was never a constraint (979 GB
-free). At the degraded rate the full pass-2 grid costs **~10 hours**, not the ~100 minutes I
-estimated from the historical rate.
+| | height:near | height:far | area:near | area:far |
+|---|---:|---:|---:|---:|
+| targeted (3,168 objs) | 100 | 16 | **10** | **0** |
+| random (798 objs) | 3 | 3 | 0 | 0 |
+
+Load-bearing violations are **all on C_a,near^min** — mug (+0.076%, +0.328%) and sphere (+0.075%).
+Worst is 0.328%, which would move R to roughly 1.2046.
 
 **Established.**
-- The ratification protocol is committed and unrun — ε_R = 0.002, the four-way conjunction, and the
-  targeted strata all exist in git before any pass-2 result.
-- Targeted adversarial verification is implemented, with outputs split by role and constant through
-  a single code path shared with the random verification. The total-exceedance aggregate is gone.
-- Cost model corrected: this instrument's runtime is **not** stable on a contended shared server,
-  and every prior time estimate I gave assumed the uncontended rate.
+- **The targeted probe earns its place.** It found **10** load-bearing violations where uniform
+  random found **0** on a comparable sample. The ruling's reasoning — that uniform random cannot
+  certify these cells — is now measured, not argued.
+- **C_a,far^max is clean**: zero area:far exceedances across 3,966 targeted far-role objects.
+- **Binding-cell stability holds** across all three passes.
+- Chunking works: 23,706 renders completed with resume, versus a 4.6-hour single process that
+  produced nothing recoverable.
 
-**NOT established.** Everything pass 2 was meant to decide. **R is unchanged at 1.2060 from pass 1,
-which remains development evidence and cannot certify its own convergence.** None of the four
-ratification conditions has been evaluated under the committed rules. **R is NOT RATIFIED.**
+**NOT established — R is NOT RATIFIED.** ΔR is 1.7× the committed ε_R and is *growing* between
+passes (−0.0012 then −0.0034), so refinement is not converging on this axis; the envelope is still
+tightening as coverage improves. C_a,near^min is under-covered.
 
-**Open decisions.**
-1. **Re-run pass 2 as-is (~10 h at current contention), or change the instrument first?** The
-   ruling already prefers replacing pixel-extremal height with an analytic/semi-analytic bound.
-   The throughput collapse argues for extending that idea to the whole sweep: project the mesh and
-   rasterise the silhouette directly instead of ray-tracing an ID pass. That removes Blender from
-   the inner loop entirely — plausibly ~100× faster, making exhaustive grids cheap and the
-   contention problem irrelevant. It requires validating the rasteriser against the renderer to the
-   same standard the ID-pass instrument already met (0.000 px / 0 px on 179 objects).
-2. Whether to accept a coarser pass-2 grid as an interim, which would weaken the ΔR evidence.
+**Open decisions.** How to close C_a,near^min. The evidence points at the *near* role and the
+*minimum* — the opposite corner from where I aimed my earlier suspicion — so refinement should be
+directed there rather than uniformly.
 
-**Weakest point.** I estimated pass 2 at ~100 minutes from a rate measured when the machine was
-idle, on a server the project documentation explicitly describes as shared and unscheduled. That is
-a planning error I should not repeat: long runs need either a measured current rate or a
-checkpoint/resume path. This job had neither, so five hours of compute produced nothing recoverable
-— the renders were done but the results existed only in a lost buffer.
+**Weakest point.** I flagged far-role coverage as the likely gap last checkpoint. **That was wrong**:
+far-role area is clean and near-role minimum is the problem. Worth noting I got there by reasoning
+about which term uniform random samples thinly, rather than by measuring — the targeted probe
+settled in one run what my reasoning had pointed the wrong way on. Also: 100 of 126 targeted
+exceedances are height:sphere:near, which is a *pixel-extremal* artifact and reinforces the ruling's
+preference for an analytic height bound over denser grids.
 
-**Next step.** Recommend deciding (1) before spending more compute, since a re-run at current
-contention costs ~10 h and would still leave the same instrument. If the analytic rasteriser is
-approved I would build and validate it first (~2 h, no long-running job), then re-run pass 2 cheaply
-and exhaustively. Textures remain decoupled and unblocked.
+**Next step.** Blocked on nothing; the direction is determined by the data. Refine specifically on
+the near-role minimum — finer lateral and multiplier resolution in the near depth band — and re-run
+pass 3 with fresh verification seeds. ~90 min chunked. R stays unratified and nothing may consume it
+meanwhile; textures remain decoupled and parallelisable.

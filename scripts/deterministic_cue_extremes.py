@@ -170,7 +170,22 @@ def sweep(
     mults = [float(m) for m in fcfg.get("size_multipliers", [1.0])]
     lo_lat, hi_lat = (float(v) for v in fcfg["lateral_range"])
     lat_mags = list(np.linspace(lo_lat, hi_lat, lateral_levels))
-    ranges = reachable_ranges(config)
+    # reachable_ranges runs a 4000-scene sampler pass. It is a pure function of (config, the
+    # fixed seeds 7001/7002), so recomputing it in every chunk is pure overhead — ~35% of a
+    # chunked run. Cache it beside the records; caching is exact, not an approximation.
+    ranges = None
+    cache = records_path.with_suffix(".ranges.json") if records_path is not None else None
+    if cache is not None and cache.exists():
+        raw = json.loads(cache.read_text(encoding="utf-8"))
+        ranges = {r: {k: tuple(v) for k, v in d.items()} for r, d in raw.items()}
+        print("  reachable ranges: loaded from cache")
+    if ranges is None:
+        ranges = reachable_ranges(config)
+        if cache is not None:
+            cache.write_text(
+                json.dumps({r: {k: list(v) for k, v in d.items()} for r, d in ranges.items()}),
+                encoding="utf-8",
+            )
     depths = {r: v["depth"] for r, v in ranges.items()}
     union_lo = min(d[0] for d in depths.values())
     union_hi = max(d[1] for d in depths.values())
