@@ -252,7 +252,7 @@ def sweep(
     return {"constants": const, "records": records, "depths": depths, "ranges": ranges}
 
 
-VERIFY_SEEDS = (6001, 6002)   # dedicated; never used for calibration or bound-setting
+VERIFY_SEEDS = (6003, 6004, 6005, 6006)   # fresh; 6001-6002 burnt on inspection
 
 
 def verify_random(config: dict, const: dict, n: int, out_dir: Path) -> dict:

@@ -98,6 +98,22 @@ finished, wait.
    ruled on", say that — an empty next step is a real answer and is more useful than inventing
    work to fill the section.
 
+### Also write it to `reports/checkpoint_briefing.md`
+
+The same briefing goes in the chat **and** into `reports/checkpoint_briefing.md`, **overwritten**
+each time so the file always holds the latest one. This exists so the workflow survives outside the
+chat: from a CLI the file can be read or piped straight to another agent without copying anything
+by hand.
+
+- **Overwrite, never append.** Nothing is lost by overwriting — git history keeps every previous
+  briefing, so the working file stays a clean "current state" and the archive is automatic.
+- **Commit it** in the same commit as the work it describes, so the briefing and the code it
+  reports on can never drift apart.
+- **Head it with the date and the HEAD commit** it describes. The advisor otherwise has no way to
+  tell which repo state a pasted briefing refers to.
+- Chat and file carry the **same content**. If they differ, the file is wrong — it is the one that
+  gets relayed.
+
 ### Rules
 
 - **Self-contained.** Define terms on first use. No repo paths, script names, seed-role
