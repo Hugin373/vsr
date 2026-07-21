@@ -1,0 +1,74 @@
+# M4a-SOLO — Stage 1: single-object stimuli for representation LOCALIZATION.
+#
+# CANONICAL FRAMING (ruled 2026-07-21):
+#   M4a-Solo isolates single-object depth availability without pairwise binding or congruence
+#   machinery. It removes multi-object selection ambiguity, but NOT monocular geometric
+#   confounds. Its role is to localize and characterize candidate depth representations before
+#   testing object binding and relational use in the pair battery.
+#
+# Deliberately ABSENT (these exist only to make a PAIR's apparent-size cues congruent, and are
+# Stage-2 concerns): near/far roles, min_depth_ratio floor, congruence requirement R, depth-ratio
+# targets, category pairing, distractors, target-selection masks.
+experiment: m4a_v1_solo
+seed: 420
+n_images: 480          # 4 cat x 5 depth x 4 x-bin x 3 size x balanced colours
+output:
+  set_name: m4a_v1_solo
+  root: ${DATA_ROOT}/stimuli
+render:
+  engine: CYCLES
+  device: CPU
+  res_x: 512
+  res_y: 512
+  samples: 96
+  denoise: false
+  adaptive_sampling: false
+  cycles_seed: 420
+camera:
+  pos_world: [0.0, -2.5, 1.4]
+  target_world: [0.0, 1.2, 0.35]
+  f_mm: 35.0
+  sensor_width_mm: 36.0
+  jitter:            # frozen j2 envelope, same as the pair battery
+    height_m: [-0.16, 0.16]
+    pos_x_m: [-0.3, 0.3]
+    pos_y_m: [-0.2, 0.2]
+    pitch_deg: [-3.0, 3.0]
+    yaw_deg: [-4.0, 4.0]
+scene:
+  ground_colors:
+    - [0.45, 0.45, 0.48]
+    - [0.38, 0.42, 0.40]
+    - [0.50, 0.46, 0.40]
+    - [0.40, 0.40, 0.46]
+  sun_energy_range: [3.0, 5.5]
+  sun_direction: [5.0, -5.0, 8.0]
+  sun_direction_jitter: 0.6
+objects:
+  categories: [cube, cylinder, mug, sphere]   # the symmetric 4-set
+  size_m_by_category:
+    cube: 0.666
+    cylinder: 0.666
+    mug: 0.9913
+    sphere: 0.809
+  colors:
+    red: [0.80, 0.05, 0.05]
+    green: [0.05, 0.55, 0.10]
+    blue: [0.05, 0.20, 0.80]
+    yellow: [0.85, 0.72, 0.05]
+factors:
+  # camera-frame depth targets, spanning the pair battery's realized range
+  depth_bins: [3.2, 4.0, 4.8, 5.6, 6.4]
+  depth_jitter: 0.25
+  # world-x varied INDEPENDENTLY of depth. NOT centred: centring would remove positional
+  # variation and couple depth to retinal size MORE tightly (correction, 2026-07-21).
+  world_x_bins: [-0.85, -0.30, 0.30, 0.85]
+  world_x_jitter: 0.18
+  # physical size varied INDEPENDENTLY and WIDELY, so retinal size is not a deterministic
+  # function of depth. This is the decoupling lever: v0's pair set had r(depth, retinal) = -0.93,
+  # i.e. depth ~86% predictable from apparent size alone.
+  size_multipliers: [0.70, 1.00, 1.40]
+condition:
+  regime: solo
+  target_frame_margin_px: 6.0
+  target_placement_attempts: 200

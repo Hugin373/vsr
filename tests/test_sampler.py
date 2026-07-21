@@ -435,3 +435,70 @@ def test_constraint_can_be_disabled():
     cfg = {**CONFIG, "constraints": {"unambiguous_ordinal": False}}
     specs = build_scene_specs(cfg, seed=0)
     assert len(specs) == CONFIG["n_images"]  # still produces a full set
+
+
+# ---------------------------------------------------- M4a-SOLO (Stage 1) invariants
+
+
+def test_solo_has_exactly_one_object_and_no_pair_machinery():
+    """Solo scenes carry ONE object and none of the pair-only fields.
+
+    The pair fields exist only to make a PAIR's apparent-size cues congruent; their presence in a
+    solo record would mean the Stage-1 set had inherited Stage-2 machinery it does not need.
+    """
+    from sbind.stimuli.sampler import build_solo_scene_specs
+    from sbind.utils.config import load_config
+
+    cfg = load_config("configs/m4a_v1_solo.yaml")
+    cfg["n_images"] = 60
+    specs = build_solo_scene_specs(cfg, seed=420)
+    assert len(specs) == 60
+    for s in specs:
+        assert len(s.objects) == 1, "solo scenes must contain exactly one object"
+        for pair_only in ("near_category", "far_category", "closer_object", "depth_gap_bin"):
+            assert pair_only not in s.factors, f"{pair_only} is pair-only, not a solo factor"
+        for needed in ("category", "world_x", "physical_size_m", "target_depth"):
+            assert needed in s.factors
+
+
+def test_solo_decouples_depth_from_apparent_size():
+    """Depth must NOT be a near-deterministic function of apparent size (the v0 failure).
+
+    v0's pair set measured r(depth, retinal) = -0.93 — depth ~86% predictable from apparent size
+    alone. Solo varies physical size independently and widely so that coupling is broken. This is
+    the design metric; without it, a 'depth probe' on solo would mostly be reading retinal size.
+
+    ⚠ Solo does NOT remove monocular geometric baselines generally (centroid, bbox, area, height,
+    elevation still predict depth). It removes multi-object SELECTION ambiguity. Elevation (image
+    v) legitimately stays correlated with depth — it is a real monocular cue, controlled by
+    held-out splits and the incremental-value baseline, not by design.
+    """
+    import numpy as np
+
+    from sbind.stimuli import geometry
+    from sbind.stimuli.sampler import build_solo_scene_specs
+    from sbind.utils.config import load_config
+
+    cfg = load_config("configs/m4a_v1_solo.yaml")
+    cfg["n_images"] = 600
+    specs = build_solo_scene_specs(cfg, seed=420)
+    depth, apparent, phys = [], [], []
+    for s in specs:
+        _, R, t, _ = geometry.camera_frame(
+            s.camera.pos_world, s.camera.target_world, s.camera.f_mm,
+            s.camera.sensor_width_mm, s.camera.res_x, s.camera.res_y,
+        )
+        o = s.objects[0]
+        d = float((R @ np.asarray(o.pos_world) + t)[2])
+        depth.append(d)
+        apparent.append(o.size_m / d)
+        phys.append(o.size_m)
+    r_apparent = float(np.corrcoef(depth, apparent)[0, 1])
+    r_phys = float(np.corrcoef(depth, phys)[0, 1])
+    assert r_apparent > -0.80, (
+        f"r(depth, apparent size) = {r_apparent:.3f} is too close to v0's -0.93; depth would be "
+        f"largely readable from apparent size alone"
+    )
+    assert abs(r_phys) < 0.15, (
+        f"physical size must be independent of depth, got r = {r_phys:.3f}"
+    )

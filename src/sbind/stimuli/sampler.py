@@ -607,3 +607,156 @@ def build_scene_specs(
             )
         )
     return specs
+
+
+# =============================================================================================
+# M4a-SOLO — Stage 1: single-object stimuli for representation LOCALIZATION
+# =============================================================================================
+
+
+def build_solo_scene_specs(
+    config: dict,
+    seed: int,
+    raise_on_placement_failure: bool = True,
+    placement_failures: list[dict] | None = None,
+) -> list[SceneSpec]:
+    """One object per image: category x depth x world-x x physical size x camera pose.
+
+    CANONICAL FRAMING (ruled 2026-07-21, use verbatim):
+        M4a-Solo isolates single-object depth availability without pairwise binding or congruence
+        machinery. It removes multi-object selection ambiguity, but NOT monocular geometric
+        confounds. Its role is to localize and characterize candidate depth representations before
+        testing object binding and relational use in the pair battery.
+
+    What solo does NOT need, because these exist only to make a PAIR's apparent-size cues
+    congruent: near/far roles · `min_depth_ratio` floor · the congruence requirement R · depth
+    ratio targets · category pairing · distractors · target-selection masks. The entire
+    floor/envelope/R programme is a Stage-2 concern and is off this path.
+
+    ⚠ WHAT SOLO DOES **NOT** REMOVE (correction, 2026-07-21). Monocular geometric baselines remain
+    and must still be controlled: mask centroid (u, v), bbox position, projected area, apparent
+    height/width, elevation, image-border distance, and camera-pose projection regularities all
+    predict depth from a single object. Solo removes multi-object SELECTION AMBIGUITY, not image
+    geometry.
+
+    ⚠ AND CENTERING WOULD MAKE IT WORSE. Pinning the object to the image centre removes positional
+    variation and thereby couples depth to retinal size MORE tightly. So this sampler deliberately
+    varies world-x, camera translation/pitch/yaw, and PHYSICAL SIZE independently, so that
+    retinal size is not a deterministic function of depth. `r(depth, retinal_size)` is the design
+    metric to report: v0's pair set sat at -0.93, i.e. depth was ~86% predictable from apparent
+    size alone, and that is exactly what solo must avoid re-creating.
+    """
+    rng = np.random.default_rng(seed)
+    n = int(config["n_images"])
+    set_name = config["output"]["set_name"]
+
+    cam_cfg = config["camera"]
+    render_cfg = config["render"]
+    obj_cfg = config["objects"]
+    scene_cfg = config.get("scene", {})
+    cond = config.get("condition", {})
+    fcfg = config["factors"]
+
+    categories = list(obj_cfg["categories"])
+    size_by_cat = _resolve_sizes(obj_cfg, categories)
+    color_items = list(obj_cfg["colors"].items())
+
+    depth_bins = list(fcfg["depth_bins"])            # camera-frame depth targets
+    x_bins = list(fcfg["world_x_bins"])              # world-x, INDEPENDENT of depth
+    size_mults = list(fcfg["size_multipliers"])      # physical size, INDEPENDENT of depth
+    depth_jitter = float(fcfg.get("depth_jitter", 0.0))
+    x_jitter = float(fcfg.get("world_x_jitter", 0.0))
+
+    factors = {
+        "category": list(range(len(categories))),
+        "depth_bin": list(range(len(depth_bins))),
+        "x_bin": list(range(len(x_bins))),
+        "size_mult_bin": list(range(len(size_mults))),
+        "color": list(range(len(color_items))),
+    }
+    balanced_on = list(
+        config.get("balanced_on", ["category", "depth_bin", "x_bin", "size_mult_bin", "color"])
+    )
+    assignments = factorial_assignments(factors, n, rng, balanced_on=balanced_on)
+
+    frame_margin = float(cond.get("target_frame_margin_px", 6.0))
+    max_attempts = int(cond.get("target_placement_attempts", 200))
+
+    specs: list[SceneSpec] = []
+    for i, a in enumerate(assignments):
+        cat = categories[a["category"]]
+        cname, crgb = color_items[a["color"]]
+        mult = float(size_mults[a["size_mult_bin"]])
+        size = size_by_cat[cat] * mult
+        z = _rest_height(cat, size)
+
+        placed = None
+        for attempt in range(max_attempts):
+            camera, camera_record = _jitter_camera(cam_cfg, render_cfg, rng)
+            _, R_cv, t_cv, _ = geometry.camera_frame(
+                camera.pos_world, camera.target_world, camera.f_mm,
+                camera.sensor_width_mm, camera.res_x, camera.res_y,
+            )
+            axis = geometry.optical_axis(R_cv)
+            target_depth = float(depth_bins[a["depth_bin"]]) + rng.uniform(
+                -depth_jitter, depth_jitter
+            )
+            x = float(x_bins[a["x_bin"]]) + rng.uniform(-x_jitter, x_jitter)
+            if abs(float(axis[1])) < 1e-9:
+                continue
+            y = (
+                target_depth - float(t_cv[2]) - float(axis[0]) * x - float(axis[2]) * z
+            ) / float(axis[1])
+            obj = ObjectSpec(f"{cname}_{cat}", cat, list(crgb), size, [x, y, z])
+            box = _projected_box(camera, obj, margin_px=0.0)
+            if box is None or not _box_in_frame(box, camera.res_x, camera.res_y, frame_margin):
+                continue
+            placed = (camera, camera_record, obj, target_depth, x, attempt)
+            break
+
+        if placed is None:
+            if raise_on_placement_failure:
+                raise RuntimeError(
+                    f"could not place solo object after {max_attempts} attempts for "
+                    f"{set_name}_{i:05d}; widen the frame margin or narrow depth/x bins"
+                )
+            if placement_failures is not None:
+                placement_failures.append(
+                    {"image": i, "category": cat, "depth_bin": a["depth_bin"],
+                     "x_bin": a["x_bin"], "size_mult_bin": a["size_mult_bin"]}
+                )
+            continue
+
+        camera, camera_record, obj, target_depth, x, attempt = placed
+        ground_color, sun_energy, sun_direction = _sample_scene_appearance(scene_cfg, rng)
+        factors_record = {
+            "regime": cond.get("regime", "solo"),
+            "category": cat,
+            "color": cname,
+            "depth_bin": a["depth_bin"],
+            "x_bin": a["x_bin"],
+            "size_mult_bin": a["size_mult_bin"],
+            "target_depth": target_depth,
+            "world_x": x,
+            "world_y": float(obj.pos_world[1]),
+            "size_multiplier": mult,
+            "physical_size_m": size,
+            "target_object_indices": [0],
+            "placement_attempt": attempt,
+            "ground_color": list(ground_color),
+            "sun_energy": float(sun_energy),
+            "sun_direction": list(sun_direction),
+            **camera_record,
+        }
+        specs.append(
+            SceneSpec(
+                id=f"{set_name}_{i:05d}",
+                camera=camera,
+                objects=[obj],
+                ground_color=ground_color,
+                sun_energy=sun_energy,
+                sun_direction=sun_direction,
+                factors=factors_record,
+            )
+        )
+    return specs
