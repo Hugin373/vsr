@@ -2077,3 +2077,55 @@ image.
 **DECISIONS OWED:** take the escape hatch? (`…1.95` vs `…2.55`) · if so, re-root on the extended
 envelope, propagate battery-wide, re-derive all constants, re-check z-identifiability · whether the
 margin formula needs revising now that R's noise scale is known (0.0043 vs a 0.005 margin).
+
+## 📌 2026-07-21 — M4a REDIRECT: stop over-constructing the envelope proof, converge empirically
+
+Advisor called it, and it is correct: the front-half M4a rigor SAVED the research (real confounds
+caught — v0 x/z solved from position+size, natural-congruent 100% clamp, six-cat category-predicts-
+ratio, placement/config dead settings, cam-x mistaken as decorrelatable, rejection/role/floor
+mislabels). But the deterministic-envelope-to-zero-exceedance track crossed the optimal stopping
+point: it became a near-formal geometric proof that can extend forever with fast-diminishing
+returns, on a thesis whose question is **where VLM depth information is recoverable / transferable /
+causally usable** — NOT "give a near-complete numerical bound on Blender projected-area extrema".
+
+- **THE KEY FACT that makes stopping safe: the per-scene HARD validator ALREADY EXISTS.**
+  `scripts/validate_stimuli.py:250` fails any natural-congruent scene where
+  `near mask_area <= far mask_area` (realized areas of the actual render). So every scene entering
+  the dataset is already checked for area congruence. The envelope proof was protecting against
+  theoretical poses the generator *could* produce; but any such scene, if produced, is rejected by
+  the validator. The proposed safety net is not something to build — it is built and tested.
+- **The joint-acceptance DEADLOCK dissolves.** The optimizer path existed because no single floor
+  both (a) cleared worst-case area congruence AND (b) passed sampling validity. With per-scene
+  reject-and-resample, use a MODERATE floor optimised for sampling and let the validator reject the
+  rare worst-case violators. Measured (proxy, worst-case requirement, upper bound on true
+  rejection): floor **1.19 → 0.60% rejection, ratio 1.19–1.67 (1.41x)**; 1.20 → 0.20%; 1.2167 →
+  0.00% (1.35x). A ~0.6% rejection for +0.06x dynamic range — a mild engineering trade, not a proof.
+- **CORRECTED PASS STOPPED at 34k/50k renders** (records retained, deterministic/resumable — lost
+  nothing recoverable). Under the redirect its zero-exceedance goal no longer gates anything, and
+  the corrected-baseline **R = 1.2167** (already committed, rebuilt from 64,944 raw poses) is a
+  sufficient estimate to set a conservative floor.
+- **NEW M4a acceptance standard** (empirical, per-scene — replaces full-envelope formal coverage):
+  1. generator has no STRUCTURAL confound (category-role balance, category≠ratio, no always-clamped
+     pairing, adequate dynamic range) — already established;
+  2. REALIZED data passes empirical audits (distributions, B0/B1/B2, held-out object/pose/depth,
+     contact sheet, deterministic annotations/masks);
+  3. PIXELS carry the target (ordinal recoverable, continuous ranking has signal, calibrated
+     magnitude measurable in the main regime) — **Check D, the actual gate**;
+  4. the FEW boundary violations are quantified (rejection rate, realized margins, sensitivity),
+     not proven impossible.
+- **DECISION RULE for any further M4a work:** "if this is not done, would we misread a dataset
+  ARTIFACT as a VLM MECHANISM?" Yes → do it now. Only moves the floor 1.2060→1.2063 → record, add
+  margin, do not block. Only makes the instrument more perfect without changing the realized
+  dataset → defer.
+- **Deterministic envelope sweep DEMOTED** to floor-initialisation / stress-test / diagnostic, and
+  appendix / future benchmark-release methodology. It no longer blocks the main research. All
+  invariants, tests and war-stories are KEPT.
+- ⚠ **ONE WATCH-ITEM for Check D:** reject-and-resample on low ratio biases the realized ratio
+  distribution UPWARD (it cuts the low tail). Measure rejection rate AND post-rejection ratio range;
+  if rejection is ~0.6% the bias is negligible, but it must be reported, not assumed.
+
+**PLAN (adopted):** fix 4-set + 1.95 envelope + conservative floor → per-scene hard-validate,
+reject-and-resample → generate 400/900/900 → report rejection rate, realized congruence margin,
+clamp, ratio range, category balance → **Check D pixel identifiability** → if Check D + main
+sampling gates pass, CLOSE M4a, enter M4b. Floor value (1.19 sampling-optimal vs 1.20 vs 1.2167
+zero-rejection) is the one open design pick.
