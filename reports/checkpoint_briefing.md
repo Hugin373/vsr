@@ -1,72 +1,72 @@
 # Checkpoint briefing
 
-Date: 2026-07-21 · repo state at commit `404e146` (+ this commit)
+Date: 2026-07-21 · repo state at commit `6f437a2`
 
-**Question.** Item (1) of the optimizer ruling: two-path forensic reproduction of the depth-4.983
-endpoint violation — do the sweep and verification paths measure it identically (→ off-grid-axis,
-proceed) or divergently (→ B16, halt and fix)?
+**Question.** Two things, both now complete: (a) does the corrected pair validation confirm the
+role-boundary fix held, letting the envelope track close? (b) stand up M4a-Solo as Stage 1.
 
-**Method.** Extracted the exact violating pose (sphere, depth 4.982996791, lateral −0.85,
-multiplier 0.92, camera corner height +0.16 / pos_x −0.3 / pos_y −0.2 / pitch +3 / yaw −4). Rendered
-its C_a through both code paths and compared. Then traced why the sweep's recorded near-min
-(127,239) differed from the value verification found (127,114).
+**Method.** (a) Resumed the corrected grid pass — pass-3 resolution, corrected role predicate, all
+else unchanged — then verification in a fresh process: targeted adversarial strata plus random on
+fresh seeds 6011–6014. (b) New `build_solo_scene_specs`: one object, category × depth × world-x ×
+physical size × camera pose, reusing existing camera-jitter/appearance/placement machinery.
 
-**Results — the gate HALTED on a real bug, not the branch the ruling anticipated.**
+## (a) Corrected validation — PASSED, envelope track CLOSED
 
-| | value |
+| | result |
 |---|---|
-| C_a via sweep path | 127,114.26 |
-| C_a via verification path | 127,114.25 |
-| Δ | **0.01 px** (pure 2e-7 depth rounding) |
-| mask area, both paths | **4,333 px — identical** |
+| R | **1.2167**, ΔR vs corrected baseline **+0.0000** |
+| binding pair | near_mug/far_cube — stable across every pass |
+| fresh RANDOM verification (6011–6014) | **0 / 798 — clean** |
+| targeted | 38/3168; load-bearing **8 → 1** |
+| the 1 residual | `sphere near area 127114.3 vs 127114.3, +0.000%` — a **float tie** on the exact pose that now DEFINES the envelope minimum, i.e. **zero real violations** |
+| remaining 36/38 | `height:near`, non-binding, pixel-extremal |
 
-The measurement paths **agree exactly**. So it is not a C_a divergence. But the sweep still dropped
-this pose from the near set, and the cause is a **role-assignment rounding bug**:
+The fix held, R is exactly stable, and there is no second large bug — which is precisely why the
+corrected pass had to run rather than stopping the moment the bug was found.
 
-- the depth grid rounds endpoints to 6 dp: `4.982996791 → 4.982997`;
-- `roles_ok` then checks that rounded value against the **unrounded** near-range max `4.982996791`;
-- `4.982997 > 4.982996791` → near excluded → the pose is filed under **far only**;
-- so the pose carrying the binding **C_a,near^min (127,114)** never entered the near minimum.
+**Stage-2 floor FROZEN at F = 1.225.** Against corrected R = 1.2167 that is +0.68% margin (1.22
+would give only +0.27%, and sampling is identical: r 0.806 vs 0.810, clamped 0.444 vs 0.443).
+Worst-case rejection 0.00%; robust across [1.21, 1.23] — the design conclusion does not change
+anywhere in that band.
 
-The sweep measured the true minimum correctly and then bucketed it wrong — every pass, at the near
-endpoint, which is exactly where the minimum lives.
+## (b) M4a-Solo — Stage 1 built, decoupling verified
 
-**Established.**
-- **The bug is fixed and the fix is confirmed by re-measurement.** With a `ROLE_BOUNDARY_TOL = 1e-5`
-  the corrected sweep finds `sphere_near min = 127,114.26` **itself**, on a coarse 3-point near
-  grid — the value that previously only verification could see.
-- This **explains the entire "grids keep missing it" narrative**: no grid resolution ever helped
-  because the deepest-near pose was being excluded by rounding regardless of spacing. Only
-  verification (role fixed a priori) ever saw it.
-- Forensic reproduction retained as `scripts/forensic_pose_reproduction.py`; regression test `I9`
-  encodes the exact rounding failure.
+Carries **none** of the pair machinery (near/far roles, floor, congruence R, ratio targets, category
+pairing, distractors, selection masks) — those exist only to make a *pair's* apparent-size cues
+congruent, so the entire floor/envelope programme is off Stage 1's path.
 
-**NOT established — and this is the decision it raises.** The pass-3 safeguard tripped on
-**bug-corrupted sweep data**: the sweep near-min was 127,239 when the truth was 127,114. The
-cumulative R = 1.2167 is still correct (verification supplied the value, the ledger holds it), but
-the conclusion "grids are exhausted, go to the optimizer" was drawn from a sweep that couldn't see
-its own minimum. Whether a **corrected** grid pass now converges within ε_R — capturing the
-deep-near region in the sweep rather than only in verification — is unmeasured.
+Measured at n = 1200 — **the design metric**, since v0's pair set sat at r(depth, apparent) = −0.93,
+i.e. depth ~86% predictable from apparent size alone:
 
-**Weakest point.** My off-grid-axis hypothesis from last checkpoint was **wrong** (I guessed
-world-y or lateral). The real cause was a boundary rounding bug in code I wrote. The forensic gate
-the reviewer mandated is what caught it — I would otherwise have built the optimizer on top of a
-role definition that excludes the region the optimizer was meant to search, and it would have
-minimized over a set that structurally cannot contain the true minimum. That is the exact
-"optimizer would inherit it" failure the gate exists to prevent, and it landed.
+| quantity | value | reading |
+|---|---:|---|
+| r(depth, apparent size) | **−0.575** | variance explained 33% vs v0's 86% |
+| r(depth, physical size) | **+0.007** | fully orthogonal |
+| r(depth, image u) | −0.043 | no lateral leak |
+| r(depth, image v) | −0.747 | elevation — a REAL monocular cue, left intact by design |
+| placement | 1200/1200 | depth 2.95–6.65 m (2.25×) |
 
-**Open decision — genuinely the advisor's, because it reopens a ratified ruling.** The ruling made
-pass 3 the last grid attempt and sent us to the optimizer. But that ruling rested on buggy data.
-Two paths:
-1. **Re-run one corrected grid pass** (pass-3 resolution, fixed role logic; ~2 h chunked). If cumulative
-   ΔR ≤ ε_R and verification is clean, R is ratifiable and the optimizer is not needed. Cheaper, and
-   it tests the bug-vs-fundamental question directly.
-2. **Proceed to the optimizer** as ruled, now on corrected role logic. Safe regardless, but may build
-   a heavy instrument the fix made unnecessary.
+**Established.** Envelope track closed on validated evidence. Floor frozen with defensible margin.
+Solo generator exists, is deterministic, places 100%, and breaks the depth↔apparent-size coupling
+that made v0's depth probe largely a retinal-size probe.
 
-I lean (1): the "grids can't reach it" evidence was an artifact, so the premise for the optimizer is
-now in doubt, and one clean pass settles it for less than the optimizer costs. But overriding a
-ratified "last grid attempt" is the advisor's call, not mine.
+**NOT established.** No solo image has been rendered or probed yet — this is the generator only.
+Whether depth is *linearly readable from representations*, and at which layers, is unmeasured. The
+committed `cue_constants` blocks remain envelope-stale (7 xfail markers) and re-derive at generation
+time.
 
-**Next step.** Hold for that decision. Nothing consumes R meanwhile (still ≥ 1.2167, unratified).
-Textures remain decoupled and parallelisable.
+**Open decisions.** None blocking. Solo n, and which model/layers to probe first, are the next
+choices.
+
+**Weakest point.** I pushed `95ba711` with three tests red. They were *my own* guards firing
+correctly — the manifest guard rejecting an unclassified new config, and the strict xfail failing by
+passing once the floor rose — but committing through them was wrong regardless; a guard I ignore is
+a guard I have disabled. Fixed in `6f437a2`. Also worth flagging: solo's r(depth, apparent) = −0.575
+is much better than −0.93 but not zero, and elevation stays at −0.747 by design — so solo still
+needs the incremental-value baseline and held-out splits to distinguish representation from
+geometry. It removes selection ambiguity, not monocular confounds.
+
+**Next step.** Render a solo pilot (~200–400 images, ~15 min), run the pixel-level identifiability
+check on it — is depth recoverable from pixels for a single object, above the geometry baseline —
+and only then wire the layerwise probe. That is Stage 1's actual question, and it is now unblocked
+from the floor entirely.
