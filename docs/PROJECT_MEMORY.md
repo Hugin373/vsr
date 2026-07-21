@@ -2129,3 +2129,64 @@ reject-and-resample → generate 400/900/900 → report rejection rate, realized
 clamp, ratio range, category balance → **Check D pixel identifiability** → if Check D + main
 sampling gates pass, CLOSE M4a, enter M4b. Floor value (1.19 sampling-optimal vs 1.20 vs 1.2167
 zero-rejection) is the one open design pick.
+
+## 📌 2026-07-21 — ENVELOPE TRACK CLOSED (validated) · M4a-SOLO approved as Stage 1
+
+### Corrected validation PASSED — the fix held, instrument closed
+
+Final instrument validation (resumed after the redirect, because stopping immediately after finding
+the role-boundary bug without verifying the repair would have been its own hazard):
+
+| | result |
+|---|---|
+| R | **1.2167**, ΔR vs corrected baseline = **+0.0000** |
+| binding pair | near_mug/far_cube, stable across every pass |
+| fresh RANDOM verification (6011–6014) | **0 / 798 — completely clean** |
+| targeted | 38/3168, load-bearing **8 → 1** |
+| the 1 residual | `sphere near area 127114.3 vs 127114.3, +0.000%` — a **float tie** on the exact pose that now DEFINES the envelope minimum, i.e. zero real violations |
+| remaining 36/38 | `height:near` — non-binding, pixel-extremal |
+
+So the role-boundary fix held, R is exactly stable, and there is no second large bug. **Envelope
+track CLOSED** and demoted to diagnostic/appendix. **Stage-2 operating floor FROZEN at F = 1.22**
+(0.00% worst-case rejection, sampling r = 0.810 ≥ 0.70, clamped 0.443 ≤ 0.55, robust across
+[1.21, 1.23] — the design conclusion does not change anywhere in that band).
+
+### M4a-SOLO approved as Stage 1 — with TWO corrections to my overclaims
+
+**Canonical framing (ruled, use verbatim):**
+> M4a-Solo isolates single-object depth availability without pairwise binding or congruence
+> machinery. It removes multi-object selection ambiguity, but **not** monocular geometric
+> confounds. Its role is to localize and characterize candidate depth representations before
+> testing object binding and relational use in the pair battery.
+
+- 🔴 **CORRECTION 1 — I wrote "with one centered object there is no B0 leakage at all". WRONG.**
+  Solo removes multi-object *selection ambiguity* and distractor-induced leakage. It does NOT
+  remove image geometry: mask centroid (u,v), bbox position, projected area, apparent height/width,
+  elevation, border distance and camera-pose projection regularities still predict depth from a
+  single object. **Worse, centering the object would make it worse** — removing positional variation
+  couples depth to retinal size MORE tightly. So solo must vary world-x independently, vary camera
+  translation/pitch, and vary physical size independently so depth and retinal size are partially
+  DECOUPLED.
+- 🔴 **CORRECTION 2 — I wrote "if solo can't decode depth, pair binding is hopeless". TOO STRONG.**
+  That is practical triage, not a scientific conclusion. A solo linear-probe failure can mean depth
+  absent · depth nonlinear · too few samples · wrong pooling · cue-relative encoding · or depth
+  forming only in multi-object comparison. Correct form: *if solo fails under multiple reasonable
+  readouts AND positive controls, the prior for pair-level metric-depth probing drops
+  substantially, and representation/readout should be diagnosed first — not pair reasoning declared
+  impossible.* Conversely solo success does NOT prove pair binding.
+
+**Two probe targets, never conflated:** (A) scene-level availability `h_l^global → z` — is depth in
+that layer at all; (B) object-localized availability `h_l^object → z` (mask-pooled tokens) — is it
+concentrated in the object's representation. Global success ≠ object-centric representation.
+
+**Baseline gate = incremental value** `Δ_R|B = S(B ∪ R) − S(B)`, reported in three layers:
+simple geometry baseline `B_geom = {u, v, bbox, area, height, width}` · a stronger pixel baseline ·
+the model increment. ⚠ Camera parameters are an **oracle diagnostic only**, not a fair main pixel
+baseline — the model never sees explicit camera metadata.
+
+**Stage split:** M4a-Solo = representation availability · M4a-Pair = binding, ordinal, ratio, cue
+fusion · M4a-Distractor = selector robustness under clutter, **extension not blocker**.
+
+**Execution order (ruled):** (1) corrected pair validation done, F = 1.22 frozen ✅ → (2) implement
+small solo sampler → (3) run solo pixel identifiability + layerwise probe → (4) let solo results
+choose which layers/readouts the pair stage pursues → (5) distractor robustness last.
