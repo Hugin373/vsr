@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 from sbind.stimuli.render_bpy import render_scene
-from sbind.stimuli.sampler import build_scene_specs
+from sbind.stimuli.sampler import build_scene_specs, build_solo_scene_specs
 from sbind.utils.config import load_config, run_metadata
 from sbind.utils.io import ensure_dir, read_jsonl, write_json, write_jsonl
 from sbind.utils.logging import get_logger
@@ -37,7 +37,14 @@ def main() -> int:
     set_name = config["output"]["set_name"]
     out_dir = ensure_dir(Path(config["output"]["root"]) / set_name)
 
-    specs = build_scene_specs(config, seed)
+    # M4a-Solo (Stage 1) uses a different sampler: one object, no near/far roles, no congruence
+    # floor. Dispatch on the declared regime rather than sniffing the factor keys.
+    regime = (config.get("condition") or {}).get("regime")
+    if regime == "solo":
+        log.info("regime=solo -> single-object sampler (no pair/congruence machinery)")
+        specs = build_solo_scene_specs(config, seed)
+    else:
+        specs = build_scene_specs(config, seed)
     if args.limit is not None:
         specs = specs[: args.limit]
 
