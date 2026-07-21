@@ -84,3 +84,86 @@ changes across the projector, object-local vs global readout. **Localization, no
 evidence.**
 **Pair** = binding to the correct object, ordinal/ratio comparison, cue-conflict fusion, causal use.
 **Distractor** = selector robustness under clutter; extension, not blocker.
+
+---
+
+# AMENDMENT 2026-07-21 — 1,200 render HALTED; camera-envelope calibration first
+
+Smoke test (n=200, rendered) found a design problem that would change Stage-1 interpretation:
+
+$$R^2(B0_{\text{position}}) = 0.799$$
+
+Object image position alone explains ~80% of depth variance. Not a pipeline failure, but it makes a
+layerwise probe unable to separate *"the model represents depth"* from *"the model represents the
+object's vertical image position"*.
+
+## Renamed taxonomy for SOLO (the old name was wrong)
+
+`B0 selection` is a misnomer here — there is no multi-object selection in a solo set. It measures
+projected-position / localization geometry. Solo reports:
+
+| name | contents |
+|---|---|
+| **B0_position** | centroid (u, v), ground-contact point, bbox location, border distances |
+| **B1_appearance** | retinal size, height/width, mask area |
+| **B2_semantic** | category, physical size, size multiplier |
+
+Keeping "selection" would permanently conflate two different problems: multi-object target
+selection (a Pair concern) versus single-object position↔depth projection coupling (this one).
+
+## TWO claims, reported separately — never merged into one verdict
+
+**Claim A — is depth-related information linearly retained?** Does not require beating monocular
+cues; the model may legitimately build depth *from* elevation and retinal size.
+$$\Delta_{H\mid B0,B2} = S(B0 \cup B2 \cup H) - S(B0 \cup B2)\qquad\text{headroom } 1-0.896 = 0.104$$
+
+**Claim B — does the representation exceed explicit monocular geometry?** Stronger.
+$$\Delta_{H\mid B0,B1,B2}\qquad\text{headroom } 1-0.954 = 0.046$$
+
+Always report **three** numbers: raw $H_l \to z$ · $\Delta_{H|B0,B2}$ · $\Delta_{H|B0,B1,B2}$.
+Merging them into a single "depth representation succeeded/failed" is prohibited.
+
+## PRE-COMMITTED acceptance targets (fixed BEFORE any candidate is rendered)
+
+```
+HARD      R²(B0_position)        ≤ 0.60
+DESIRABLE R²(B0 ∪ B2)            ≤ 0.70     (leaves ≳0.30 raw headroom)
+DESIRABLE R²(B0 ∪ B1 ∪ B2)       ≤ 0.90     (else Claim B is untestable)
+```
+
+B1 is *not* required to be low — it is real depth evidence. The goal is **no single cue nearly
+solves depth**, not zero correlation.
+
+## Calibration protocol — small, rendered, not analytic
+
+The analytic proxy already proved unreliable (−0.575 → −0.705 rendered; −0.747 → −0.882), so every
+candidate is judged on **rendered silhouette and ground-contact measurements**. 3–4 candidate camera
+envelopes, 200–300 images each: current · wider pitch · wider height · wider pitch+height.
+
+Per candidate measure: R²(B0_position) · R²(B1) · R²(B0∪B2) · R²(B0∪B1∪B2) · r(z, retinal) ·
+r(z, image v) · placement failures · truncation · depth-range coverage · category-conditioned
+balance.
+
+⚠ **Widening range alone may not fix it.** The direct check is the overlap of
+$p(v_{\text{image}} \mid z\text{ bin})$: if depth bins remain separable by image v, more jitter has
+not solved the coupling and the fix is **stratified / rejection balancing over depth-bin × image-
+position cells**. Calibrate first; do not build a complex sampler up front.
+
+## Solo need NOT share the pair camera envelope
+
+Solo is a localization diagnostic; Pair is binding/ratio/fusion. Two subsets:
+
+- **Solo-Orthogonalized** — wider camera variation, the main layerwise depth-localization data.
+- **Solo-Pair-Matched** — pair envelope, a SMALLER control subset checking whether the stage pattern
+  transfers to a pair-like visual distribution.
+
+Only the orthogonalized set needs the full n.
+
+## What the smoke test does and does not establish
+
+**Does:** solo pipeline works end-to-end · validator handles single-object sets · annotations match
+metadata exactly · B2 does not leak (R² = −0.015) · physical size orthogonal to depth · retinal
+coupling improved over v0.
+
+**Does NOT:** that solo provides a clean depth-representation test · that position leakage is
+removed · that the current design has enough headroom for a strong incremental claim.
