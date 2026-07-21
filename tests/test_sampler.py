@@ -512,12 +512,15 @@ def test_solo_decouples_depth_from_apparent_size():
     )
 
 
-def test_solo_shares_the_frozen_camera_envelope():
-    """Solo must use the SAME camera-jitter envelope as the pair battery.
+def test_solo_orthogonalized_widens_the_camera_envelope_deliberately():
+    """Solo-Orthogonalized must be WIDER than the pair envelope on pitch and height.
 
-    Solo is exempt from the pair frozen block (no depth_gaps / near_depth_bins / floor — those
-    exist only for pair congruence). But the camera envelope must match, or Stage-1 and Stage-2
-    are measured under different pose statistics and their layer results are not comparable.
+    Reversed 2026-07-21 after calibration. The earlier version asserted solo SHARED the pair
+    envelope for comparability. Measured, that envelope leaves projected position explaining ~80%
+    of depth variance (R2(B0) = 0.813) and depth bins nearly separable by image v (p(v|z) overlap
+    0.067) — Stage 1 would largely re-discover image elevation. Solo is a localization diagnostic,
+    not a matched arm, so it is released from the pair envelope; a smaller Solo-Pair-Matched subset
+    covers distribution transfer instead.
     """
     from sbind.utils.config import load_config
 
@@ -525,8 +528,13 @@ def test_solo_shares_the_frozen_camera_envelope():
         cfg = load_config(path)
         jitter = cfg["camera"]["jitter"]
         assert set(jitter) == set(FROZEN_CAMERA_JITTER), f"{path}: camera jitter keys diverge"
-        for key, want in FROZEN_CAMERA_JITTER.items():
-            assert [float(v) for v in jitter[key]] == want, f"{path}: camera jitter {key}"
+        for axis in ("pitch_deg", "height_m"):
+            solo_span = float(jitter[axis][1]) - float(jitter[axis][0])
+            pair_span = FROZEN_CAMERA_JITTER[axis][1] - FROZEN_CAMERA_JITTER[axis][0]
+            assert solo_span > pair_span, (
+                f"{path}: {axis} span {solo_span} must EXCEED the pair envelope's {pair_span} — "
+                f"that widening is what breaks the position/depth coupling"
+            )
         # and it must NOT carry the pair-only factors
         for pair_only in ("near_depth_bins", "depth_gaps"):
             assert pair_only not in cfg["factors"], f"{path}: {pair_only} is pair-only"

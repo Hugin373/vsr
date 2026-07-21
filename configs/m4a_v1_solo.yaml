@@ -9,11 +9,11 @@
 # Deliberately ABSENT (these exist only to make a PAIR's apparent-size cues congruent, and are
 # Stage-2 concerns): near/far roles, min_depth_ratio floor, congruence requirement R, depth-ratio
 # targets, category pairing, distractors, target-selection masks.
-experiment: m4a_v1_solo
+experiment: m4a_v1_solo_orth
 seed: 420
-n_images: 480          # 4 cat x 5 depth x 4 x-bin x 3 size x balanced colours
+n_images: 1200          # 4 cat x 5 depth x 4 x-bin x 3 size x balanced colours
 output:
-  set_name: m4a_v1_solo
+  set_name: m4a_v1_solo_orth
   root: ${DATA_ROOT}/stimuli
 render:
   engine: CYCLES
@@ -29,11 +29,20 @@ camera:
   target_world: [0.0, 1.2, 0.35]
   f_mm: 35.0
   sensor_width_mm: 36.0
-  jitter:            # frozen j2 envelope, same as the pair battery
-    height_m: [-0.16, 0.16]
+  # SOLO-ORTHOGONALIZED envelope (calibrated 2026-07-21, adopted). Deliberately WIDER than the
+  # pair battery on pitch and height: solo is a localization diagnostic, and the pair envelope left
+  # projected position explaining ~80% of depth variance. Calibration (4 candidates, 300 rendered
+  # images each, targets pre-committed at 3c44222):
+  #   current            R2(B0)=0.813  p(v|z) overlap 0.067   <- depth bins nearly separable by v
+  #   wider_pitch        R2(B0)=0.517  overlap 0.350
+  #   wider_height       R2(B0)=0.581  overlap 0.333
+  #   wider_pitch_height R2(B0)=0.468  overlap 0.450          <- ADOPTED, passes HARD <= 0.60
+  # Zero placement failures and zero truncation; depth range preserved (2.96-6.62 m).
+  jitter:
+    height_m: [-0.60, 0.60]
     pos_x_m: [-0.3, 0.3]
     pos_y_m: [-0.2, 0.2]
-    pitch_deg: [-3.0, 3.0]
+    pitch_deg: [-9.0, 9.0]
     yaw_deg: [-4.0, 4.0]
 scene:
   ground_colors:
