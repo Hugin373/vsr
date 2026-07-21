@@ -62,7 +62,14 @@ generated:
   natural_congruent:
     categories: [cube, cylinder, mug, sphere]
     symmetric: true                 # pairings = C x C, all 16
-    min_depth_ratio: 1.1707         # UNIFORM over the retained set; per-pair floors are rejected
+    min_depth_ratio: 1.225         # UNIFORM over the retained set; per-pair floors are rejected
+    floor_frozen_utc: '2026-07-21'
+    floor_rationale: >
+      Stage-2 OPERATING floor. Corrected cumulative R = 1.2167 (envelope track closed, validated);
+      1.225 carries +0.68% margin. Sampling stays inside its bars (r = 0.806 >= 0.70, clamped
+      0.444 <= 0.55) and worst-case rejection is 0.00%. Chosen under the empirical standard: the
+      per-scene hard validator rejects any non-congruent scene, so the floor needs a defensible
+      margin, not a formal proof of universal sufficiency.
     rationale: >
       Largest symmetric subset whose worst-case area-congruence requirement (1.1176) leaves a
       usable ratio range below the design's available maximum (1.4737). Uniform floor keeps

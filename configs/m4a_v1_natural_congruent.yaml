@@ -116,7 +116,7 @@ factors:
 constraints:
   unambiguous_ordinal: true
   ordinal_margin_m: 0.15
-  min_depth_ratio: 1.22   # Stage-2 operating floor, frozen 2026-07-21
+  min_depth_ratio: 1.225   # Stage-2 operating floor, frozen 2026-07-21 (corrected R=1.2167, margin +0.68%)
   min_depth_ratio_jitter: 0.08
 condition:
   target_bbox_margin_px: 14.0

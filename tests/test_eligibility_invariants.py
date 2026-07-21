@@ -13,6 +13,7 @@ reachable without the renderer (§5 boundary).
 
 from __future__ import annotations
 
+import pathlib
 from collections import Counter
 
 import pytest
@@ -208,32 +209,28 @@ def test_ratio_log_does_not_perturb_the_output():
 # ------------------------------------------------------- known blocker, self-destructing
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "BLOCKER 2026-07-20, awaiting ratification. natural-congruent's PRE-REGISTERED floor is "
-        "1.1707, but re-deriving the cue constants over the regime's OWN 4-set envelope gives a "
-        "worst-case area-congruence requirement of 1.1761 — the floor is short by 0.46%. The "
-        "1.1707 came from constants measured on the SIX-category envelope, which this regime no "
-        "longer generates. A self-consistent floor is 1.2320 (requirement re-measures to 1.1601 "
-        "there, +6.20% headroom), at a real cost: r(ratio, depth_gap_bin) 0.75 -> 0.50 and "
-        "clamped_fraction 0.50 -> 0.72. Changing a pre-registered value is a ratification "
-        "decision, not a fix to apply unilaterally, so the config still carries 1.1707 and this "
-        "test records the violation. strict=True: it FAILS the moment the floor is raised, forcing "
-        "this marker to be removed rather than left behind."
-    ),
-)
-def test_congruent_floor_clears_its_own_committed_requirement():
-    """A regime claiming area congruence must have a floor above its own derived requirement.
+def test_congruent_floor_clears_the_corrected_cumulative_requirement():
+    """The operating floor must clear the CORRECTED CUMULATIVE R, not a per-sweep estimate.
 
-    The requirement is read from the `cue_constants` block committed in the config, so this cannot
-    drift out of sync with the constants themselves.
+    Resolved 2026-07-21. This was a strict xfail recording the blocker that floor 1.1707 sat below
+    its own requirement; the envelope track then closed with corrected cumulative R = 1.2167 and
+    the floor was frozen at 1.225 (+0.68%). The marker is removed because it did its job — it was
+    written to fail the moment the floor was raised.
+
+    The gate reads the corrected LEDGER, not the config's `cue_constants` block: the ledger is the
+    operative source (a union over every evaluated pose, monotone non-decreasing), while the
+    config block is provenance-stamped to one sweep and can be older.
     """
+    import json
+
     cfg = load_config("configs/m4a_v1_natural_congruent_pilot.yaml")
     floor = cfg["constraints"]["min_depth_ratio"]
-    required = cfg["cue_constants"]["binding_ratio_threshold"]
+    ledger = json.loads(
+        pathlib.Path("reports/m4a_corrected_baseline_ledger.json").read_text(encoding="utf-8")
+    )
+    required = ledger["corrected_baseline_R"]
     assert floor > required, (
-        f"floor {floor} does not clear the derived worst-case requirement {required} — area "
+        f"floor {floor} does not clear the corrected cumulative requirement {required} — area "
         f"congruence is a HARD validator check for this regime"
     )
 

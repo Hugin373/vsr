@@ -177,6 +177,13 @@ M4A_CONFIG_MANIFEST = (
 # config: it has no `factors` / `camera` block, so the frozen-generator fields do not apply.
 M4A_NON_STIMULUS_CONFIGS = ("configs/m4a_v1_size_calibration.yaml",)
 
+# M4a-SOLO (Stage 1) configs. Stimulus configs, but NOT pair configs: they deliberately carry no
+# near_depth_bins / depth_gaps / min_depth_ratio, because those exist only to make a PAIR's
+# apparent-size cues congruent. The pair frozen-generator block therefore does not apply to them.
+# They DO share the camera-jitter envelope, so the two arms are comparable in pose statistics —
+# that part is checked separately in test_solo_shares_the_frozen_camera_envelope.
+M4A_SOLO_CONFIGS = ("configs/m4a_v1_solo.yaml",)
+
 # The canonical frozen generator block (2026-07-18 §4 freeze). Every M4a stimulus config must
 # carry it, so a regime differs from another ONLY in its condition/constraints, never in its
 # camera envelope, depth bins or placement budget.
@@ -207,13 +214,14 @@ def test_m4a_config_manifest_matches_disk():
     import glob
 
     discovered = sorted(glob.glob("configs/m4a_v1_*.yaml"))
-    expected = sorted(M4A_CONFIG_MANIFEST + M4A_NON_STIMULUS_CONFIGS)
+    expected = sorted(M4A_CONFIG_MANIFEST + M4A_NON_STIMULUS_CONFIGS + M4A_SOLO_CONFIGS)
     assert discovered == expected, (
         f"M4a config set changed.\n  on disk but not in manifest: "
         f"{sorted(set(discovered) - set(expected))}\n  in manifest but not on disk: "
         f"{sorted(set(expected) - set(discovered))}\n"
-        f"Add it to M4A_CONFIG_MANIFEST (frozen generator block applies) or to "
-        f"M4A_NON_STIMULUS_CONFIGS (it is not a stimulus config)."
+        f"Add it to M4A_CONFIG_MANIFEST (pair config, frozen generator block applies), "
+        f"M4A_SOLO_CONFIGS (Stage-1 solo config, no pair block), or "
+        f"M4A_NON_STIMULUS_CONFIGS (not a stimulus config)."
     )
 
 
@@ -502,3 +510,26 @@ def test_solo_decouples_depth_from_apparent_size():
     assert abs(r_phys) < 0.15, (
         f"physical size must be independent of depth, got r = {r_phys:.3f}"
     )
+
+
+def test_solo_shares_the_frozen_camera_envelope():
+    """Solo must use the SAME camera-jitter envelope as the pair battery.
+
+    Solo is exempt from the pair frozen block (no depth_gaps / near_depth_bins / floor — those
+    exist only for pair congruence). But the camera envelope must match, or Stage-1 and Stage-2
+    are measured under different pose statistics and their layer results are not comparable.
+    """
+    from sbind.utils.config import load_config
+
+    for path in M4A_SOLO_CONFIGS:
+        cfg = load_config(path)
+        jitter = cfg["camera"]["jitter"]
+        assert set(jitter) == set(FROZEN_CAMERA_JITTER), f"{path}: camera jitter keys diverge"
+        for key, want in FROZEN_CAMERA_JITTER.items():
+            assert [float(v) for v in jitter[key]] == want, f"{path}: camera jitter {key}"
+        # and it must NOT carry the pair-only factors
+        for pair_only in ("near_depth_bins", "depth_gaps"):
+            assert pair_only not in cfg["factors"], f"{path}: {pair_only} is pair-only"
+        assert "min_depth_ratio" not in (cfg.get("constraints") or {}), (
+            f"{path}: min_depth_ratio is a pair-congruence device, not a solo parameter"
+        )
