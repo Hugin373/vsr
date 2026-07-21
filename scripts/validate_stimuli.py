@@ -412,13 +412,24 @@ def main() -> int:
         f"p10={np.percentile(retinal_arr, 10):.1f} p90={np.percentile(retinal_arr, 90):.1f} "
         f"| {in_band:.0f}% in [{args.retinal_lo:.0f},{args.retinal_hi:.0f}]"
     )
-    print(
-        f"  depth ratio: median={np.median(ratio_arr):.2f} "
-        f"range=[{ratio_arr.min():.2f},{ratio_arr.max():.2f}]"
-    )
-    print(f"  depth continuity: {len(near_depths)}/{n} unique near depths")
-    print(f"  answer balance (centre):  {dict(closer_key)}")
-    print(f"  answer balance (surface): {dict(surface_key)}")
+    # SOLO sets (M4a-Solo, Stage 1) have one object per image, so every PAIR statistic below is
+    # undefined — there is no near/far role, no depth ratio, and no closer-object answer key.
+    # Guard rather than crash: the per-object checks above (geometry, masks, amodal, retinal
+    # distribution) are the ones that apply, and they already ran. Found by the solo smoke test.
+    if ratio_arr.size:
+        print(
+            f"  depth ratio: median={np.median(ratio_arr):.2f} "
+            f"range=[{ratio_arr.min():.2f},{ratio_arr.max():.2f}]"
+        )
+        print(f"  depth continuity: {len(near_depths)}/{n} unique near depths")
+        print(f"  answer balance (centre):  {dict(closer_key)}")
+        print(f"  answer balance (surface): {dict(surface_key)}")
+    else:
+        print("  depth ratio / answer balance: N/A — single-object set (no near/far pair)")
+        solo_depths = sorted({
+            round(float(o["depth_m"]), 6) for a in anns for o in a["objects"]
+        })
+        print(f"  depth continuity: {len(solo_depths)}/{n_objects} unique object depths")
     if fails["distractor_occlusion_ratio_nonzero"]:
         print(
             "  distractor occlusion: "
