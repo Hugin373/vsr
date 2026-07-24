@@ -1,72 +1,72 @@
 # Checkpoint briefing
 
-Date: 2026-07-21 · repo state at commit `6f437a2`
+Date: 2026-07-21 · repo state at commit `cb8df2e` (+ this commit)
 
-**Question.** Two things, both now complete: (a) does the corrected pair validation confirm the
-role-boundary fix held, letting the envelope track close? (b) stand up M4a-Solo as Stage 1.
+**Question.** Render the 1,200-image Solo-Orthogonalized set, confirm the calibrated envelope holds
+on real rendered data, and measure the baselines the Stage-1 probe will be judged against.
 
-**Method.** (a) Resumed the corrected grid pass — pass-3 resolution, corrected role predicate, all
-else unchanged — then verification in a fresh process: targeted adversarial strata plus random on
-fresh seeds 6011–6014. (b) New `build_solo_scene_specs`: one object, category × depth × world-x ×
-physical size × camera pose, reusing existing camera-jitter/appearance/placement machinery.
+**Method.** 1,200 images rendered (34 min, 1.70 s/img), full validator, then B0/B1/B2 baselines with
+5-fold CV ridge, fold-level SD reported, and the held-out splits the probe is specified to use. The
+baseline taxonomy was validated by its own instrument checks before any fit.
 
-## (a) Corrected validation — PASSED, envelope track CLOSED
+## Render and baselines — as designed
 
-| | result |
-|---|---|
-| R | **1.2167**, ΔR vs corrected baseline **+0.0000** |
-| binding pair | near_mug/far_cube — stable across every pass |
-| fresh RANDOM verification (6011–6014) | **0 / 798 — clean** |
-| targeted | 38/3168; load-bearing **8 → 1** |
-| the 1 residual | `sphere near area 127114.3 vs 127114.3, +0.000%` — a **float tie** on the exact pose that now DEFINES the envelope minimum, i.e. **zero real violations** |
-| remaining 36/38 | `height:near`, non-binding, pixel-extremal |
+**Validator: ALL CHECKS GREEN.** 1200/1200 unique depths, retinal median 88 px (61% in the 60–120
+band). Taxonomy check passed: max cross-group reconstruction R² = 0.9478 (< 0.995 threshold).
 
-The fix held, R is exactly stable, and there is no second large bug — which is precisely why the
-corrected pass had to run rather than stopping the moment the bug was found.
+| baseline | R² (5-fold) | fold SD |
+|---|---:|---:|
+| B0_position | **0.486** | 0.060 |
+| B1_appearance | 0.483 | 0.025 |
+| B2_semantic | **−0.004** | 0.002 |
+| **B0 ∪ B2 — Claim A baseline** | **0.868** | 0.018 |
+| B0∪B1∪B2 — Claim B baseline | 0.949 | 0.005 |
 
-**Stage-2 floor FROZEN at F = 1.225.** Against corrected R = 1.2167 that is +0.68% margin (1.22
-would give only +0.27%, and sampling is identical: r 0.806 vs 0.810, clamped 0.444 vs 0.443).
-Worst-case rejection 0.00%; robust across [1.21, 1.23] — the design conclusion does not change
-anywhere in that band.
+B0 = 0.486 on rendered data confirms the 300-image calibration (0.468) and passes the pre-committed
+hard target (≤ 0.60). B2 is dead. **Claim A headroom = 0.132** (calibration predicted 0.156 — the
+real value is slightly worse, as the rendered numbers have been every time).
 
-## (b) M4a-Solo — Stage 1 built, decoupling verified
+## 🔴 The held-out splits as specified are UNUSABLE
 
-Carries **none** of the pair machinery (near/far roles, floor, congruence R, ratio targets, category
-pairing, distractors, selection masks) — those exist only to make a *pair's* apparent-size cues
-congruent, so the entire floor/envelope programme is off Stage 1's path.
+| split | R² | fold SD |
+|---|---:|---:|
+| held-out size multiplier | 0.766 | 0.120 |
+| held-out category | 0.097 | **1.213** |
+| **held-out depth bin** | **−15.130** | 13.129 |
 
-Measured at n = 1200 — **the design metric**, since v0's pair set sat at r(depth, apparent) = −0.93,
-i.e. depth ~86% predictable from apparent size alone:
+Diagnosed to **two compounding causes, both design flaws in the split rather than model failures:**
 
-| quantity | value | reading |
-|---|---:|---|
-| r(depth, apparent size) | **−0.575** | variance explained 33% vs v0's 86% |
-| r(depth, physical size) | **+0.007** | fully orthogonal |
-| r(depth, image u) | −0.043 | no lateral leak |
-| r(depth, image v) | −0.747 | elevation — a REAL monocular cue, left intact by design |
-| placement | 1200/1200 | depth 2.95–6.65 m (2.25×) |
+1. **Extrapolation at the extremes.** Holding out depth bin 0 or 4 removes the end of the training
+   range entirely — R² = −30.4 and −33.7 — because a linear model must extrapolate beyond every
+   depth it has seen.
+2. **A metric artifact that hits even the interior bins.** R² within one held-out bin is computed
+   against *that bin's* variance, and each bin's depth SD is only ~0.15 m against the full set's
+   1.14 m. So a model predicting depth well in absolute terms still scores hugely negative:
+   interior bins give −7.6, −5.0, −4.6. **Interior-only holdout does not fix this.**
 
-**Established.** Envelope track closed on validated evidence. Floor frozen with defensible margin.
-Solo generator exists, is deterministic, places 100%, and breaks the depth↔apparent-size coupling
-that made v0's depth probe largely a retinal-size probe.
+Held-out category is separately unstable — 4 groups, fold SD 1.213, so the aggregate 0.097 hides
+folds that are catastrophically bad.
 
-**NOT established.** No solo image has been rendered or probed yet — this is the generator only.
-Whether depth is *linearly readable from representations*, and at which layers, is unmeasured. The
-committed `cue_constants` blocks remain envelope-stale (7 xfail markers) and re-derive at generation
-time.
+**Established.** The stimulus set is rendered, valid, and has the intended baseline structure. The
+envelope decision transfers from calibration to full rendered data.
 
-**Open decisions.** None blocking. Solo n, and which model/layers to probe first, are the next
-choices.
+**NOT established.** Nothing about representations. And the probe's evaluation protocol is not yet
+sound — reporting Δ = S(B∪H) − S(B) where both terms are ≈ −5 to −30 would be meaningless.
 
-**Weakest point.** I pushed `95ba711` with three tests red. They were *my own* guards firing
-correctly — the manifest guard rejecting an unclassified new config, and the strict xfail failing by
-passing once the floor rose — but committing through them was wrong regardless; a guard I ignore is
-a guard I have disabled. Fixed in `6f437a2`. Also worth flagging: solo's r(depth, apparent) = −0.575
-is much better than −0.93 but not zero, and elevation stays at −0.747 by design — so solo still
-needs the incremental-value baseline and held-out splits to distinguish representation from
-geometry. It removes selection ambiguity, not monocular confounds.
+**Weakest point.** I specified these splits, ran them, and only caught the problem because
+fold-level SD was required alongside the aggregate. Had I reported only the mean, held-out category
+at 0.097 would have read as "poor generalization" rather than "unstable measurement", and held-out
+depth would have read as a finding about depth rather than an artifact of within-bin variance. The
+instruction to report fold variability is what surfaced it.
 
-**Next step.** Render a solo pilot (~200–400 images, ~15 min), run the pixel-level identifiability
-check on it — is depth recoverable from pixels for a single object, above the geometry baseline —
-and only then wire the layerwise probe. That is Stage 1's actual question, and it is now unblocked
-from the floor entirely.
+**Open decision — the evaluation metric for grouped splits.** Options: (a) score held-out folds
+against the FULL-set variance rather than the fold's, making R² comparable across splits;
+(b) use MAE / RMSE in metres, which has no variance-normalisation problem; (c) keep grouped splits
+for *ranking* (Spearman) and use random splits for magnitude; (d) hold out contiguous depth
+*ranges* wider than one bin so the test set has real variance. I lean (b)+(a) reported together —
+absolute error is interpretable for depth and immune to this artifact.
+
+**Next step.** Fix the evaluation protocol before extracting any model features. That is pure
+analysis, no rendering, and it must be settled first: the probe's headline number is an increment
+between two scores, so a broken score makes the increment uninterpretable regardless of what the
+representations contain.
