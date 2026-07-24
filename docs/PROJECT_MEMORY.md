@@ -2190,3 +2190,107 @@ fusion · M4a-Distractor = selector robustness under clutter, **extension not bl
 **Execution order (ruled):** (1) corrected pair validation done, F = 1.22 frozen ✅ → (2) implement
 small solo sampler → (3) run solo pixel identifiability + layerwise probe → (4) let solo results
 choose which layers/readouts the pair stage pursues → (5) distractor robustness last.
+
+## 📌 2026-07-21 (late) — M4a-Solo: envelope calibrated, 1,200 rendered, BLOCKED on split defect
+
+State at session end. Nothing running. Repo clean. **Next session starts at the split-metric fix.**
+
+### Where M4a stands
+
+- **PAIR track CLOSED.** Corrected validation passed (ΔR = +0.0000, fresh random verification
+  0/798, the one residual a float tie on the pose that defines the envelope minimum). Operating
+  floor **F = 1.225** frozen (+0.68% over corrected R = 1.2167). Envelope sweep demoted to
+  diagnostic/appendix. Optimizer + global-minimum search **formally retired**.
+- **SOLO (Stage 1) is the active line.** `build_solo_scene_specs` + `configs/m4a_v1_solo.yaml`
+  (set name `m4a_v1_solo_orth`). 1,200 images rendered, validator **ALL CHECKS GREEN**.
+- **DISTRACTOR** demoted to a robustness extension.
+
+### The solo camera envelope was CALIBRATED, not chosen
+
+The first smoke set (200 imgs, pair envelope) had **R²(B0_position) = 0.80** — object image position
+alone nearly solved depth, so Stage 1 would largely have re-discovered image elevation. Four
+candidate envelopes × 300 rendered images, against targets **pre-committed at `3c44222` before any
+candidate ran** (HARD R²(B0) ≤ 0.60):
+
+| candidate | R²(B0) | p(v\|z) overlap |
+|---|---:|---:|
+| current (pair envelope) | 0.813 | **0.067** ← depth bins nearly separable by image v |
+| wider_pitch | 0.517 | 0.350 |
+| wider_height | 0.581 | 0.333 |
+| **wider_pitch_height ← ADOPTED** | **0.468** | **0.450** |
+
+Adopted: `height_m ±0.60`, `pitch_deg ±9.0` (pair uses ±0.16, ±3.0). **Solo is deliberately
+released from the pair camera envelope** — it is a localization diagnostic, not a matched arm; a
+smaller Solo-Pair-Matched subset covers distribution transfer instead. Zero placement failures,
+zero truncation, depth range preserved.
+
+### Baselines on the RENDERED 1,200 (this is what the probe is judged against)
+
+| baseline | R² | fold SD |
+|---|---:|---:|
+| B0_position | 0.486 | 0.060 |
+| B1_appearance | 0.483 | 0.025 |
+| B2_semantic | −0.004 | 0.002 |
+| **B0 ∪ B2 — Claim A baseline** | **0.868** | 0.018 |
+| B0∪B1∪B2 — Claim B baseline | 0.949 | 0.005 |
+
+**Stage 1 = Claim A only:** Δ_H|B0,B2, headroom **0.132**. **Claim B** (Δ_H|B0,B1,B2, headroom
+0.051) is a **secondary descriptive diagnostic, NOT a gate**, and must never be written as
+"disproved" — the honest statement is that solo ground-plane images make depth nearly determined by
+explicit monocular geometry. `size_multipliers` deliberately NOT widened: succeeding there would
+measure whether the model recovers depth *after breaking normal perspective*, a different
+counterfactual experiment.
+
+### 🔴 BLOCKER — the held-out splits as specified are UNUSABLE
+
+| split | R² | fold SD |
+|---|---:|---:|
+| held-out size multiplier | 0.766 | 0.120 |
+| held-out category | 0.097 | **1.213** |
+| **held-out depth bin** | **−15.130** | 13.129 |
+
+**Two compounding causes, both split-design flaws, not model failures:**
+1. **Extrapolation at the extremes** — holding out depth bin 0 or 4 removes the end of the training
+   range: R² = −30.4 / −33.7.
+2. **A variance artifact that also hits interior bins** — R² within one held-out bin is computed
+   against *that bin's* variance (SD ≈ 0.15 m) versus the full set's 1.14 m, so interior bins still
+   score −7.6 / −5.0 / −4.6. **Interior-only holdout does NOT fix it.**
+
+Held-out category is separately unstable (4 groups, fold SD 1.213 — the aggregate 0.097 hides
+catastrophic folds).
+
+**This blocks feature extraction**: the probe's headline is an *increment between two scores*, so a
+broken score makes the increment uninterpretable regardless of what the representations contain.
+
+**Options (none chosen):** (a) score folds against FULL-set variance; (b) MAE/RMSE in metres, immune
+to the artifact; (c) grouped splits for ranking (Spearman) + random splits for magnitude; (d) hold
+out contiguous depth *ranges* wide enough to carry real variance. Leaning **(b)+(a) reported
+together**.
+
+⚠ Caught only because fold-level SD was required alongside the aggregate. The mean alone would have
+read as "poor generalization" and as a *finding about depth*, when both are artifacts.
+
+### New instrument: baseline taxonomy is machine-checked (`src/sbind/probes/baselines.py`)
+
+Two feature contaminations were found by eye in consecutive checkpoints and neither was caught by a
+test, so the taxonomy is now load-bearing code: disjoint groups (**B0_position / B1_appearance /
+B2_semantic** — "B0 selection" is a misnomer in a single-object set) · hard-fail on duplicates ·
+hard-fail on border distances in the position group **by name** · **hard-fail on ALGEBRAIC
+reconstruction** (each feature regressed on the other groups, rejected at R² ≥ 0.995) ·
+`FeatureManifest` recording names/transforms/dim/normalization/estimator/alpha/split.
+
+The algebraic check is the load-bearing one: its test renames border distances to `edge_a`/`edge_b`
+so the name check is blind, and the identity `edge_a + edge_b = W − bbox_w` still trips it.
+**Classification by name is exactly what failed** (`bl + br` encodes bbox width, which inflated
+R²(B0) by up to +0.086).
+
+### Analysis spec for the probe, once the split metric is fixed
+
+Report per stage × target: B0/B1/B2 and unions · raw `H_l → z` · **Δᴬ** · Δᴮ (secondary) ·
+positive/nuisance controls (category, world-x, retinal size) · **global vs object-local readout** ·
+**fold-level variability, not aggregate R² alone**. Readouts to compare: global token mean · mask
+pooled · bbox pooled · spatial strip · LM-input tokens · projector output. ⚠ Mask-pooling beating
+global is **not** object-centric depth if the increment is fully explained by area/centroid.
+**Positive controls gate interpretation:** if category or world-x cannot be read, the fault is
+extraction/pooling, not a missing depth representation. Raw `R²(H_l)` is **never** depth-
+representation evidence on its own.

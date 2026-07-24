@@ -4,6 +4,14 @@ Mechanistic study of where metric spatial information becomes unavailable or unu
 
 ## Before any work
 
+0. **CURRENT STATE — 2026-07-21.** M4a is split into three stages (see the box at
+   `docs/IMPLEMENTATION_PLAN.md` §M4a). The PAIR envelope/floor track is **CLOSED** (F = 1.225
+   frozen; optimizer and global-minimum search retired — do not reopen). Active line is
+   **M4a-Solo Stage 1**: 1,200 images rendered and validator-green, **BLOCKED** on a held-out-split
+   evaluation defect (held-out depth bin R² = −15.1, a variance/extrapolation artifact, not a model
+   failure). **Start there.** Protocol: `docs/M4A_SOLO_PROTOCOL.md`. Latest state:
+   `reports/checkpoint_briefing.md` and the last entry of `docs/PROJECT_MEMORY.md`.
+
 1. Read `docs/IMPLEMENTATION_PLAN.md` — milestones M0–M7 with acceptance criteria. Work on exactly ONE milestone per session; STOP when its acceptance criteria pass. Never start the next milestone unprompted.
 2. Read `docs/PROJECT_MEMORY.md` — research context, decisions, and hard-won lessons.
 3. `docs/research_proposal_spatial_binding.md` and `docs/VSR_niches_critical_deep_read.md` hold the scientific rationale and literature analysis — read only when a task needs them (probe design, paper writing), not by default.

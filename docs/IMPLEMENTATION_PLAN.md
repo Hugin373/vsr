@@ -319,7 +319,32 @@ forward-compat but is outside the core matrix.)
 
 #### M4a — Stimulus battery v1 (generator). Gate: IMAGE-IDENTIFIABILITY
 
-**THREE STIMULUS REGIMES, not two (6e):**
+> ## 🧭 M4a IS NOW THREE STAGES (restructured 2026-07-21) — READ THIS FIRST
+>
+> The regimes below are all **PAIR** designs. They were conflating several purposes, so M4a was
+> split by what each stimulus can actually answer:
+>
+> | stage | stimulus | answers | needs floor/R? |
+> |---|---|---|---|
+> | **M4a-Solo** ← current work | 1 object | is depth/x/category *linearly readable*, at which stages, **above the geometry baseline** | **no** |
+> | **M4a-Pair** | the 3 regimes below | binding to the right object, ordinal, ratio, cue fusion | yes (F = 1.225) |
+> | **M4a-Distractor** | pair + irrelevant object | selector robustness under clutter | **extension, not a blocker** |
+>
+> **Why solo first:** the congruence floor exists only to make a *pair's* apparent-size cues
+> congruent, so Stage 1 needs none of that machinery and was unblocked from the entire floor
+> programme. Solo is **localization scaffolding, not final thesis evidence** — the thesis is
+> relational, so the Pair stage carries the binding/relation claims. Protocol:
+> `docs/M4A_SOLO_PROTOCOL.md`.
+>
+> **Canonical framing (do not weaken):** *M4a-Solo isolates single-object depth availability
+> without pairwise binding or congruence machinery. It removes multi-object selection ambiguity,
+> but NOT monocular geometric confounds.*
+>
+> **CURRENT STATE (2026-07-21):** pair envelope track CLOSED and floor frozen at **F = 1.225**;
+> Solo-Orthogonalized 1,200 images rendered and validator-green; **BLOCKED** on a held-out-split
+> evaluation defect — see PROJECT_MEMORY's last entry and `reports/checkpoint_briefing.md`.
+
+**THREE STIMULUS REGIMES, not two (6e):** *(these are the PAIR stage — see the box above)*
 1. **natural-congruent** — all cues agree. *Controls only.*
 2. **counterbalanced** — nuisance cues vary **independently**, scenes stay **PLAUSIBLE**.
    **🚩 THE PRIMARY LOCALIZATION CLAIM LIVES HERE.** This is what preempts the OOD attack
